@@ -143,9 +143,9 @@ async function confirmAndSignIn(email: string, password: string) {
       type: "magiclink",
       email,
     });
-    const userId = linkData?.user?.id;
-    if (userId && !linkData.user.email_confirmed_at) {
-      await admin.auth.admin.updateUserById(userId, { email_confirm: true });
+    const user = linkData?.user;
+    if (user?.id && !user.email_confirmed_at) {
+      await admin.auth.admin.updateUserById(user.id, { email_confirm: true });
     }
   } catch {
     // ignore — sign-in below may still work
