@@ -58,6 +58,9 @@ export default async function EditListingPage({
 
         <label className="block text-sm font-medium">
           {t.sell.titleLabel}
+          <span className="ml-0.5 text-red-600" aria-hidden>
+            *
+          </span>
           <input
             name="title"
             required
@@ -70,6 +73,7 @@ export default async function EditListingPage({
           label={t.sell.category}
           name="category_id"
           required
+          requiredMark
           defaultValue={listing.category_id}
           placeholder=""
           options={(categories || []).map((cat) => ({
@@ -80,6 +84,9 @@ export default async function EditListingPage({
 
         <label className="block text-sm font-medium">
           {t.sell.price}
+          <span className="ml-0.5 text-red-600" aria-hidden>
+            *
+          </span>
           <span className="relative mt-1 block">
             <span
               aria-hidden

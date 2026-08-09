@@ -7,12 +7,14 @@ type Props = SelectHTMLAttributes<HTMLSelectElement> & {
   label: string;
   options: Option[];
   placeholder?: string;
+  requiredMark?: boolean;
 };
 
 export function SelectField({
   label,
   options,
   placeholder = "",
+  requiredMark = false,
   className = "",
   id,
   ...props
@@ -22,6 +24,11 @@ export function SelectField({
   return (
     <label className="block text-sm font-medium" htmlFor={selectId}>
       {label}
+      {requiredMark ? (
+        <span className="ml-0.5 text-red-600" aria-hidden>
+          *
+        </span>
+      ) : null}
       <span className="relative mt-1 block">
         <select
           id={selectId}
