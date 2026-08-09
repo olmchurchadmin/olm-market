@@ -1,7 +1,6 @@
 import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ExistingImagesField } from "@/components/existing-images-field";
 import { FileUploadField } from "@/components/ui/file-upload-field";
 import { SelectField } from "@/components/ui/select-field";
 import { updateListingAction } from "@/lib/actions/listings";
@@ -101,12 +100,11 @@ export default async function EditListingPage({
           />
         </label>
 
-        <ExistingImagesField images={images} />
-
         <FileUploadField
-          label="사진 추가"
+          label="사진"
           name="images"
-          hint="기존 사진과 합쳐 최대 6장"
+          hint="기존 사진을 유지한 채 추가하거나, X로 지울 수 있습니다"
+          existingImages={images}
         />
 
         <div className="flex flex-wrap gap-3">
