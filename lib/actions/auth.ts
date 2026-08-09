@@ -93,15 +93,16 @@ export async function signUpWithPasswordAction(formData: FormData) {
   if (error) {
     const already =
       /already registered|already exists|user already/i.test(error.message);
-    if (!already) {
+    if (already) {
+      // Previous unconfirmed attempt: confirm + sign in, or fall back to login.
+      const signedIn = await confirmAndSignIn(email, password);
+      if (signedIn) redirect(next);
       redirect(
-        `/login?mode=signup&error=${encodeURIComponent(mapAuthError(error.message))}&next=${encodeURIComponent(next)}`,
+        `/login?mode=signin&error=${encodeURIComponent("이미 가입된 이메일입니다. 로그인해 주세요.")}&next=${encodeURIComponent(next)}`,
       );
     }
-    // Existing account: still try to send a confirmation / login link via Resend.
-    await sendSignupConfirmEmail(email, password, redirectTo);
     redirect(
-      `/login?mode=signin&sent=signup&next=${encodeURIComponent(next)}`,
+      `/login?mode=signup&error=${encodeURIComponent(mapAuthError(error.message))}&next=${encodeURIComponent(next)}`,
     );
   }
 
@@ -109,62 +110,50 @@ export async function signUpWithPasswordAction(formData: FormData) {
     redirect(next);
   }
 
-  // Confirm-email is ON: Supabase built-in mail often doesn't arrive.
-  // Send the confirmation link ourselves via Resend.
-  const sendResult = await sendSignupConfirmEmail(email, password, redirectTo);
-  if (sendResult && !sendResult.ok) {
-    redirect(
-      `/login?mode=signup&error=${encodeURIComponent(mapEmailSendError(sendResult))}&next=${encodeURIComponent(next)}`,
-    );
+  // No session (Confirm email still on, or prior unconfirmed user):
+  // auto-confirm via service role so signup works without Resend domain.
+  if (data.user?.id) {
+    try {
+      const admin = createServiceClient();
+      await admin.auth.admin.updateUserById(data.user.id, {
+        email_confirm: true,
+      });
+    } catch {
+      // continue to sign-in attempt
+    }
+  }
+
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+  if (!signInError) {
+    redirect(next);
   }
 
   redirect(
-    `/login?mode=signin&sent=signup&next=${encodeURIComponent(next)}`,
+    `/login?mode=signin&error=${encodeURIComponent(mapAuthError(signInError.message))}&next=${encodeURIComponent(next)}`,
   );
 }
 
-async function sendSignupConfirmEmail(
-  email: string,
-  password: string,
-  redirectTo: string,
-) {
+async function confirmAndSignIn(email: string, password: string) {
   try {
     const admin = createServiceClient();
-    let actionLink: string | undefined;
-
-    const signupLink = await admin.auth.admin.generateLink({
-      type: "signup",
+    const { data: linkData } = await admin.auth.admin.generateLink({
+      type: "magiclink",
       email,
-      password,
-      options: { redirectTo },
     });
-    actionLink = signupLink.data?.properties?.action_link;
-
-    if (!actionLink) {
-      const magic = await admin.auth.admin.generateLink({
-        type: "magiclink",
-        email,
-        options: { redirectTo },
-      });
-      actionLink = magic.data?.properties?.action_link;
+    const userId = linkData?.user?.id;
+    if (userId && !linkData.user.email_confirmed_at) {
+      await admin.auth.admin.updateUserById(userId, { email_confirm: true });
     }
-
-    if (!actionLink) {
-      return { ok: false as const, reason: "failed" as const, error: "No action link" };
-    }
-
-    return await sendEmail({
-      to: email,
-      subject: "[Church Market] 이메일 인증",
-      html: signupConfirmHtml(actionLink),
-    });
-  } catch (err) {
-    return {
-      ok: false as const,
-      reason: "failed" as const,
-      error: err instanceof Error ? err.message : "send failed",
-    };
+  } catch {
+    // ignore — sign-in below may still work
   }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  return !error;
 }
 
 export async function requestPasswordResetAction(formData: FormData) {
@@ -271,25 +260,6 @@ function mapAuthError(message: string) {
   return message || "요청을 처리하지 못했습니다.";
 }
 
-function mapEmailSendError(result: {
-  ok: false;
-  reason: "pending_credentials" | "failed";
-  error?: string;
-}) {
-  if (result.reason === "pending_credentials") {
-    return "메일 발송 설정(RESEND)이 없습니다. 관리자에게 문의해 주세요.";
-  }
-  const msg = (result.error || "").toLowerCase();
-  if (
-    msg.includes("only send testing emails") ||
-    msg.includes("verify a domain") ||
-    msg.includes("not verified")
-  ) {
-    return "Resend 테스트 발신으로는 가입한 계정 이메일로만 보낼 수 있습니다. Resend에서 도메인을 인증하거나, 인증 메일 없이 가입하도록 Supabase Confirm email을 끄세요.";
-  }
-  return "인증 메일 발송에 실패했습니다. 잠시 후 다시 시도해 주세요.";
-}
-
 function brandedAuthHtml(options: {
   title: string;
   body: string;
@@ -315,15 +285,6 @@ function passwordResetHtml(actionLink: string) {
     title: "비밀번호 재설정",
     body: "아래 버튼을 눌러 새 비밀번호를 설정하세요. 요청하지 않았다면 이 메일을 무시해도 됩니다.",
     buttonLabel: "새 비밀번호 설정",
-    actionLink,
-  });
-}
-
-function signupConfirmHtml(actionLink: string) {
-  return brandedAuthHtml({
-    title: "이메일 인증",
-    body: "Church Market 가입을 완료하려면 아래 버튼을 눌러 이메일을 인증해 주세요.",
-    buttonLabel: "이메일 인증하기",
     actionLink,
   });
 }
