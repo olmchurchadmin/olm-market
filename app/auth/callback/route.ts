@@ -10,9 +10,11 @@ export async function GET(request: Request) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
+      return NextResponse.redirect(new URL(next, origin));
     }
   }
 
-  return NextResponse.redirect(`${origin}/login?error=auth`);
+  return NextResponse.redirect(
+    new URL(`/login?error=${encodeURIComponent("인증에 실패했습니다.")}`, origin),
+  );
 }
