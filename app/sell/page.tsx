@@ -63,7 +63,11 @@ export default async function SellPage() {
           />
         </label>
 
-        <FileUploadField label="사진" name="images" hint="최대 6장" />
+        <FileUploadField
+          label="사진"
+          name="images"
+          hint="최대 6장 · 큰 사진은 자동으로 줄여 올립니다"
+        />
 
         <button
           type="submit"

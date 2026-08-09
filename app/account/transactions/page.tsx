@@ -1,20 +1,27 @@
 import { BellIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { AccountShell } from "@/components/account-shell";
+import { SellingListingRow } from "@/components/selling-listing-row";
 import { getCurrentProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import type { Listing } from "@/lib/types";
 import {
   accountDisplayName,
   formatPrice,
-  listingStatusLabel,
+  listingImageUrl,
   orderStatusLabel,
 } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-export default async function AccountTransactionsPage() {
+export default async function AccountTransactionsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; deleted?: string }>;
+}) {
   const profile = await getCurrentProfile();
   const supabase = await createClient();
+  const { error, deleted } = await searchParams;
 
   if (!profile) return null;
 
@@ -44,6 +51,17 @@ export default async function AccountTransactionsPage() {
       subtitle={`${accountDisplayName(profile)} · 내 거래`}
       active="transactions"
     >
+      {error ? (
+        <p className="mb-6 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+          {error}
+        </p>
+      ) : null}
+      {deleted ? (
+        <p className="mb-6 rounded-md border border-brand/20 bg-brand/5 px-3 py-2 text-sm text-brand">
+          물품을 삭제했습니다.
+        </p>
+      ) : null}
+
       <section>
         <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-brand">
           <BellIcon className="size-6" aria-hidden />
@@ -72,24 +90,8 @@ export default async function AccountTransactionsPage() {
         </h2>
         <ul className="mt-4 space-y-3">
           {(selling || []).length ? (
-            selling!.map((item) => (
-              <li
-                key={item.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-brand/10 bg-white/70 px-4 py-3"
-              >
-                <div>
-                  <Link
-                    href={`/market/${item.id}`}
-                    className="font-medium text-brand hover:underline"
-                  >
-                    {item.title}
-                  </Link>
-                  <p className="text-sm text-ink-muted">
-                    {formatPrice(item.price_cents)} ·{" "}
-                    {listingStatusLabel(item.status)}
-                  </p>
-                </div>
-              </li>
+            (selling as Listing[]).map((item) => (
+              <SellingListingRow key={item.id} listing={item} />
             ))
           ) : (
             <li className="text-sm text-ink-muted">등록한 물건이 없습니다.</li>
@@ -107,16 +109,42 @@ export default async function AccountTransactionsPage() {
               const listing = Array.isArray(order.listings)
                 ? order.listings[0]
                 : order.listings;
+              const thumb = listingImageUrl(listing?.cover_image_path);
               return (
                 <li
                   key={order.id}
-                  className="rounded-md border border-brand/10 bg-white/70 px-4 py-3"
+                  className="flex gap-3 rounded-md border border-brand/10 bg-white/70 p-3"
                 >
-                  <p className="font-medium">{listing?.title || "물품"}</p>
-                  <p className="text-sm text-ink-muted">
-                    {formatPrice(order.price_cents)} ·{" "}
-                    {orderStatusLabel(order.status)}
-                  </p>
+                  <div className="relative size-16 shrink-0 overflow-hidden rounded-md bg-[linear-gradient(135deg,#dfe8e2,#f7f3ea)] sm:size-20">
+                    {thumb ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={thumb}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span className="flex h-full items-center justify-center text-[10px] text-ink-muted">
+                        No image
+                      </span>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    {listing?.id ? (
+                      <Link
+                        href={`/market/${listing.id}`}
+                        className="font-medium text-brand hover:underline"
+                      >
+                        {listing.title || "물품"}
+                      </Link>
+                    ) : (
+                      <p className="font-medium">{listing?.title || "물품"}</p>
+                    )}
+                    <p className="text-sm text-ink-muted">
+                      {formatPrice(order.price_cents)} ·{" "}
+                      {orderStatusLabel(order.status)}
+                    </p>
+                  </div>
                 </li>
               );
             })
