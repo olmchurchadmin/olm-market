@@ -3,6 +3,7 @@
 import { CheckIcon, TruckIcon } from "@heroicons/react/24/outline";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useConfirm } from "@/components/confirm-dialog";
 import {
   adminMarkDropoffAction,
   adminMarkPickupAction,
@@ -16,6 +17,7 @@ export function AdminOrderActions({
   status: string;
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [pending, startTransition] = useTransition();
 
   if (status === "awaiting_dropoff") {
@@ -25,6 +27,13 @@ export function AdminOrderActions({
         disabled={pending}
         onClick={() =>
           startTransition(async () => {
+            const ok = await confirm({
+              title: "드롭오프 확인",
+              message: "판매자가 성당에 물건을 맡겼나요?",
+              confirmLabel: "확인",
+              cancelLabel: "취소",
+            });
+            if (!ok) return;
             await adminMarkDropoffAction(orderId);
             router.refresh();
           })
@@ -44,6 +53,13 @@ export function AdminOrderActions({
         disabled={pending}
         onClick={() =>
           startTransition(async () => {
+            const ok = await confirm({
+              title: "픽업 완료",
+              message: "구매자가 현금 결제 후 픽업을 완료했나요?",
+              confirmLabel: "완료",
+              cancelLabel: "취소",
+            });
+            if (!ok) return;
             await adminMarkPickupAction(orderId);
             router.refresh();
           })

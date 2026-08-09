@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Manrope } from "next/font/google";
+import { ConfirmDialogProvider } from "@/components/confirm-dialog";
 import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
 
@@ -28,8 +29,10 @@ export default function RootLayout({
   return (
     <html lang="ko" className={`${display.variable} ${body.variable} h-full`}>
       <body className="min-h-full antialiased">
-        <SiteHeader />
-        {children}
+        <ConfirmDialogProvider>
+          <SiteHeader />
+          {children}
+        </ConfirmDialogProvider>
       </body>
     </html>
   );
