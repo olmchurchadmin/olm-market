@@ -1,6 +1,7 @@
 import { PlusIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { ListingCard } from "@/components/listing-card";
+import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import type { Listing } from "@/lib/types";
 
@@ -12,6 +13,7 @@ export default async function MarketPage({
   searchParams: Promise<{ category?: string }>;
 }) {
   const { category } = await searchParams;
+  const { t } = await getI18n();
   const configured = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -21,12 +23,9 @@ export default async function MarketPage({
     return (
       <main className="mx-auto max-w-3xl px-6 py-20">
         <h1 className="font-[family-name:var(--font-display)] text-4xl text-brand">
-          장터
+          {t.market.title}
         </h1>
-        <p className="mt-4 text-ink-muted">
-          Supabase 환경변수가 아직 연결되지 않았습니다. `.env.local`에 프로젝트
-          키를 넣어 주세요.
-        </p>
+        <p className="mt-4 text-ink-muted">{t.market.noConfig}</p>
       </main>
     );
   }
@@ -57,18 +56,16 @@ export default async function MarketPage({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="font-[family-name:var(--font-display)] text-3xl text-brand sm:text-4xl">
-            장터
+            {t.market.title}
           </h1>
-          <p className="mt-2 text-ink-muted">
-            카테고리별로 물건을 둘러보고 Buy로 예약하세요.
-          </p>
+          <p className="mt-2 text-ink-muted">{t.market.blurb}</p>
         </div>
         <Link
           href="/sell"
           className="inline-flex items-center justify-center gap-1.5 rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-soft"
         >
           <PlusIcon className="size-4" aria-hidden />
-          판매 등록
+          {t.market.sellCta}
         </Link>
       </div>
 
@@ -81,7 +78,7 @@ export default async function MarketPage({
               : "bg-white/70 text-foreground hover:bg-white"
           }`}
         >
-          전체
+          {t.market.all}
         </Link>
         {(categories || []).map((cat) => (
           <Link
@@ -105,7 +102,7 @@ export default async function MarketPage({
           ))
         ) : (
           <p className="text-ink-muted sm:col-span-2 lg:col-span-3">
-            아직 등록된 물건이 없습니다. 첫 물건을 올려보세요.
+            {t.market.empty}
           </p>
         )}
       </div>

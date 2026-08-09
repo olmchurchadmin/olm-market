@@ -1,6 +1,9 @@
+"use client";
+
 import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { DeleteListingButton } from "@/components/delete-listing-button";
+import { useI18n } from "@/components/locale-provider";
 import type { Listing } from "@/lib/types";
 import {
   formatPrice,
@@ -9,6 +12,7 @@ import {
 } from "@/lib/utils";
 
 export function SellingListingRow({ listing }: { listing: Listing }) {
+  const { locale, t } = useI18n();
   const thumb = listingImageUrl(listing.cover_image_path);
   const canManage =
     listing.status === "available" || listing.status === "cancelled";
@@ -24,7 +28,7 @@ export function SellingListingRow({ listing }: { listing: Listing }) {
           <img src={thumb} alt="" className="h-full w-full object-cover" />
         ) : (
           <span className="flex h-full items-center justify-center text-[10px] text-ink-muted">
-            No image
+            {t.market.noImage}
           </span>
         )}
       </Link>
@@ -37,8 +41,8 @@ export function SellingListingRow({ listing }: { listing: Listing }) {
           {listing.title}
         </Link>
         <p className="text-sm text-ink-muted">
-          {formatPrice(listing.price_cents)} ·{" "}
-          {listingStatusLabel(listing.status)}
+          {formatPrice(listing.price_cents, locale)} ·{" "}
+          {listingStatusLabel(listing.status, t.status)}
         </p>
 
         {canManage ? (
@@ -48,7 +52,7 @@ export function SellingListingRow({ listing }: { listing: Listing }) {
               className="inline-flex items-center gap-1 rounded-md border border-brand/15 bg-white px-2.5 py-1 text-xs font-medium text-brand hover:bg-brand/5"
             >
               <PencilSquareIcon className="size-3.5" aria-hidden />
-              수정
+              {t.account.edit}
             </Link>
             <DeleteListingButton listingId={listing.id} />
           </div>

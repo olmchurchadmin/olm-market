@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { getI18n } from "@/lib/i18n/server";
 
-export default function Home() {
+export default async function Home() {
+  const { t } = await getI18n();
+
   return (
     <div className="min-h-full">
       <section className="relative isolate flex min-h-[100svh] flex-col justify-end overflow-hidden text-white">
@@ -23,27 +26,26 @@ export default function Home() {
 
         <div className="relative z-10 mx-auto w-full max-w-5xl px-6 pb-16 pt-40 sm:px-10 sm:pb-20">
           <p className="animate-rise font-[family-name:var(--font-display)] text-5xl leading-none tracking-tight sm:text-7xl md:text-8xl">
-            Church Market
+            {t.brand}
           </p>
           <h1 className="animate-rise-delay-1 mt-5 max-w-2xl font-[family-name:var(--font-display)] text-2xl leading-snug font-medium text-white/95 sm:text-4xl">
-            성당 온라인 장터
+            {t.home.subtitle}
           </h1>
           <p className="animate-rise-delay-2 mt-4 max-w-xl text-base leading-relaxed text-white/85 sm:text-lg">
-            사진을 올려 팔고, Buy로 예약하세요. 물건은 성당에서 전달하고 현금으로
-            결제합니다.
+            {t.home.blurb}
           </p>
           <div className="animate-rise-delay-3 mt-8 flex flex-wrap gap-3">
             <Link
               href="/market"
               className="inline-flex items-center justify-center rounded-md bg-sun px-5 py-3 text-sm font-semibold text-[#1c2a1f] transition duration-300 hover:-translate-y-0.5 hover:bg-[#f0c65d]"
             >
-              장터 보기
+              {t.home.browse}
             </Link>
             <Link
               href="/sell"
               className="inline-flex items-center justify-center rounded-md border border-white/40 bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur-sm transition duration-300 hover:-translate-y-0.5 hover:bg-white/20"
             >
-              물건 등록
+              {t.home.listItem}
             </Link>
           </div>
         </div>
@@ -52,18 +54,9 @@ export default function Home() {
       <section className="px-6 py-20 sm:px-10">
         <div className="mx-auto grid max-w-5xl gap-10 md:grid-cols-3">
           {[
-            {
-              title: "올리기",
-              body: "사진, 카테고리, 설명, 가격을 입력해 등록합니다.",
-            },
-            {
-              title: "Buy",
-              body: "원하는 물건의 Buy를 누르면 거래가 성립됩니다.",
-            },
-            {
-              title: "성당 픽업",
-              body: "판매자는 물건을 맡기고, 구매자는 현금 결제 후 픽업합니다.",
-            },
+            { title: t.home.stepList, body: t.home.stepListBody },
+            { title: t.home.stepBuy, body: t.home.stepBuyBody },
+            { title: t.home.stepPickup, body: t.home.stepPickupBody },
           ].map((item) => (
             <div key={item.title}>
               <h2 className="font-[family-name:var(--font-display)] text-2xl text-brand">
@@ -76,7 +69,7 @@ export default function Home() {
       </section>
 
       <footer className="px-6 py-8 text-center text-sm text-ink-muted sm:px-10">
-        <p>Church Market · 성당 온라인 장터</p>
+        <p>{t.home.footer}</p>
       </footer>
     </div>
   );

@@ -1,7 +1,8 @@
 import type { Profile, PublicSeller } from "@/lib/types";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 
-export function formatPrice(cents: number) {
-  return new Intl.NumberFormat("ko-KR", {
+export function formatPrice(cents: number, locale = "ko") {
+  return new Intl.NumberFormat(locale === "en" ? "en-US" : "ko-KR", {
     style: "currency",
     currency: "USD",
     maximumFractionDigits: 0,
@@ -11,18 +12,22 @@ export function formatPrice(cents: number) {
 /** Label shown in the signed-in user's own menu (never anonymized). */
 export function accountDisplayName(
   profile: Pick<Profile, "nickname" | "full_name" | "email">,
+  fallback = "Member",
 ) {
-  return profile.nickname || profile.full_name || profile.email || "회원";
+  return profile.nickname || profile.full_name || profile.email || fallback;
 }
 
 /** Public seller label on market cards/detail. Honors is_anonymous. */
 export function publicSellerLabel(
   seller: PublicSeller | PublicSeller[] | null | undefined,
+  labels?: { seller: string; anonymous: string },
 ) {
   const row = Array.isArray(seller) ? seller[0] : seller;
-  if (!row) return "판매자";
-  if (row.is_anonymous) return "익명";
-  return row.nickname || row.full_name || "판매자";
+  const sellerLabel = labels?.seller || "Seller";
+  const anonymousLabel = labels?.anonymous || "Anonymous";
+  if (!row) return sellerLabel;
+  if (row.is_anonymous) return anonymousLabel;
+  return row.nickname || row.full_name || sellerLabel;
 }
 
 export function listingImageUrl(path: string | null | undefined) {
@@ -33,7 +38,13 @@ export function listingImageUrl(path: string | null | undefined) {
   return `${base}/storage/v1/object/public/listing-images/${path}`;
 }
 
-export function listingStatusLabel(status: string) {
+export function listingStatusLabel(
+  status: string,
+  dict?: Dictionary["status"],
+) {
+  if (dict && status in dict) {
+    return dict[status as keyof Dictionary["status"]];
+  }
   switch (status) {
     case "available":
       return "판매중";
@@ -50,11 +61,14 @@ export function listingStatusLabel(status: string) {
   }
 }
 
-export function orderStatusLabel(status: string) {
+export function orderStatusLabel(status: string, dict?: Dictionary["status"]) {
+  if (status === "reserved" || status === "awaiting_dropoff") {
+    return dict?.awaiting_dropoff || "드롭오프 대기";
+  }
+  if (dict && status in dict) {
+    return dict[status as keyof Dictionary["status"]];
+  }
   switch (status) {
-    case "reserved":
-    case "awaiting_dropoff":
-      return "드롭오프 대기";
     case "ready_for_pickup":
       return "픽업 대기";
     case "completed":

@@ -2,6 +2,7 @@ import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { EmailAuthPanel } from "@/components/auth/email-auth-panel";
 import { signInWithOAuth } from "@/lib/actions/auth";
+import { getI18n } from "@/lib/i18n/server";
 
 type Mode = "signin" | "signup" | "forgot";
 
@@ -23,19 +24,20 @@ export default async function LoginPage({
   const params = await searchParams;
   const next = params.next || "/market";
   const mode = parseMode(params.mode);
+  const { t } = await getI18n();
 
   const titles: Record<Mode, { title: string; subtitle: string }> = {
     signin: {
-      title: "로그인",
-      subtitle: "Google, 카카오, 또는 이메일로 시작하세요.",
+      title: t.auth.signIn,
+      subtitle: t.auth.signInSubtitle,
     },
     signup: {
-      title: "회원가입",
-      subtitle: "이메일과 비밀번호로 Church Market 계정을 만드세요.",
+      title: t.auth.signUp,
+      subtitle: t.auth.signUpSubtitle,
     },
     forgot: {
-      title: "비밀번호 찾기",
-      subtitle: "가입한 이메일로 재설정 링크를 보내 드립니다.",
+      title: t.auth.forgot,
+      subtitle: t.auth.forgotSubtitle,
     },
   };
 
@@ -59,7 +61,7 @@ export default async function LoginPage({
                 type="submit"
                 className="w-full rounded-md border border-brand/15 bg-white px-4 py-3 text-sm font-semibold text-foreground hover:border-brand/30"
               >
-                Google로 계속
+                {t.auth.continueGoogle}
               </button>
             </form>
             <form
@@ -72,14 +74,14 @@ export default async function LoginPage({
                 type="submit"
                 className="w-full rounded-md bg-[#FEE500] px-4 py-3 text-sm font-semibold text-[#191600] hover:brightness-95"
               >
-                카카오로 계속
+                {t.auth.continueKakao}
               </button>
             </form>
           </div>
 
           <div className="my-8 flex items-center gap-3 text-xs tracking-wide text-ink-muted uppercase">
             <div className="h-px flex-1 bg-brand/15" />
-            또는 이메일
+            {t.auth.orEmail}
             <div className="h-px flex-1 bg-brand/15" />
           </div>
         </>
@@ -100,7 +102,7 @@ export default async function LoginPage({
           className="inline-flex items-center gap-1.5 underline"
         >
           <ArrowLeftIcon className="size-4" aria-hidden />
-          장터로 돌아가기
+          {t.auth.backToMarket}
         </Link>
       </p>
     </main>

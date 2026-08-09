@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { BuyButton } from "@/components/buy-button";
 import { ListingGallery } from "@/components/listing-gallery";
 import { getSessionUser } from "@/lib/auth";
+import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import {
   formatPrice,
@@ -19,6 +20,7 @@ export default async function ListingDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const { locale, t } = await getI18n();
   const supabase = await createClient();
   const user = await getSessionUser();
 
@@ -38,6 +40,7 @@ export default async function ListingDetailPage({
   );
   const canBuy =
     listing.status === "available" && user?.id !== listing.seller_id;
+  const statusLabel = listingStatusLabel(listing.status, t.status);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
@@ -46,7 +49,7 @@ export default async function ListingDetailPage({
         className="inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-brand"
       >
         <ArrowLeftIcon className="size-4" aria-hidden />
-        장터
+        {t.market.back}
       </Link>
 
       <div className="mt-6 grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
@@ -64,40 +67,43 @@ export default async function ListingDetailPage({
             {listing.title}
           </h1>
           <p className="mt-3 text-2xl font-semibold">
-            {formatPrice(listing.price_cents)}
+            {formatPrice(listing.price_cents, locale)}
           </p>
           <p className="mt-2 text-sm text-ink-muted">
-            상태: {listingStatusLabel(listing.status)}
+            {t.market.status}: {statusLabel}
           </p>
           <p className="mt-1 text-sm text-ink-muted">
-            판매자 · {publicSellerLabel(listing.seller)}
+            {t.market.seller} ·{" "}
+            {publicSellerLabel(listing.seller, {
+              seller: t.market.seller,
+              anonymous: t.market.anonymous,
+            })}
           </p>
           <p className="mt-6 whitespace-pre-wrap leading-relaxed text-foreground">
-            {listing.description || "설명이 없습니다."}
+            {listing.description || t.market.noDescription}
           </p>
 
           <div className="mt-8 space-y-3 border-t border-brand/10 pt-6">
             {listing.status === "sold" ? (
               <p className="inline-flex rounded-md bg-brand px-3 py-2 text-sm font-semibold text-white">
-                판매완료
+                {t.market.sold}
               </p>
             ) : listing.status !== "available" ? (
               <p className="text-sm font-medium text-brand">
-                이 물건은 현재 {listingStatusLabel(listing.status)} 상태입니다.
+                {t.market.notAvailable.replace("{status}", statusLabel)}
               </p>
             ) : !user ? (
               <Link
                 href={`/login?next=/market/${listing.id}`}
                 className="inline-flex rounded-md bg-sun px-5 py-3 text-sm font-semibold text-[#1c2a1f]"
               >
-                로그인 후 Buy
+                {t.market.loginToBuy}
               </Link>
             ) : (
               <BuyButton listingId={listing.id} disabled={!canBuy} />
             )}
             <p className="text-xs leading-relaxed text-ink-muted">
-              Buy 후 판매자는 다음 주 성당에 물건을 맡기고, 구매자는 관리자에게
-              현금 결제 후 픽업합니다.
+              {t.market.buyHint}
             </p>
           </div>
         </div>

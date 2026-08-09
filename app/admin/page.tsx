@@ -8,6 +8,7 @@ import Link from "next/link";
 import { AdminOrderActions } from "@/components/admin-order-actions";
 import { ResolveComplaintButton } from "@/components/resolve-complaint-button";
 import { requireAdmin } from "@/lib/auth";
+import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import type { AdminStats } from "@/lib/types";
 import { accountDisplayName, formatPrice, orderStatusLabel } from "@/lib/utils";
@@ -40,6 +41,7 @@ export default async function AdminPage({
   searchParams: Promise<{ error?: string; resolved?: string }>;
 }) {
   await requireAdmin();
+  const { locale, t } = await getI18n();
   const { error, resolved } = await searchParams;
   const supabase = await createClient();
 
@@ -89,17 +91,17 @@ export default async function AdminPage({
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-[family-name:var(--font-display)] text-3xl text-brand sm:text-4xl">
-            Admin
+            {t.admin.title}
           </h1>
           <p className="mt-2 text-sm text-ink-muted sm:text-base">
-            회원 · 등록/판매 통계 · 컴플레인 · 주문 파이프라인을 한눈에 봅니다.
+            {t.admin.blurb}
           </p>
         </div>
         <Link
           href="/market"
           className="text-sm text-ink-muted hover:text-brand"
         >
-          장터로
+          {t.admin.toMarket}
         </Link>
       </div>
 
@@ -110,50 +112,54 @@ export default async function AdminPage({
       ) : null}
       {resolved ? (
         <p className="mt-6 rounded-md border border-brand/20 bg-brand/5 px-3 py-2 text-sm text-brand">
-          컴플레인을 해결됨으로 표시했습니다.
+          {t.admin.complaintResolvedFlash}
         </p>
       ) : null}
 
       <section className="mt-8">
         <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-brand">
           <ChartBarIcon className="size-6" aria-hidden />
-          등록 · 판매 스탯
+          {t.admin.stats}
         </h2>
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
           <div className="rounded-lg border border-brand/10 bg-white/70 p-4">
-            <p className="text-sm font-semibold text-brand">이번 주</p>
+            <p className="text-sm font-semibold text-brand">{t.admin.thisWeek}</p>
             <div className="mt-3 grid grid-cols-2 gap-3">
-              <StatCard label="제품 등록" value={week.new_listings ?? 0} />
-              <StatCard label="판매완료" value={week.sold ?? 0} />
-              <StatCard label="판매액(GMV)" value={formatPrice(week.gmv_cents ?? 0)} />
-              <StatCard label="활성 유저" value={week.active_users ?? 0} />
+              <StatCard label={t.admin.listings} value={week.new_listings ?? 0} />
+              <StatCard label={t.admin.sold} value={week.sold ?? 0} />
+              <StatCard
+                label={t.admin.gmv}
+                value={formatPrice(week.gmv_cents ?? 0, locale)}
+              />
+              <StatCard label={t.admin.activeUsers} value={week.active_users ?? 0} />
             </div>
           </div>
           <div className="rounded-lg border border-brand/10 bg-white/70 p-4">
-            <p className="text-sm font-semibold text-brand">이번 달</p>
+            <p className="text-sm font-semibold text-brand">{t.admin.thisMonth}</p>
             <div className="mt-3 grid grid-cols-2 gap-3">
-              <StatCard label="제품 등록" value={month.new_listings ?? 0} />
-              <StatCard label="판매완료" value={month.sold ?? 0} />
+              <StatCard label={t.admin.listings} value={month.new_listings ?? 0} />
+              <StatCard label={t.admin.sold} value={month.sold ?? 0} />
               <StatCard
-                label="판매액(GMV)"
-                value={formatPrice(month.gmv_cents ?? 0)}
+                label={t.admin.gmv}
+                value={formatPrice(month.gmv_cents ?? 0, locale)}
               />
-              <StatCard label="활성 유저" value={month.active_users ?? 0} />
+              <StatCard
+                label={t.admin.activeUsers}
+                value={month.active_users ?? 0}
+              />
             </div>
           </div>
         </div>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="전체 등록" value={all.new_listings ?? 0} hint="누적" />
-          <StatCard label="전체 판매완료" value={all.sold ?? 0} hint="누적" />
+          <StatCard label={t.admin.allListings} value={all.new_listings ?? 0} />
+          <StatCard label={t.admin.allSold} value={all.sold ?? 0} />
           <StatCard
-            label="전체 판매액"
-            value={formatPrice(all.gmv_cents ?? 0)}
-            hint="완료 주문 합계"
+            label={t.admin.allGmv}
+            value={formatPrice(all.gmv_cents ?? 0, locale)}
           />
           <StatCard
-            label="파이프라인"
+            label={t.admin.pipeline}
             value={`${all.orders_awaiting_dropoff ?? 0} / ${all.orders_ready_for_pickup ?? 0}`}
-            hint="드롭오프 대기 / 픽업 대기"
           />
         </div>
       </section>
@@ -161,17 +167,17 @@ export default async function AdminPage({
       <section className="mt-12">
         <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-brand">
           <UsersIcon className="size-6" aria-hidden />
-          회원 리스트
+          {t.admin.members}
         </h2>
         <div className="mt-4 overflow-x-auto rounded-lg border border-brand/10 bg-white/70">
           <table className="min-w-full text-left text-sm">
             <thead className="border-b border-brand/10 text-ink-muted">
               <tr>
-                <th className="px-4 py-3 font-medium">이름</th>
-                <th className="px-4 py-3 font-medium">이메일</th>
-                <th className="px-4 py-3 font-medium">전화</th>
-                <th className="px-4 py-3 font-medium">역할</th>
-                <th className="px-4 py-3 font-medium">가입일</th>
+                <th className="px-4 py-3 font-medium">{t.admin.name}</th>
+                <th className="px-4 py-3 font-medium">{t.admin.email}</th>
+                <th className="px-4 py-3 font-medium">{t.admin.phone}</th>
+                <th className="px-4 py-3 font-medium">{t.admin.role}</th>
+                <th className="px-4 py-3 font-medium">{t.admin.joined}</th>
               </tr>
             </thead>
             <tbody>
@@ -192,14 +198,16 @@ export default async function AdminPage({
                     )}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
-                    {new Date(member.created_at).toLocaleDateString("ko-KR")}
+                    {new Date(member.created_at).toLocaleDateString(
+                      locale === "en" ? "en-US" : "ko-KR",
+                    )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
           {!members?.length ? (
-            <p className="px-4 py-6 text-sm text-ink-muted">회원이 없습니다.</p>
+            <p className="px-4 py-6 text-sm text-ink-muted">{t.admin.noMembers}</p>
           ) : null}
         </div>
       </section>
@@ -207,12 +215,12 @@ export default async function AdminPage({
       <section className="mt-12">
         <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-brand">
           <ExclamationTriangleIcon className="size-6" aria-hidden />
-          회원 컴플레인
+          {t.admin.complaints}
         </h2>
         <div className="mt-4 rounded-lg border border-brand/10 bg-white/70 p-4">
           <p className="text-sm text-ink-muted">
-            미해결 {openComplaints.length}건 · 해결됨 {resolvedComplaints.length}
-            건 (최근 40건)
+            {t.admin.unresolved} {openComplaints.length} · {t.admin.resolved}{" "}
+            {resolvedComplaints.length}
           </p>
           <ul className="mt-4 space-y-3">
             {(complaints || []).length ? (
@@ -241,17 +249,21 @@ export default async function AdminPage({
                                 : "bg-brand/15 text-brand"
                             }`}
                           >
-                            {isOpen ? "미해결" : "해결됨"}
+                            {isOpen ? t.admin.unresolved : t.admin.resolved}
                           </span>
                         </div>
                         <p className="mt-1 text-xs text-ink-muted">
                           {user
                             ? `${accountDisplayName(user)} · ${user.email || ""}`
-                            : "회원"}{" "}
+                            : "—"}{" "}
                           ·{" "}
-                          {new Date(item.created_at).toLocaleString("ko-KR")}
+                          {new Date(item.created_at).toLocaleString(
+                            locale === "en" ? "en-US" : "ko-KR",
+                          )}
                           {!isOpen && item.resolved_at
-                            ? ` · 해결 ${new Date(item.resolved_at).toLocaleString("ko-KR")}`
+                            ? ` · ${t.admin.resolved} ${new Date(item.resolved_at).toLocaleString(
+                                locale === "en" ? "en-US" : "ko-KR",
+                              )}`
                             : ""}
                         </p>
                         <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-foreground">
@@ -266,10 +278,7 @@ export default async function AdminPage({
                 );
               })
             ) : (
-              <li className="text-sm text-ink-muted">
-                접수된 컴플레인이 없습니다. 회원은 My Profile에서 문의할 수
-                있습니다.
-              </li>
+              <li className="text-sm text-ink-muted">{t.admin.noComplaints}</li>
             )}
           </ul>
         </div>
@@ -278,18 +287,18 @@ export default async function AdminPage({
       <section className="mt-12">
         <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-brand">
           <ShoppingBagIcon className="size-6" aria-hidden />
-          주문 파이프라인
+          {t.admin.orders}
         </h2>
         <div className="mt-4 overflow-x-auto rounded-lg border border-brand/10 bg-white/70">
           <table className="min-w-full text-left text-sm">
             <thead className="border-b border-brand/10 text-ink-muted">
               <tr>
-                <th className="px-4 py-3 font-medium">물건</th>
-                <th className="px-4 py-3 font-medium">구매자</th>
-                <th className="px-4 py-3 font-medium">판매자</th>
-                <th className="px-4 py-3 font-medium">금액</th>
-                <th className="px-4 py-3 font-medium">상태</th>
-                <th className="px-4 py-3 font-medium">액션</th>
+                <th className="px-4 py-3 font-medium">{t.admin.item}</th>
+                <th className="px-4 py-3 font-medium">{t.admin.buyer}</th>
+                <th className="px-4 py-3 font-medium">{t.admin.seller}</th>
+                <th className="px-4 py-3 font-medium">{t.admin.amount}</th>
+                <th className="px-4 py-3 font-medium">{t.admin.status}</th>
+                <th className="px-4 py-3 font-medium">{t.admin.action}</th>
               </tr>
             </thead>
             <tbody>
@@ -313,10 +322,10 @@ export default async function AdminPage({
                       {seller?.full_name || seller?.email || "—"}
                     </td>
                     <td className="px-4 py-3">
-                      {formatPrice(order.price_cents)}
+                      {formatPrice(order.price_cents, locale)}
                     </td>
                     <td className="px-4 py-3">
-                      {orderStatusLabel(order.status)}
+                      {orderStatusLabel(order.status, t.status)}
                     </td>
                     <td className="px-4 py-3">
                       <AdminOrderActions

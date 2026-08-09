@@ -3,9 +3,11 @@
 import { TrashIcon } from "@heroicons/react/24/outline";
 import { useRef, useState } from "react";
 import { useConfirm } from "@/components/confirm-dialog";
+import { useI18n } from "@/components/locale-provider";
 import { deleteListingAction } from "@/lib/actions/listings";
 
 export function DeleteListingButton({ listingId }: { listingId: string }) {
+  const { locale, t } = useI18n();
   const confirm = useConfirm();
   const formRef = useRef<HTMLFormElement>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -22,10 +24,13 @@ export function DeleteListingButton({ listingId }: { listingId: string }) {
         disabled={submitting}
         onClick={async () => {
           const ok = await confirm({
-            title: "물품 삭제",
-            message: "이 물품을 삭제할까요? 삭제 후 되돌릴 수 없습니다.",
-            confirmLabel: "삭제",
-            cancelLabel: "취소",
+            title: locale === "en" ? "Delete listing" : "물품 삭제",
+            message:
+              locale === "en"
+                ? "Delete this listing? This cannot be undone."
+                : "이 물품을 삭제할까요? 삭제 후 되돌릴 수 없습니다.",
+            confirmLabel: t.account.delete,
+            cancelLabel: t.common.cancel,
             tone: "danger",
           });
           if (!ok) return;
@@ -35,7 +40,7 @@ export function DeleteListingButton({ listingId }: { listingId: string }) {
         className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-white px-2.5 py-1 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-60"
       >
         <TrashIcon className="size-3.5" aria-hidden />
-        {submitting ? "삭제 중…" : "삭제"}
+        {submitting ? t.common.loading : t.account.delete}
       </button>
     </form>
   );

@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useI18n } from "@/components/locale-provider";
 import type { Listing } from "@/lib/types";
 import {
   formatPrice,
@@ -8,6 +11,7 @@ import {
 } from "@/lib/utils";
 
 export function ListingCard({ listing }: { listing: Listing }) {
+  const { locale, t } = useI18n();
   const image = listingImageUrl(listing.cover_image_path);
   const soldLike =
     listing.status === "sold" ||
@@ -29,27 +33,31 @@ export function ListingCard({ listing }: { listing: Listing }) {
           />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-ink-muted">
-            No image
+            {t.market.noImage}
           </div>
         )}
         {soldLike ? (
           <span className="absolute left-3 top-3 rounded-md bg-brand px-2 py-1 text-xs font-semibold text-white">
-            {listingStatusLabel(listing.status)}
+            {listingStatusLabel(listing.status, t.status)}
           </span>
         ) : null}
       </div>
       <div className="space-y-1 p-4">
         <p className="text-xs font-medium tracking-wide text-brand-soft uppercase">
-          {listing.categories?.name_ko || "기타"}
+          {listing.categories?.name_ko || "—"}
         </p>
         <h3 className="line-clamp-2 font-[family-name:var(--font-display)] text-lg text-brand">
           {listing.title}
         </h3>
         <p className="text-base font-semibold text-foreground">
-          {formatPrice(listing.price_cents)}
+          {formatPrice(listing.price_cents, locale)}
         </p>
         <p className="text-xs text-ink-muted">
-          판매자 · {publicSellerLabel(listing.seller)}
+          {t.market.seller} ·{" "}
+          {publicSellerLabel(listing.seller, {
+            seller: t.market.seller,
+            anonymous: t.market.anonymous,
+          })}
         </p>
       </div>
     </Link>

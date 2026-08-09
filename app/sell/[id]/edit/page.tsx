@@ -5,6 +5,7 @@ import { FileUploadField } from "@/components/ui/file-upload-field";
 import { SelectField } from "@/components/ui/select-field";
 import { updateListingAction } from "@/lib/actions/listings";
 import { getSessionUser } from "@/lib/auth";
+import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +16,7 @@ export default async function EditListingPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const { locale, t } = await getI18n();
   const user = await getSessionUser();
   if (!user) {
     redirect(`/login?next=/sell/${id}/edit`);
@@ -32,9 +34,11 @@ export default async function EditListingPage({
 
   if (!listing || listing.seller_id !== user.id) notFound();
   if (listing.status !== "available" && listing.status !== "cancelled") {
-    redirect(
-      `/account/transactions?error=${encodeURIComponent("거래 중인 물품은 수정할 수 없습니다.")}`,
-    );
+    const msg =
+      locale === "en"
+        ? "Items in an active trade cannot be edited."
+        : "거래 중인 물품은 수정할 수 없습니다.";
+    redirect(`/account/transactions?error=${encodeURIComponent(msg)}`);
   }
 
   const images = (listing.listing_images || []).sort(
@@ -46,17 +50,15 @@ export default async function EditListingPage({
     <main className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
       <h1 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-4xl text-brand">
         <PencilSquareIcon className="size-8" aria-hidden />
-        물품 수정
+        {t.sell.editTitle}
       </h1>
-      <p className="mt-2 text-ink-muted">
-        내용과 사진을 바꾼 뒤 저장하세요.
-      </p>
+      <p className="mt-2 text-ink-muted">{t.sell.editBlurb}</p>
 
       <form action={updateListingAction} className="mt-8 space-y-5">
         <input type="hidden" name="listing_id" value={listing.id} />
 
         <label className="block text-sm font-medium">
-          제목
+          {t.sell.titleLabel}
           <input
             name="title"
             required
@@ -66,7 +68,7 @@ export default async function EditListingPage({
         </label>
 
         <SelectField
-          label="카테고리"
+          label={t.sell.category}
           name="category_id"
           required
           defaultValue={listing.category_id}
@@ -78,7 +80,7 @@ export default async function EditListingPage({
         />
 
         <label className="block text-sm font-medium">
-          가격 (USD)
+          {t.sell.price}
           <input
             name="price"
             type="number"
@@ -91,7 +93,7 @@ export default async function EditListingPage({
         </label>
 
         <label className="block text-sm font-medium">
-          설명
+          {t.sell.description}
           <textarea
             name="description"
             rows={5}
@@ -101,9 +103,9 @@ export default async function EditListingPage({
         </label>
 
         <FileUploadField
-          label="사진"
+          label={t.sell.photos}
           name="images"
-          hint="기존 사진을 유지한 채 추가하거나, X로 지울 수 있습니다"
+          hint={t.sell.photosEditHint}
           existingImages={images}
         />
 
@@ -112,13 +114,13 @@ export default async function EditListingPage({
             type="submit"
             className="rounded-md bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-soft"
           >
-            저장하기
+            {t.sell.save}
           </button>
           <Link
             href="/account/transactions"
             className="rounded-md border border-brand/15 bg-white px-5 py-3 text-sm font-medium text-brand hover:bg-brand/5"
           >
-            취소
+            {t.sell.cancel}
           </Link>
         </div>
       </form>

@@ -10,6 +10,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useI18n } from "@/components/locale-provider";
 
 export type ConfirmOptions = {
   title?: string;
@@ -32,6 +33,7 @@ export function useConfirm() {
 }
 
 export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
+  const { t } = useI18n();
   const [options, setOptions] = useState<ConfirmOptions | null>(null);
   const resolveRef = useRef<((value: boolean) => void) | null>(null);
   const titleId = useId();
@@ -91,7 +93,7 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
               id={titleId}
               className="font-[family-name:var(--font-display)] text-2xl text-brand"
             >
-              {options.title || "확인"}
+              {options.title || t.common.confirm}
             </h2>
             <p id={descId} className="mt-2 text-sm leading-relaxed text-ink-muted">
               {options.message}
@@ -102,7 +104,7 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
                 onClick={() => close(false)}
                 className="rounded-md border border-brand/15 bg-white px-4 py-2 text-sm font-medium text-brand hover:bg-brand/5"
               >
-                {options.cancelLabel || "취소"}
+                {options.cancelLabel || t.common.cancel}
               </button>
               <button
                 type="button"
@@ -114,7 +116,7 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
                     : "bg-brand hover:bg-brand-soft"
                 }`}
               >
-                {options.confirmLabel || "확인"}
+                {options.confirmLabel || t.common.confirm}
               </button>
             </div>
           </div>

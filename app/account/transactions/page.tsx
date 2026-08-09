@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AccountShell } from "@/components/account-shell";
 import { SellingListingRow } from "@/components/selling-listing-row";
 import { getCurrentProfile } from "@/lib/auth";
+import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import type { Listing } from "@/lib/types";
 import {
@@ -20,6 +21,7 @@ export default async function AccountTransactionsPage({
   searchParams: Promise<{ error?: string; deleted?: string }>;
 }) {
   const profile = await getCurrentProfile();
+  const { locale, t } = await getI18n();
   const supabase = await createClient();
   const { error, deleted } = await searchParams;
 
@@ -48,8 +50,8 @@ export default async function AccountTransactionsPage({
 
   return (
     <AccountShell
-      title="My Account"
-      subtitle={`${accountDisplayName(profile)} · 내 거래`}
+      title={t.account.title}
+      subtitle={`${accountDisplayName(profile)} · ${t.account.transactions}`}
       active="transactions"
     >
       {error ? (
@@ -66,7 +68,7 @@ export default async function AccountTransactionsPage({
       <section>
         <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-brand">
           <BellIcon className="size-6" aria-hidden />
-          알림
+          {t.account.notifications}
         </h2>
         <ul className="mt-4 space-y-3">
           {(notifications || []).length ? (
@@ -80,14 +82,14 @@ export default async function AccountTransactionsPage({
               </li>
             ))
           ) : (
-            <li className="text-sm text-ink-muted">아직 알림이 없습니다.</li>
+            <li className="text-sm text-ink-muted">{t.account.noNotifications}</li>
           )}
         </ul>
       </section>
 
       <section className="mt-10">
         <h2 className="font-[family-name:var(--font-display)] text-2xl text-brand">
-          내가 파는 물건
+          {t.account.selling}
         </h2>
         <ul className="mt-4 space-y-3">
           {(selling || []).length ? (
@@ -95,14 +97,14 @@ export default async function AccountTransactionsPage({
               <SellingListingRow key={item.id} listing={item} />
             ))
           ) : (
-            <li className="text-sm text-ink-muted">등록한 물건이 없습니다.</li>
+            <li className="text-sm text-ink-muted">{t.account.noSelling}</li>
           )}
         </ul>
       </section>
 
       <section className="mt-10">
         <h2 className="font-[family-name:var(--font-display)] text-2xl text-brand">
-          내가 산 물건
+          {t.account.buying}
         </h2>
         <ul className="mt-4 space-y-3">
           {(buying || []).length ? (
@@ -142,15 +144,15 @@ export default async function AccountTransactionsPage({
                       <p className="font-medium">{listing?.title || "물품"}</p>
                     )}
                     <p className="text-sm text-ink-muted">
-                      {formatPrice(order.price_cents)} ·{" "}
-                      {orderStatusLabel(order.status)}
+                      {formatPrice(order.price_cents, locale)} ·{" "}
+                      {orderStatusLabel(order.status, t.status)}
                     </p>
                   </div>
                 </li>
               );
             })
           ) : (
-            <li className="text-sm text-ink-muted">구매 내역이 없습니다.</li>
+            <li className="text-sm text-ink-muted">{t.account.noBuying}</li>
           )}
         </ul>
       </section>

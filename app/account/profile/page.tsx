@@ -12,6 +12,7 @@ import {
 } from "@/lib/actions/auth";
 import { createComplaintAction } from "@/lib/actions/complaints";
 import { getCurrentProfile } from "@/lib/auth";
+import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import { accountDisplayName } from "@/lib/utils";
 
@@ -23,6 +24,7 @@ export default async function AccountProfilePage({
   searchParams: Promise<{ error?: string; saved?: string }>;
 }) {
   const profile = await getCurrentProfile();
+  const { locale, t } = await getI18n();
   const { error, saved } = await searchParams;
 
   if (!profile) return null;
@@ -37,7 +39,7 @@ export default async function AccountProfilePage({
 
   return (
     <AccountShell
-      title="My Account"
+      title={t.account.title}
       subtitle={`${accountDisplayName(profile)} · ${profile.email || ""}`}
       active="profile"
     >
@@ -48,36 +50,36 @@ export default async function AccountProfilePage({
       ) : null}
       {saved === "profile" || saved === "phone" ? (
         <p className="mb-6 rounded-md border border-brand/20 bg-brand/5 px-3 py-2 text-sm text-brand">
-          프로필이 저장되었습니다.
+          {t.account.profileSaved}
         </p>
       ) : null}
       {saved === "password" ? (
         <p className="mb-6 rounded-md border border-brand/20 bg-brand/5 px-3 py-2 text-sm text-brand">
-          비밀번호가 변경되었습니다.
+          {t.account.passwordSaved}
         </p>
       ) : null}
       {saved === "complaint" ? (
         <p className="mb-6 rounded-md border border-brand/20 bg-brand/5 px-3 py-2 text-sm text-brand">
-          문의/컴플레인이 접수되었습니다. 관리자가 확인합니다.
+          {t.account.complaintSubmitted}
         </p>
       ) : null}
 
       <section className="rounded-lg border border-brand/10 bg-white/70 p-5">
         <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-brand">
           <UserIcon className="size-6" aria-hidden />
-          My Profile
+          {t.account.myProfile}
         </h2>
-        <p className="mt-1 text-sm text-ink-muted">
-          장터에 보이는 이름과 연락처를 설정하세요.
-        </p>
+        <p className="mt-1 text-sm text-ink-muted">{t.account.profileBlurb}</p>
         <form action={updateProfileAction} className="mt-5 space-y-4">
           <label className="block space-y-1.5">
-            <span className="text-sm font-medium text-foreground">닉네임</span>
+            <span className="text-sm font-medium text-foreground">
+              {t.account.nickname}
+            </span>
             <input
               name="nickname"
               defaultValue={profile.nickname || ""}
               maxLength={40}
-              placeholder="장터에 표시할 이름"
+              placeholder={t.account.nicknamePlaceholder}
               className="w-full rounded-md border border-brand/15 bg-white px-3 py-2"
             />
           </label>
@@ -85,7 +87,7 @@ export default async function AccountProfilePage({
           <label className="block space-y-1.5">
             <span className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground">
               <DevicePhoneMobileIcon className="size-4" aria-hidden />
-              전화번호
+              {t.account.phone}
             </span>
             <input
               name="phone"
@@ -93,9 +95,7 @@ export default async function AccountProfilePage({
               placeholder="01012345678"
               className="w-full rounded-md border border-brand/15 bg-white px-3 py-2"
             />
-            <span className="text-xs text-ink-muted">
-              카카오 알림을 받으려면 휴대폰 번호를 저장해 주세요.
-            </span>
+            <span className="text-xs text-ink-muted">{t.account.phoneHint}</span>
           </label>
 
           <label className="flex items-start gap-3 rounded-md border border-brand/10 bg-[color-mix(in_oklab,var(--background)_70%,white)] px-3 py-3">
@@ -108,10 +108,10 @@ export default async function AccountProfilePage({
             <span>
               <span className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground">
                 <EyeSlashIcon className="size-4" aria-hidden />
-                익명으로 판매
+                {t.account.anonymous}
               </span>
               <span className="mt-0.5 block text-xs text-ink-muted">
-                켜면 장터에 올린 물건의 판매자가 &quot;익명&quot;으로 표시됩니다.
+                {t.account.anonymousHint}
               </span>
             </span>
           </label>
@@ -120,7 +120,7 @@ export default async function AccountProfilePage({
             type="submit"
             className="rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-soft"
           >
-            프로필 저장
+            {t.account.saveProfile}
           </button>
         </form>
       </section>
@@ -128,16 +128,14 @@ export default async function AccountProfilePage({
       <section className="mt-8 rounded-lg border border-brand/10 bg-white/70 p-5">
         <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-brand">
           <KeyIcon className="size-6" aria-hidden />
-          비밀번호 변경
+          {t.account.changePassword}
         </h2>
-        <p className="mt-1 text-sm text-ink-muted">
-          Google로만 가입한 경우에도 여기서 비밀번호를 설정할 수 있습니다.
-        </p>
+        <p className="mt-1 text-sm text-ink-muted">{t.account.passwordBlurb}</p>
         <form action={updatePasswordAction} className="mt-5 space-y-4">
           <input type="hidden" name="next" value="/account/profile" />
           <label className="block space-y-1.5">
             <span className="text-sm font-medium text-foreground">
-              새 비밀번호
+              {t.account.newPassword}
             </span>
             <input
               type="password"
@@ -149,7 +147,7 @@ export default async function AccountProfilePage({
           </label>
           <label className="block space-y-1.5">
             <span className="text-sm font-medium text-foreground">
-              새 비밀번호 확인
+              {t.account.confirmNewPassword}
             </span>
             <input
               type="password"
@@ -163,7 +161,7 @@ export default async function AccountProfilePage({
             type="submit"
             className="rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-soft"
           >
-            비밀번호 변경
+            {t.account.changePasswordCta}
           </button>
         </form>
       </section>
@@ -171,29 +169,31 @@ export default async function AccountProfilePage({
       <section className="mt-8 rounded-lg border border-brand/10 bg-white/70 p-5">
         <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-brand">
           <ChatBubbleLeftRightIcon className="size-6" aria-hidden />
-          문의 / 컴플레인
+          {t.account.complaint}
         </h2>
-        <p className="mt-1 text-sm text-ink-muted">
-          거래·사이트 문제를 보내 주세요. 관리자 페이지에서 확인합니다.
-        </p>
+        <p className="mt-1 text-sm text-ink-muted">{t.account.complaintHint}</p>
         <form action={createComplaintAction} className="mt-5 space-y-4">
           <label className="block space-y-1.5">
-            <span className="text-sm font-medium text-foreground">제목</span>
+            <span className="text-sm font-medium text-foreground">
+              {t.account.complaintSubject}
+            </span>
             <input
               name="subject"
               required
               maxLength={120}
-              placeholder="예: 픽업 일정 문의"
+              placeholder={t.account.complaintSubjectPlaceholder}
               className="w-full rounded-md border border-brand/15 bg-white px-3 py-2"
             />
           </label>
           <label className="block space-y-1.5">
-            <span className="text-sm font-medium text-foreground">내용</span>
+            <span className="text-sm font-medium text-foreground">
+              {t.account.complaintBody}
+            </span>
             <textarea
               name="body"
               required
               rows={4}
-              placeholder="상황을 자세히 적어 주세요."
+              placeholder={t.account.complaintBodyPlaceholder}
               className="w-full rounded-md border border-brand/15 bg-white px-3 py-2"
             />
           </label>
@@ -201,7 +201,7 @@ export default async function AccountProfilePage({
             type="submit"
             className="rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-soft"
           >
-            접수하기
+            {t.account.complaintSubmit}
           </button>
         </form>
 
@@ -221,11 +221,15 @@ export default async function AccountProfilePage({
                         : "bg-brand/15 text-brand"
                     }`}
                   >
-                    {item.status === "open" ? "접수됨" : "해결됨"}
+                    {item.status === "open"
+                      ? t.account.statusOpen
+                      : t.account.statusResolved}
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-ink-muted">
-                  {new Date(item.created_at).toLocaleString("ko-KR")}
+                  {new Date(item.created_at).toLocaleString(
+                    locale === "en" ? "en-US" : "ko-KR",
+                  )}
                 </p>
                 <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">
                   {item.body}
@@ -233,7 +237,7 @@ export default async function AccountProfilePage({
               </li>
             ))
           ) : (
-            <li className="text-sm text-ink-muted">아직 접수한 문의가 없습니다.</li>
+            <li className="text-sm text-ink-muted">{t.account.complaintEmpty}</li>
           )}
         </ul>
       </section>

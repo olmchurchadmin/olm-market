@@ -1,18 +1,24 @@
+"use client";
+
 import Link from "next/link";
 import type { ReactNode } from "react";
-
-const links = [
-  { href: "/account/profile", label: "My Profile" },
-  { href: "/account/transactions", label: "내 거래" },
-] as const;
+import { useI18n } from "@/components/locale-provider";
 
 export function AccountNav({ active }: { active: "profile" | "transactions" }) {
+  const { t } = useI18n();
+  const links = [
+    { href: "/account/profile", label: t.account.myProfile, key: "profile" },
+    {
+      href: "/account/transactions",
+      label: t.account.transactions,
+      key: "transactions",
+    },
+  ] as const;
+
   return (
     <nav className="flex flex-wrap gap-2 border-b border-brand/10 pb-4">
       {links.map((link) => {
-        const isActive =
-          (active === "profile" && link.href === "/account/profile") ||
-          (active === "transactions" && link.href === "/account/transactions");
+        const isActive = active === link.key;
         return (
           <Link
             key={link.href}

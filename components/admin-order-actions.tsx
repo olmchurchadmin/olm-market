@@ -4,6 +4,7 @@ import { CheckIcon, TruckIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useConfirm } from "@/components/confirm-dialog";
+import { useI18n } from "@/components/locale-provider";
 import {
   adminMarkDropoffAction,
   adminMarkPickupAction,
@@ -18,6 +19,7 @@ export function AdminOrderActions({
 }) {
   const router = useRouter();
   const confirm = useConfirm();
+  const { t } = useI18n();
   const [pending, setPending] = useState(false);
 
   if (status === "awaiting_dropoff") {
@@ -27,10 +29,10 @@ export function AdminOrderActions({
         disabled={pending}
         onClick={async () => {
           const ok = await confirm({
-            title: "드롭오프 확인",
-            message: "판매자가 성당에 물건을 맡겼나요?",
-            confirmLabel: "확인",
-            cancelLabel: "취소",
+            title: t.admin.confirmDropoffTitle,
+            message: t.admin.confirmDropoffMessage,
+            confirmLabel: t.common.confirm,
+            cancelLabel: t.common.cancel,
           });
           if (!ok) return;
           setPending(true);
@@ -44,7 +46,7 @@ export function AdminOrderActions({
         className="inline-flex items-center gap-1.5 rounded-md bg-brand px-3 py-2 text-xs font-semibold text-white hover:bg-brand-soft disabled:opacity-50"
       >
         <TruckIcon className="size-4" aria-hidden />
-        {pending ? "처리 중…" : "드롭오프 확인"}
+        {pending ? t.common.loading : t.admin.confirmDropoffCta}
       </button>
     );
   }
@@ -56,10 +58,10 @@ export function AdminOrderActions({
         disabled={pending}
         onClick={async () => {
           const ok = await confirm({
-            title: "픽업 완료",
-            message: "구매자가 현금 결제 후 픽업을 완료했나요?",
-            confirmLabel: "완료",
-            cancelLabel: "취소",
+            title: t.admin.confirmPickupTitle,
+            message: t.admin.confirmPickupMessage,
+            confirmLabel: t.admin.complete,
+            cancelLabel: t.common.cancel,
           });
           if (!ok) return;
           setPending(true);
@@ -73,7 +75,7 @@ export function AdminOrderActions({
         className="inline-flex items-center gap-1.5 rounded-md bg-sun px-3 py-2 text-xs font-semibold text-[#1c2a1f] hover:bg-[#f0c65d] disabled:opacity-50"
       >
         <CheckIcon className="size-4" aria-hidden />
-        {pending ? "처리 중…" : "픽업·현금수령 완료"}
+        {pending ? t.common.loading : t.admin.confirmPickupCta}
       </button>
     );
   }
