@@ -2,11 +2,11 @@ import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BuyButton } from "@/components/buy-button";
+import { ListingGallery } from "@/components/listing-gallery";
 import { getSessionUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import {
   formatPrice,
-  listingImageUrl,
   listingStatusLabel,
   publicSellerLabel,
 } from "@/lib/utils";
@@ -36,9 +36,6 @@ export default async function ListingDetailPage({
     (a: { sort_order: number }, b: { sort_order: number }) =>
       a.sort_order - b.sort_order,
   );
-  const cover = listingImageUrl(
-    images[0]?.storage_path || listing.cover_image_path,
-  );
   const canBuy =
     listing.status === "available" && user?.id !== listing.seller_id;
 
@@ -53,35 +50,11 @@ export default async function ListingDetailPage({
       </Link>
 
       <div className="mt-6 grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="space-y-3">
-          <div className="aspect-[4/3] overflow-hidden rounded-lg bg-[linear-gradient(135deg,#dfe8e2,#f7f3ea)]">
-            {cover ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={cover}
-                alt={listing.title}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center text-ink-muted">
-                No image
-              </div>
-            )}
-          </div>
-          {images.length > 1 ? (
-            <div className="grid grid-cols-4 gap-2">
-              {images.map((img: { id: string; storage_path: string }) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  key={img.id}
-                  src={listingImageUrl(img.storage_path) || ""}
-                  alt=""
-                  className="aspect-square rounded-md object-cover"
-                />
-              ))}
-            </div>
-          ) : null}
-        </div>
+        <ListingGallery
+          title={listing.title}
+          images={images}
+          coverPath={listing.cover_image_path}
+        />
 
         <div>
           <p className="text-sm font-medium tracking-wide text-brand-soft uppercase">
