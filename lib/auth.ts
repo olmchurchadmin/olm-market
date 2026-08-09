@@ -35,9 +35,10 @@ export async function getCurrentProfile(): Promise<Profile | null> {
 }
 
 export async function requireAdmin() {
+  const { redirect } = await import("next/navigation");
   const profile = await getCurrentProfile();
   if (!profile || profile.role !== "admin") {
-    throw new Error("Admin only");
+    redirect("/market");
   }
   return profile;
 }

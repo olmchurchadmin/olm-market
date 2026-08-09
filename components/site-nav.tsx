@@ -173,6 +173,15 @@ export function SiteNav({ profile }: SiteNavProps) {
           <PlusCircleIcon className="size-4" aria-hidden />
           판매등록
         </Link>
+        {profile?.isAdmin ? (
+          <Link
+            href="/admin"
+            className="inline-flex items-center gap-1.5 rounded-md bg-brand px-3 py-1.5 text-white hover:bg-brand-soft"
+          >
+            <ShieldCheckIcon className="size-4" aria-hidden />
+            Admin
+          </Link>
+        ) : null}
         {profile ? (
           <UserMenu
             displayName={profile.displayName}

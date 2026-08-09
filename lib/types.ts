@@ -102,3 +102,17 @@ export type AdminStats = {
 };
 
 export type StatsRange = "day" | "week" | "month" | "year" | "all";
+
+export type ComplaintStatus = "open" | "resolved";
+
+export type Complaint = {
+  id: string;
+  user_id: string;
+  subject: string;
+  body: string;
+  status: ComplaintStatus;
+  resolved_at: string | null;
+  resolved_by: string | null;
+  created_at: string;
+  updated_at: string;
+};

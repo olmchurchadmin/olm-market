@@ -1,99 +1,283 @@
+import {
+  ChartBarIcon,
+  ExclamationTriangleIcon,
+  ShoppingBagIcon,
+  UsersIcon,
+} from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { AdminOrderActions } from "@/components/admin-order-actions";
+import { ResolveComplaintButton } from "@/components/resolve-complaint-button";
+import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import type { AdminStats, StatsRange } from "@/lib/types";
-import { formatPrice, orderStatusLabel } from "@/lib/utils";
+import type { AdminStats } from "@/lib/types";
+import { accountDisplayName, formatPrice, orderStatusLabel } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-const ranges: { id: StatsRange; label: string }[] = [
-  { id: "day", label: "매일" },
-  { id: "week", label: "매주" },
-  { id: "month", label: "매월" },
-  { id: "year", label: "매년" },
-  { id: "all", label: "전체" },
-];
+function StatCard({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: string | number;
+  hint?: string;
+}) {
+  return (
+    <div className="rounded-lg border border-brand/10 bg-white/70 p-4">
+      <p className="text-sm text-ink-muted">{label}</p>
+      <p className="mt-2 font-[family-name:var(--font-display)] text-3xl text-brand">
+        {value}
+      </p>
+      {hint ? <p className="mt-1 text-xs text-ink-muted">{hint}</p> : null}
+    </div>
+  );
+}
 
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ range?: string }>;
+  searchParams: Promise<{ error?: string; resolved?: string }>;
 }) {
-  const { range: rawRange } = await searchParams;
-  const range = (ranges.some((r) => r.id === rawRange)
-    ? rawRange
-    : "all") as StatsRange;
-
+  await requireAdmin();
+  const { error, resolved } = await searchParams;
   const supabase = await createClient();
-  const { data: stats } = await supabase.rpc("admin_stats", {
-    p_range: range,
-  });
 
-  const { data: orders } = await supabase
-    .from("orders")
-    .select("*, listings(title), buyer:profiles!orders_buyer_id_fkey(email, full_name), seller:profiles!orders_seller_id_fkey(email, full_name)")
-    .in("status", ["awaiting_dropoff", "ready_for_pickup", "completed"])
-    .order("created_at", { ascending: false })
-    .limit(50);
+  const [
+    { data: weekStats },
+    { data: monthStats },
+    { data: allStats },
+    { data: members },
+    { data: complaints },
+    { data: orders },
+  ] = await Promise.all([
+    supabase.rpc("admin_stats", { p_range: "week" }),
+    supabase.rpc("admin_stats", { p_range: "month" }),
+    supabase.rpc("admin_stats", { p_range: "all" }),
+    supabase
+      .from("profiles")
+      .select("id, email, full_name, nickname, phone, role, created_at")
+      .order("created_at", { ascending: false })
+      .limit(100),
+    supabase
+      .from("complaints")
+      .select(
+        "id, subject, body, status, created_at, resolved_at, user:profiles!complaints_user_id_fkey(email, full_name, nickname)",
+      )
+      .order("created_at", { ascending: false })
+      .limit(40),
+    supabase
+      .from("orders")
+      .select(
+        "*, listings(title), buyer:profiles!orders_buyer_id_fkey(email, full_name), seller:profiles!orders_seller_id_fkey(email, full_name)",
+      )
+      .in("status", ["awaiting_dropoff", "ready_for_pickup", "completed"])
+      .order("created_at", { ascending: false })
+      .limit(50),
+  ]);
 
-  const s = (stats || {}) as AdminStats;
+  const week = (weekStats || {}) as AdminStats;
+  const month = (monthStats || {}) as AdminStats;
+  const all = (allStats || {}) as AdminStats;
+  const openComplaints = (complaints || []).filter((c) => c.status === "open");
+  const resolvedComplaints = (complaints || []).filter(
+    (c) => c.status === "resolved",
+  );
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <h1 className="font-[family-name:var(--font-display)] text-4xl text-brand">
-        관리자
-      </h1>
-      <p className="mt-2 text-ink-muted">
-        드롭오프·픽업 처리와 기간별 통계를 확인합니다.
-      </p>
-
-      <div className="mt-6 flex flex-wrap gap-2">
-        {ranges.map((r) => (
-          <Link
-            key={r.id}
-            href={`/admin?range=${r.id}`}
-            className={`rounded-md px-3 py-1.5 text-sm ${
-              range === r.id
-                ? "bg-brand text-white"
-                : "bg-white/70 text-foreground hover:bg-white"
-            }`}
-          >
-            {r.label}
-          </Link>
-        ))}
+    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="font-[family-name:var(--font-display)] text-3xl text-brand sm:text-4xl">
+            Admin
+          </h1>
+          <p className="mt-2 text-sm text-ink-muted sm:text-base">
+            회원 · 등록/판매 통계 · 컴플레인 · 주문 파이프라인을 한눈에 봅니다.
+          </p>
+        </div>
+        <Link
+          href="/market"
+          className="text-sm text-ink-muted hover:text-brand"
+        >
+          장터로
+        </Link>
       </div>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {[
-          { label: "신규 등록", value: s.new_listings ?? 0 },
-          { label: "예약", value: s.reserved ?? 0 },
-          { label: "성당 보관", value: s.at_church ?? 0 },
-          { label: "판매완료", value: s.sold ?? 0 },
-          { label: "GMV", value: formatPrice(s.gmv_cents ?? 0) },
-          { label: "활성 유저", value: s.active_users ?? 0 },
-          {
-            label: "드롭오프 대기",
-            value: s.orders_awaiting_dropoff ?? 0,
-          },
-          {
-            label: "픽업 대기",
-            value: s.orders_ready_for_pickup ?? 0,
-          },
-        ].map((card) => (
-          <div
-            key={card.label}
-            className="rounded-lg border border-brand/10 bg-white/70 p-4"
-          >
-            <p className="text-sm text-ink-muted">{card.label}</p>
-            <p className="mt-2 font-[family-name:var(--font-display)] text-3xl text-brand">
-              {card.value}
-            </p>
+      {error ? (
+        <p className="mt-6 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+          {error}
+        </p>
+      ) : null}
+      {resolved ? (
+        <p className="mt-6 rounded-md border border-brand/20 bg-brand/5 px-3 py-2 text-sm text-brand">
+          컴플레인을 해결됨으로 표시했습니다.
+        </p>
+      ) : null}
+
+      <section className="mt-8">
+        <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-brand">
+          <ChartBarIcon className="size-6" aria-hidden />
+          등록 · 판매 스탯
+        </h2>
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          <div className="rounded-lg border border-brand/10 bg-white/70 p-4">
+            <p className="text-sm font-semibold text-brand">이번 주</p>
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <StatCard label="제품 등록" value={week.new_listings ?? 0} />
+              <StatCard label="판매완료" value={week.sold ?? 0} />
+              <StatCard label="판매액(GMV)" value={formatPrice(week.gmv_cents ?? 0)} />
+              <StatCard label="활성 유저" value={week.active_users ?? 0} />
+            </div>
           </div>
-        ))}
-      </div>
+          <div className="rounded-lg border border-brand/10 bg-white/70 p-4">
+            <p className="text-sm font-semibold text-brand">이번 달</p>
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <StatCard label="제품 등록" value={month.new_listings ?? 0} />
+              <StatCard label="판매완료" value={month.sold ?? 0} />
+              <StatCard
+                label="판매액(GMV)"
+                value={formatPrice(month.gmv_cents ?? 0)}
+              />
+              <StatCard label="활성 유저" value={month.active_users ?? 0} />
+            </div>
+          </div>
+        </div>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard label="전체 등록" value={all.new_listings ?? 0} hint="누적" />
+          <StatCard label="전체 판매완료" value={all.sold ?? 0} hint="누적" />
+          <StatCard
+            label="전체 판매액"
+            value={formatPrice(all.gmv_cents ?? 0)}
+            hint="완료 주문 합계"
+          />
+          <StatCard
+            label="파이프라인"
+            value={`${all.orders_awaiting_dropoff ?? 0} / ${all.orders_ready_for_pickup ?? 0}`}
+            hint="드롭오프 대기 / 픽업 대기"
+          />
+        </div>
+      </section>
 
       <section className="mt-12">
-        <h2 className="font-[family-name:var(--font-display)] text-2xl text-brand">
+        <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-brand">
+          <UsersIcon className="size-6" aria-hidden />
+          회원 리스트
+        </h2>
+        <div className="mt-4 overflow-x-auto rounded-lg border border-brand/10 bg-white/70">
+          <table className="min-w-full text-left text-sm">
+            <thead className="border-b border-brand/10 text-ink-muted">
+              <tr>
+                <th className="px-4 py-3 font-medium">이름</th>
+                <th className="px-4 py-3 font-medium">이메일</th>
+                <th className="px-4 py-3 font-medium">전화</th>
+                <th className="px-4 py-3 font-medium">역할</th>
+                <th className="px-4 py-3 font-medium">가입일</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(members || []).map((member) => (
+                <tr key={member.id} className="border-t border-brand/5">
+                  <td className="px-4 py-3">
+                    {accountDisplayName(member)}
+                  </td>
+                  <td className="px-4 py-3 break-all">{member.email || "—"}</td>
+                  <td className="px-4 py-3">{member.phone || "—"}</td>
+                  <td className="px-4 py-3">
+                    {member.role === "admin" ? (
+                      <span className="rounded bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand">
+                        admin
+                      </span>
+                    ) : (
+                      "user"
+                    )}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {new Date(member.created_at).toLocaleDateString("ko-KR")}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {!members?.length ? (
+            <p className="px-4 py-6 text-sm text-ink-muted">회원이 없습니다.</p>
+          ) : null}
+        </div>
+      </section>
+
+      <section className="mt-12">
+        <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-brand">
+          <ExclamationTriangleIcon className="size-6" aria-hidden />
+          회원 컴플레인
+        </h2>
+        <div className="mt-4 rounded-lg border border-brand/10 bg-white/70 p-4">
+          <p className="text-sm text-ink-muted">
+            미해결 {openComplaints.length}건 · 해결됨 {resolvedComplaints.length}
+            건 (최근 40건)
+          </p>
+          <ul className="mt-4 space-y-3">
+            {(complaints || []).length ? (
+              (complaints || []).map((item) => {
+                const user = Array.isArray(item.user) ? item.user[0] : item.user;
+                const isOpen = item.status === "open";
+                return (
+                  <li
+                    key={item.id}
+                    className={`rounded-md border px-4 py-3 ${
+                      isOpen
+                        ? "border-amber-200 bg-amber-50/60"
+                        : "border-brand/10 bg-[color-mix(in_oklab,var(--background)_55%,white)]"
+                    }`}
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-medium text-foreground">
+                            {item.subject}
+                          </p>
+                          <span
+                            className={`rounded px-2 py-0.5 text-[11px] font-semibold ${
+                              isOpen
+                                ? "bg-amber-200/80 text-amber-950"
+                                : "bg-brand/15 text-brand"
+                            }`}
+                          >
+                            {isOpen ? "미해결" : "해결됨"}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs text-ink-muted">
+                          {user
+                            ? `${accountDisplayName(user)} · ${user.email || ""}`
+                            : "회원"}{" "}
+                          ·{" "}
+                          {new Date(item.created_at).toLocaleString("ko-KR")}
+                          {!isOpen && item.resolved_at
+                            ? ` · 해결 ${new Date(item.resolved_at).toLocaleString("ko-KR")}`
+                            : ""}
+                        </p>
+                        <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+                          {item.body}
+                        </p>
+                      </div>
+                      {isOpen ? (
+                        <ResolveComplaintButton complaintId={item.id} />
+                      ) : null}
+                    </div>
+                  </li>
+                );
+              })
+            ) : (
+              <li className="text-sm text-ink-muted">
+                접수된 컴플레인이 없습니다. 회원은 My Profile에서 문의할 수
+                있습니다.
+              </li>
+            )}
+          </ul>
+        </div>
+      </section>
+
+      <section className="mt-12">
+        <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-brand">
+          <ShoppingBagIcon className="size-6" aria-hidden />
           주문 파이프라인
         </h2>
         <div className="mt-4 overflow-x-auto rounded-lg border border-brand/10 bg-white/70">
