@@ -42,6 +42,7 @@ export default async function MarketPage({
     .select(
       "*, categories(*), listing_images(*), seller:profiles!listings_seller_id_fkey(nickname, full_name, email, is_anonymous)",
     )
+    .neq("status", "cancelled")
     .order("created_at", { ascending: false });
 
   if (category) {

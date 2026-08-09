@@ -31,6 +31,7 @@ export default async function AccountTransactionsPage({
         .from("listings")
         .select("*")
         .eq("seller_id", profile.id)
+        .neq("status", "cancelled")
         .order("created_at", { ascending: false }),
       supabase
         .from("orders")

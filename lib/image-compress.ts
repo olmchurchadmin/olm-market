@@ -1,8 +1,8 @@
 /** Client-side image resize/compress before upload. */
 
-const DEFAULT_MAX_EDGE = 1600;
-const DEFAULT_QUALITY = 0.82;
-const SKIP_UNDER_BYTES = 400_000;
+const DEFAULT_MAX_EDGE = 1280;
+const DEFAULT_QUALITY = 0.75;
+const SKIP_UNDER_BYTES = 700_000;
 
 function loadImage(file: File): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -30,6 +30,16 @@ function canvasToBlob(
   });
 }
 
+function yieldToMain() {
+  return new Promise<void>((resolve) => {
+    if (typeof requestAnimationFrame === "function") {
+      requestAnimationFrame(() => resolve());
+    } else {
+      setTimeout(resolve, 0);
+    }
+  });
+}
+
 export async function compressImageFile(
   file: File,
   options?: {
@@ -38,9 +48,13 @@ export async function compressImageFile(
   },
 ): Promise<File> {
   if (!file.type.startsWith("image/")) return file;
-  if (file.type === "image/gif" || file.type === "image/svg+xml") return file;
-  if (file.size > 0 && file.size < SKIP_UNDER_BYTES) {
-    // Still downscale very large dimensions even if file is modest
+  if (
+    file.type === "image/gif" ||
+    file.type === "image/svg+xml" ||
+    file.type === "image/heic" ||
+    file.type === "image/heif"
+  ) {
+    return file;
   }
 
   try {
@@ -53,6 +67,8 @@ export async function compressImageFile(
       return file;
     }
 
+    await yieldToMain();
+
     const width = Math.max(1, Math.round(img.width * scale));
     const height = Math.max(1, Math.round(img.height * scale));
     const canvas = document.createElement("canvas");
@@ -62,22 +78,13 @@ export async function compressImageFile(
     if (!ctx) return file;
     ctx.drawImage(img, 0, 0, width, height);
 
-    const preferJpeg =
-      file.type === "image/jpeg" ||
-      file.type === "image/jpg" ||
-      file.type === "image/webp" ||
-      file.type === "image/heic" ||
-      file.type === "image/heif" ||
-      width * height > 1_000_000;
-
-    const mime = preferJpeg ? "image/jpeg" : "image/png";
+    const mime = "image/jpeg";
     const blob = await canvasToBlob(canvas, mime, quality);
     if (!blob) return file;
     if (blob.size >= file.size && scale >= 1) return file;
 
     const base = file.name.replace(/\.[^.]+$/, "") || "image";
-    const ext = mime === "image/jpeg" ? "jpg" : "png";
-    return new File([blob], `${base}.${ext}`, {
+    return new File([blob], `${base}.jpg`, {
       type: mime,
       lastModified: Date.now(),
     });
@@ -88,5 +95,10 @@ export async function compressImageFile(
 
 export async function compressImageFiles(files: FileList | File[]) {
   const list = Array.from(files).slice(0, 6);
-  return Promise.all(list.map((file) => compressImageFile(file)));
+  const out: File[] = [];
+  for (const file of list) {
+    out.push(await compressImageFile(file));
+    await yieldToMain();
+  }
+  return out;
 }

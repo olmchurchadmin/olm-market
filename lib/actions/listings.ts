@@ -242,20 +242,27 @@ export async function deleteListingAction(formData: FormData) {
     await supabase.storage.from("listing-images").remove(paths);
   }
 
-  const { error } = await supabase
+  // Soft-cancel first (works with existing update RLS even without DELETE policy)
+  const { error: cancelError } = await supabase
+    .from("listings")
+    .update({ status: "cancelled", cover_image_path: null })
+    .eq("id", listingId)
+    .eq("seller_id", user.id);
+
+  if (cancelError) {
+    redirect(
+      `/account/transactions?error=${encodeURIComponent(cancelError.message || "삭제에 실패했습니다.")}`,
+    );
+  }
+
+  await supabase.from("listing_images").delete().eq("listing_id", listingId);
+
+  // Best-effort hard delete when policy/FK allow it
+  await supabase
     .from("listings")
     .delete()
     .eq("id", listingId)
     .eq("seller_id", user.id);
-
-  if (error) {
-    // FK restrict when an order exists — soft-cancel instead
-    await supabase
-      .from("listings")
-      .update({ status: "cancelled" })
-      .eq("id", listingId)
-      .eq("seller_id", user.id);
-  }
 
   revalidatePath("/market");
   revalidatePath(`/market/${listingId}`);

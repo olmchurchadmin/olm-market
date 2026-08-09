@@ -37,11 +37,13 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
   const titleId = useId();
   const descId = useId();
 
+  // Open confirm outside of transitions so the modal is never deferred/stuck.
   const confirm = useCallback<ConfirmFn>((next) => {
     return new Promise<boolean>((resolve) => {
       resolveRef.current?.(false);
       resolveRef.current = resolve;
-      setOptions(next);
+      // Ensure dialog state is not batched into a low-priority transition.
+      queueMicrotask(() => setOptions(next));
     });
   }, []);
 

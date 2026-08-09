@@ -37,6 +37,7 @@ export function FileUploadField({
 }) {
   const pickId = useId();
   const submitInputRef = useRef<HTMLInputElement>(null);
+  const filesRef = useRef<File[]>([]);
   const [keptExisting, setKeptExisting] = useState<ExistingImage[]>(existingImages);
   const [previews, setPreviews] = useState<NewPreview[]>([]);
   const [busy, setBusy] = useState(false);
@@ -55,6 +56,7 @@ export function FileUploadField({
     .map((img) => img.id);
 
   function syncSubmitInput(files: File[]) {
+    filesRef.current = files;
     const input = submitInputRef.current;
     if (!input) return;
     const dt = new DataTransfer();
@@ -69,19 +71,20 @@ export function FileUploadField({
       const compressed = await compressImageFiles(
         Array.from(fileList).slice(0, slotsLeft),
       );
+      const next = [
+        ...filesRef.current,
+        ...compressed,
+      ].slice(0, MAX_IMAGES - keptExisting.length);
+
       setPreviews((prev) => {
-        const added = compressed.map((file, index) => ({
+        prev.forEach((p) => URL.revokeObjectURL(p.url));
+        return next.map((file, index) => ({
           key: `${file.name}-${file.size}-${index}-${Date.now()}`,
           file,
           url: URL.createObjectURL(file),
         }));
-        const next = [...prev, ...added].slice(
-          0,
-          MAX_IMAGES - keptExisting.length,
-        );
-        syncSubmitInput(next.map((p) => p.file));
-        return next;
       });
+      syncSubmitInput(next);
     } finally {
       setBusy(false);
     }
@@ -112,14 +115,14 @@ export function FileUploadField({
         <input key={imageId} type="hidden" name={removeName} value={imageId} />
       ))}
 
-      {/* Named file input that actually submits new files */}
+      {/* Visually hidden but not display:none — browsers may skip display:none file inputs */}
       <input
         ref={submitInputRef}
         name={name}
         type="file"
         accept={accept}
         multiple={multiple}
-        className="hidden"
+        className="sr-only"
         tabIndex={-1}
         aria-hidden
       />
