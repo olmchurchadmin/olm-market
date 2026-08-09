@@ -21,11 +21,15 @@ export function SellingListingRow({ listing }: { listing: Listing }) {
     <li className="flex gap-3 rounded-md border border-brand/10 bg-white/70 p-3">
       <Link
         href={`/market/${listing.id}`}
-        className="relative size-16 shrink-0 overflow-hidden rounded-md bg-[linear-gradient(135deg,#dfe8e2,#f7f3ea)] sm:size-20"
+        className="relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-md bg-[linear-gradient(135deg,#dfe8e2,#f7f3ea)] sm:size-20"
       >
         {thumb ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={thumb} alt="" className="h-full w-full object-cover" />
+          <img
+            src={thumb}
+            alt=""
+            className="max-h-full max-w-full object-contain"
+          />
         ) : (
           <span className="flex h-full items-center justify-center text-[10px] text-ink-muted">
             {t.market.noImage}

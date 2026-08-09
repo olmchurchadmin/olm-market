@@ -134,11 +134,15 @@ export function FileUploadField({
             return (
               <li
                 key={image.id}
-                className="relative aspect-square overflow-hidden rounded-md border border-brand/10 bg-[linear-gradient(135deg,#dfe8e2,#f7f3ea)]"
+                className="relative flex aspect-square items-center justify-center overflow-hidden rounded-md border border-brand/10 bg-[linear-gradient(135deg,#dfe8e2,#f7f3ea)]"
               >
                 {src ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={src} alt="" className="h-full w-full object-cover" />
+                  <img
+                    src={src}
+                    alt=""
+                    className="max-h-full max-w-full object-contain"
+                  />
                 ) : null}
                 <button
                   type="button"
@@ -154,13 +158,13 @@ export function FileUploadField({
           {previews.map((preview, index) => (
             <li
               key={preview.key}
-              className="relative aspect-square overflow-hidden rounded-md border border-brand/10 bg-[linear-gradient(135deg,#dfe8e2,#f7f3ea)]"
+              className="relative flex aspect-square items-center justify-center overflow-hidden rounded-md border border-brand/10 bg-[linear-gradient(135deg,#dfe8e2,#f7f3ea)]"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={preview.url}
                 alt=""
-                className="h-full w-full object-cover"
+                className="max-h-full max-w-full object-contain"
               />
               <button
                 type="button"

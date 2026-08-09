@@ -24,13 +24,13 @@ export function ListingCard({ listing }: { listing: Listing }) {
       href={`/market/${listing.id}`}
       className="group block overflow-hidden rounded-lg border border-brand/10 bg-white/70 transition hover:-translate-y-0.5 hover:border-brand/25"
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-[linear-gradient(135deg,#dfe8e2,#f7f3ea)]">
+      <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-[linear-gradient(135deg,#dfe8e2,#f7f3ea)]">
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={image}
             alt={listing.title}
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+            className="max-h-full max-w-full object-contain transition duration-500 group-hover:scale-[1.02]"
           />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-ink-muted">

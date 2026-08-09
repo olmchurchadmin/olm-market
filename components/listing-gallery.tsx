@@ -36,12 +36,12 @@ export function ListingGallery({
 
   return (
     <div className="space-y-3">
-      <div className="aspect-[4/3] overflow-hidden rounded-lg bg-[linear-gradient(135deg,#dfe8e2,#f7f3ea)]">
+      <div className="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-lg bg-[linear-gradient(135deg,#dfe8e2,#f7f3ea)]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={current}
           alt={title}
-          className="h-full w-full object-cover"
+          className="max-h-full max-w-full object-contain"
         />
       </div>
       {urls.length > 1 ? (
@@ -55,14 +55,18 @@ export function ListingGallery({
                 onClick={() => setActive(index)}
                 aria-label={`사진 ${index + 1}`}
                 aria-pressed={selected}
-                className={`aspect-square overflow-hidden rounded-md border-2 transition ${
+                className={`flex aspect-square items-center justify-center overflow-hidden rounded-md border-2 bg-[linear-gradient(135deg,#dfe8e2,#f7f3ea)] transition ${
                   selected
                     ? "border-brand"
                     : "border-transparent opacity-80 hover:opacity-100"
                 }`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={url} alt="" className="h-full w-full object-cover" />
+                <img
+                  src={url}
+                  alt=""
+                  className="max-h-full max-w-full object-contain"
+                />
               </button>
             );
           })}
