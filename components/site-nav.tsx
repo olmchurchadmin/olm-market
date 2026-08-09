@@ -91,7 +91,7 @@ export function SiteNav({ profile }: SiteNavProps) {
 
               <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3 text-sm font-medium">
                 <Link
-                  href="/market"
+                  href="/"
                   onClick={() => setOpen(false)}
                   className="inline-flex items-center gap-2 rounded-md px-3 py-3 hover:bg-brand/5 hover:text-brand"
                 >
@@ -162,7 +162,7 @@ export function SiteNav({ profile }: SiteNavProps) {
     <>
       <nav className="hidden items-center gap-1 text-sm font-medium text-foreground md:flex md:gap-2">
         <Link
-          href="/market"
+          href="/"
           className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 hover:bg-brand/5 hover:text-brand"
         >
           <BuildingStorefrontIcon className="size-4" aria-hidden />

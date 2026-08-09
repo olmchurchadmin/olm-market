@@ -22,7 +22,7 @@ export default async function LoginPage({
   }>;
 }) {
   const params = await searchParams;
-  const next = params.next || "/market";
+  const next = params.next || "/";
   const mode = parseMode(params.mode);
   const { t } = await getI18n();
 
@@ -98,7 +98,7 @@ export default async function LoginPage({
 
       <p className="mt-8 text-center text-sm text-ink-muted">
         <Link
-          href="/market"
+          href="/"
           className="inline-flex items-center gap-1.5 underline"
         >
           <ArrowLeftIcon className="size-4" aria-hidden />

@@ -22,9 +22,9 @@ export function ListingCard({ listing }: { listing: Listing }) {
   return (
     <Link
       href={`/market/${listing.id}`}
-      className="group block overflow-hidden rounded-lg border border-brand/10 bg-white/70 transition hover:-translate-y-0.5 hover:border-brand/25"
+      className="group block overflow-hidden rounded-lg border border-brand/10 bg-white transition hover:-translate-y-0.5 hover:border-brand/25"
     >
-      <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-white">
+      <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-white">
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -38,22 +38,22 @@ export function ListingCard({ listing }: { listing: Listing }) {
           </div>
         )}
         {soldLike ? (
-          <span className="absolute left-3 top-3 rounded-md bg-brand px-2 py-1 text-xs font-semibold text-white">
+          <span className="absolute left-2 top-2 rounded-md bg-brand px-2 py-1 text-[10px] font-semibold text-white sm:left-3 sm:top-3 sm:text-xs">
             {listingStatusLabel(listing.status, t.status)}
           </span>
         ) : null}
       </div>
-      <div className="space-y-1 p-4">
-        <p className="text-xs font-medium tracking-wide text-brand-soft uppercase">
+      <div className="space-y-0.5 p-2.5 sm:space-y-1 sm:p-3">
+        <p className="truncate text-[10px] font-medium tracking-wide text-brand-soft uppercase sm:text-xs">
           {categoryLabel(listing.categories, locale)}
         </p>
-        <h3 className="line-clamp-2 font-[family-name:var(--font-display)] text-lg text-brand">
+        <h3 className="line-clamp-2 font-[family-name:var(--font-display)] text-sm text-brand sm:text-base">
           {listing.title}
         </h3>
-        <p className="text-base font-semibold text-foreground">
+        <p className="text-sm font-semibold text-foreground sm:text-base">
           {formatPrice(listing.price_cents, locale)}
         </p>
-        <p className="text-xs text-ink-muted">
+        <p className="truncate text-[10px] text-ink-muted sm:text-xs">
           {t.market.seller} ·{" "}
           {publicSellerLabel(listing.seller, {
             seller: t.market.seller,

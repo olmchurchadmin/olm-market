@@ -98,7 +98,7 @@ export default async function AdminPage({
           </p>
         </div>
         <Link
-          href="/market"
+          href="/"
           className="text-sm text-ink-muted hover:text-brand"
         >
           {t.admin.toMarket}

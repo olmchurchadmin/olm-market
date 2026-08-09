@@ -33,6 +33,7 @@ export async function buyListingAction(listingId: string) {
     // Order already reserved; notification failure should not roll back.
   }
 
+  revalidatePath("/");
   revalidatePath("/market");
   revalidatePath(`/market/${listingId}`);
   revalidatePath("/me");
@@ -58,6 +59,7 @@ export async function adminMarkDropoffAction(orderId: string) {
   revalidatePath("/admin");
   revalidatePath("/me");
   revalidatePath("/account/transactions");
+  revalidatePath("/");
   revalidatePath("/market");
   return { ok: true as const };
 }
@@ -79,6 +81,7 @@ export async function adminMarkPickupAction(orderId: string) {
   revalidatePath("/admin");
   revalidatePath("/me");
   revalidatePath("/account/transactions");
+  revalidatePath("/");
   revalidatePath("/market");
   return { ok: true as const };
 }

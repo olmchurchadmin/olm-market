@@ -38,7 +38,7 @@ export async function requireAdmin() {
   const { redirect } = await import("next/navigation");
   const profile = await getCurrentProfile();
   if (!profile || profile.role !== "admin") {
-    redirect("/market");
+    redirect("/");
   }
   return profile;
 }

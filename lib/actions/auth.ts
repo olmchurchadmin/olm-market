@@ -22,7 +22,7 @@ async function originBase() {
 
 export async function signInWithOAuth(
   provider: "google" | "kakao",
-  next = "/market",
+  next = "/",
 ) {
   const supabase = await createClient();
   const origin = await originBase();
@@ -43,7 +43,7 @@ export async function signInWithPasswordAction(formData: FormData) {
   const { t } = await getI18n();
   const email = String(formData.get("email") || "").trim();
   const password = String(formData.get("password") || "");
-  const next = String(formData.get("next") || "/market");
+  const next = String(formData.get("next") || "/");
 
   if (!email || !password) {
     redirect(
@@ -66,7 +66,7 @@ export async function signUpWithPasswordAction(formData: FormData) {
   const email = String(formData.get("email") || "").trim();
   const password = String(formData.get("password") || "");
   const confirm = String(formData.get("confirm") || "");
-  const next = String(formData.get("next") || "/market");
+  const next = String(formData.get("next") || "/");
 
   if (!email || !password) {
     redirect(
@@ -163,7 +163,7 @@ async function confirmAndSignIn(email: string, password: string) {
 
 export async function requestPasswordResetAction(formData: FormData) {
   const email = String(formData.get("email") || "").trim().toLowerCase();
-  const next = String(formData.get("next") || "/market");
+  const next = String(formData.get("next") || "/");
 
   if (!email) {
     const { t } = await getI18n();
@@ -232,7 +232,7 @@ export async function updatePasswordAction(formData: FormData) {
   if (next.startsWith("/account")) {
     redirect("/account/profile?saved=password");
   }
-  redirect("/market");
+  redirect("/");
 }
 
 export async function signOutAction() {

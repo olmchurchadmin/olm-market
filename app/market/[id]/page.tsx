@@ -46,7 +46,7 @@ export default async function ListingDetailPage({
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       <Link
-        href="/market"
+        href="/"
         className="inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-brand"
       >
         <ArrowLeftIcon className="size-4" aria-hidden />

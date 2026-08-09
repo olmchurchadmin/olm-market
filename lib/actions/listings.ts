@@ -107,6 +107,7 @@ export async function createListingAction(formData: FormData) {
       .eq("id", listing.id);
   }
 
+  revalidatePath("/");
   revalidatePath("/market");
   revalidatePath("/account/transactions");
   revalidatePath("/me");
@@ -200,6 +201,7 @@ export async function updateListingAction(formData: FormData) {
     .update({ cover_image_path: cover })
     .eq("id", listingId);
 
+  revalidatePath("/");
   revalidatePath("/market");
   revalidatePath(`/market/${listingId}`);
   revalidatePath("/account/transactions");
@@ -269,6 +271,7 @@ export async function deleteListingAction(formData: FormData) {
     .eq("id", listingId)
     .eq("seller_id", user.id);
 
+  revalidatePath("/");
   revalidatePath("/market");
   revalidatePath(`/market/${listingId}`);
   revalidatePath("/account/transactions");

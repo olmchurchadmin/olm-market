@@ -59,7 +59,7 @@ export async function resolveComplaintAction(formData: FormData) {
     .maybeSingle();
 
   if (profile?.role !== "admin") {
-    redirect("/market");
+    redirect("/");
   }
 
   const { error } = await supabase
