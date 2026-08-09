@@ -111,7 +111,7 @@ const ko = {
     signupSent:
       "가입 확인 메일을 보냈습니다. 인증 후 로그인해 주세요. (설정에 따라 바로 로그인될 수도 있습니다.)",
     resetSent:
-      "비밀번호 재설정 링크를 이메일로 보냈습니다. 받은편지함을 확인해 주세요.",
+      "비밀번호 재설정 링크를 이메일로 보냈습니다. 받은편지함과 스팸함을 확인해 주세요. 몇 분 안에 오지 않으면 다시 요청해 주세요.",
     forgotHint: "가입한 이메일을 입력하면 비밀번호 재설정 링크를 보내 드립니다.",
     updatePasswordTitle: "새 비밀번호",
     updatePasswordBlurb: "Church Market 계정에 사용할 새 비밀번호를 입력하세요.",
@@ -383,7 +383,8 @@ const en: Dictionary = {
     hidePassword: "Hide password",
     signupSent:
       "We sent a confirmation email. Verify, then log in. (Some setups sign you in right away.)",
-    resetSent: "We emailed a password reset link. Check your inbox.",
+    resetSent:
+      "We emailed a password reset link. Check your inbox and spam folder. If it doesn't arrive in a few minutes, try again.",
     forgotHint: "Enter your email and we'll send a password reset link.",
     updatePasswordTitle: "New password",
     updatePasswordBlurb: "Enter a new password for your Church Market account.",

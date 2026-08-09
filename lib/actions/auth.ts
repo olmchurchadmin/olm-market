@@ -26,15 +26,22 @@ export async function signInWithOAuth(
 ) {
   const supabase = await createClient();
   const origin = await originBase();
+  const safeNext = next.startsWith("/") ? next : "/";
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`,
+      redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(safeNext)}`,
+      // Kakao nickname is enough for basic login. Enable account_email in Kakao
+      // (Biz App) + Supabase if you need email addresses.
+      ...(provider === "kakao" ? { scopes: "profile_nickname" } : {}),
     },
   });
   if (error || !data.url) {
     const { t } = await getI18n();
-    throw new Error(error?.message || t.errors.requestFailed);
+    console.error(`[oauth:${provider}]`, error?.message || "missing url");
+    redirect(
+      `/login?error=${encodeURIComponent(error?.message || t.errors.authFailed)}&next=${encodeURIComponent(safeNext)}`,
+    );
   }
   redirect(data.url);
 }
@@ -176,27 +183,56 @@ export async function requestPasswordResetAction(formData: FormData) {
   const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent("/login/update-password")}`;
 
   try {
-    const admin = createServiceClient();
-    const { data, error } = await admin.auth.admin.generateLink({
-      type: "recovery",
-      email,
-      options: { redirectTo },
-    });
+    let delivered = false;
 
-    if (!error && data?.properties?.action_link) {
-      const result = await sendEmail({
-        to: email,
-        subject: "[Church Market] 비밀번호 재설정",
-        html: passwordResetHtml(data.properties.action_link),
+    // Prefer branded Resend mail with an admin-generated recovery link.
+    try {
+      const admin = createServiceClient();
+      const { data, error } = await admin.auth.admin.generateLink({
+        type: "recovery",
+        email,
+        options: { redirectTo },
       });
-      if (!result.ok && result.reason === "pending_credentials") {
-        // Fallback to Supabase built-in mail if Resend is not configured
-        const supabase = await createClient();
-        await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+
+      if (!error && data?.properties?.action_link) {
+        const result = await sendEmail({
+          to: email,
+          subject: "[Church Market] 비밀번호 재설정",
+          html: passwordResetHtml(data.properties.action_link),
+        });
+        if (result.ok) {
+          delivered = true;
+        } else {
+          console.error(
+            "[password-reset] Resend failed:",
+            "reason" in result ? result.reason : "unknown",
+            "error" in result ? result.error : "",
+          );
+        }
+      } else if (error) {
+        console.error("[password-reset] generateLink failed:", error.message);
+      }
+    } catch (err) {
+      console.error("[password-reset] Resend path error:", err);
+    }
+
+    // Fallback: Supabase Auth email (works when SMTP is configured there).
+    // Also covers Resend test-domain limits (can only send to the account owner).
+    if (!delivered) {
+      const supabase = await createClient();
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo,
+      });
+      if (error) {
+        console.error(
+          "[password-reset] Supabase resetPasswordForEmail failed:",
+          error.message,
+        );
       }
     }
-  } catch {
+  } catch (err) {
     // Always show success to avoid email enumeration
+    console.error("[password-reset] unexpected error:", err);
   }
 
   redirect(`/login?mode=forgot&sent=reset&next=${encodeURIComponent(next)}`);

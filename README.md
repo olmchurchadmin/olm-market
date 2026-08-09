@@ -28,10 +28,27 @@
 ### 2. Supabase (`olmchurchadmin`)
 1. Authentication → URL Configuration
    - Site URL: Vercel production URL (예: `https://olm-market.vercel.app`)
-   - Redirect URLs: `https://YOUR-VERCEL-URL/auth/callback`, `http://localhost:3000/auth/callback`
+   - Redirect URLs: `https://olm-market.vercel.app/auth/callback`, `http://localhost:3000/auth/callback`
 2. Authentication → Sign In / Providers → Google Enable + Client ID/Secret
 3. Google Cloud Redirect URI: `https://fktvadbfasmnfuduueko.supabase.co/auth/v1/callback`
 4. SQL Editor에서 `supabase/migrations/20260802140000_church_market_schema.sql` 전체 Run
+
+### 2b. Kakao login (카카오로 계속)
+앱 버튼은 이미 연결되어 있습니다. **카카오 개발자 + Supabase Provider**만 켜면 됩니다.
+
+1. [Kakao Developers](https://developers.kakao.com) → 앱 생성  
+2. **앱 설정 → 앱 → 플랫폼 키**에서 REST API 키(Client ID), Client Secret 확인 · Client Secret **활성화**  
+3. 같은 화면 **Kakao Login Redirect URI**에 추가:  
+   `https://fktvadbfasmnfuduueko.supabase.co/auth/v1/callback`  
+4. **제품 설정 → 카카오 로그인 → 일반**: 사용 설정 **ON**  
+5. **동의 항목**: `profile_nickname` 필수, `account_email` 가능하면 선택  
+   - 이메일이 없으면 Supabase Kakao 설정에서 **Allow users without an email** 켜기  
+   - `account_email`은 Biz 앱일 때만 가능한 경우가 많음  
+6. Supabase → Authentication → Providers → **Kakao Enable**  
+   - Client ID = REST API 키  
+   - Client Secret = Kakao Client Secret  
+7. (권장) SQL Editor에서 `supabase/migrations/20260809195000_profile_kakao_metadata.sql` Run  
+8. 사이트에서 **카카오로 계속** 클릭해 테스트
 
 ### 3. Vercel (`olmchurchadmin`)
 1. Import GitHub repo `olmchurchadmin/olm-market`
