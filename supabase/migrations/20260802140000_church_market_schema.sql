@@ -110,13 +110,15 @@ create table public.notification_jobs (
 );
 
 insert into public.categories (slug, name_ko, sort_order) values
-  ('furniture', '가구', 1),
-  ('electronics', '가전', 2),
-  ('clothing', '의류', 3),
-  ('books', '도서', 4),
-  ('household', '생활용품', 5),
-  ('kids', '유아/아동', 6),
-  ('other', '기타', 7);
+  ('sacred', '성물', 1),
+  ('furniture', '가구', 2),
+  ('electronics', '가전', 3),
+  ('clothing', '의류', 4),
+  ('books', '도서', 5),
+  ('household', '생활용품', 6),
+  ('kids', '유아/아동', 7),
+  ('sports', '스포츠용품', 8),
+  ('other', '기타', 9);
 
 create or replace function public.set_updated_at()
 returns trigger
