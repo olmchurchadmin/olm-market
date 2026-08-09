@@ -48,6 +48,12 @@ const ko = {
     buyHint:
       "Buy 후 판매자는 다음 주 성당에 물건을 맡기고, 구매자는 관리자에게 현금 결제 후 픽업합니다.",
     noImage: "No image",
+    openFullscreen: "전체 화면으로 보기",
+    closeFullscreen: "닫기",
+    zoomIn: "확대",
+    zoomOut: "축소",
+    prevImage: "이전 사진",
+    nextImage: "다음 사진",
   },
   sell: {
     title: "판매 등록",
@@ -261,6 +267,12 @@ const en: Dictionary = {
     buyHint:
       "After Buy, the seller drops the item at church next week; the buyer pays cash to the admin and picks it up.",
     noImage: "No image",
+    openFullscreen: "View fullscreen",
+    closeFullscreen: "Close",
+    zoomIn: "Zoom in",
+    zoomOut: "Zoom out",
+    prevImage: "Previous photo",
+    nextImage: "Next photo",
   },
   sell: {
     title: "Sell an item",
