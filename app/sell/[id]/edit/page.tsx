@@ -35,11 +35,9 @@ export default async function EditListingPage({
 
   if (!listing || listing.seller_id !== user.id) notFound();
   if (listing.status !== "available" && listing.status !== "cancelled") {
-    const msg =
-      locale === "en"
-        ? "Items in an active trade cannot be edited."
-        : "거래 중인 물품은 수정할 수 없습니다.";
-    redirect(`/account/transactions?error=${encodeURIComponent(msg)}`);
+    redirect(
+      `/account/transactions?error=${encodeURIComponent(t.sell.cannotEditActive)}`,
+    );
   }
 
   const images = (listing.listing_images || []).sort(

@@ -2,6 +2,7 @@
 
 import { PhotoIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useEffect, useId, useRef, useState } from "react";
+import { useI18n } from "@/components/locale-provider";
 import { compressImageFiles } from "@/lib/image-compress";
 import { listingImageUrl } from "@/lib/utils";
 
@@ -35,6 +36,7 @@ export function FileUploadField({
   existingImages?: ExistingImage[];
   removeName?: string;
 }) {
+  const { t } = useI18n();
   const pickId = useId();
   const submitInputRef = useRef<HTMLInputElement>(null);
   const filesRef = useRef<File[]>([]);
@@ -134,21 +136,21 @@ export function FileUploadField({
             return (
               <li
                 key={image.id}
-                className="relative flex aspect-square items-center justify-center overflow-hidden rounded-md border border-brand/10 bg-[linear-gradient(135deg,#dfe8e2,#f7f3ea)]"
+                className="relative flex aspect-square items-center justify-center overflow-hidden rounded-md border border-brand/10 bg-white"
               >
                 {src ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={src}
                     alt=""
-                    className="max-h-full max-w-full object-contain"
+                    className="h-full w-full object-contain object-center"
                   />
                 ) : null}
                 <button
                   type="button"
                   onClick={() => removeExisting(image.id)}
                   className="absolute top-1 right-1 rounded-full bg-black/55 p-0.5 text-white hover:bg-black/75"
-                  aria-label="사진 제거"
+                  aria-label={t.sell.removePhoto}
                 >
                   <XMarkIcon className="size-4" aria-hidden />
                 </button>
@@ -158,19 +160,19 @@ export function FileUploadField({
           {previews.map((preview, index) => (
             <li
               key={preview.key}
-              className="relative flex aspect-square items-center justify-center overflow-hidden rounded-md border border-brand/10 bg-[linear-gradient(135deg,#dfe8e2,#f7f3ea)]"
+              className="relative flex aspect-square items-center justify-center overflow-hidden rounded-md border border-brand/10 bg-white"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={preview.url}
                 alt=""
-                className="max-h-full max-w-full object-contain"
+                className="h-full w-full object-contain object-center"
               />
               <button
                 type="button"
                 onClick={() => removeNew(index)}
                 className="absolute top-1 right-1 rounded-full bg-black/55 p-0.5 text-white hover:bg-black/75"
-                aria-label="사진 제거"
+                aria-label={t.sell.removePhoto}
               >
                 <XMarkIcon className="size-4" aria-hidden />
               </button>
@@ -188,13 +190,15 @@ export function FileUploadField({
           <span className="min-w-0">
             <span className="block text-sm font-medium text-foreground">
               {busy
-                ? "이미지 줄이는 중…"
+                ? t.sell.compressing
                 : totalCount > 0
-                  ? `사진 추가 (${totalCount}/${MAX_IMAGES})`
-                  : "사진 선택"}
+                  ? t.sell.addPhotos
+                      .replace("{count}", String(totalCount))
+                      .replace("{max}", String(MAX_IMAGES))
+                  : t.sell.pickPhotos}
             </span>
             <span className="block text-xs text-ink-muted">
-              JPG, PNG · 최대 {MAX_IMAGES}장 · 큰 사진은 자동으로 줄여 올립니다
+              {t.sell.photoFormats.replace("{max}", String(MAX_IMAGES))}
             </span>
           </span>
           <input
@@ -211,8 +215,7 @@ export function FileUploadField({
         </label>
       ) : (
         <p className="mt-3 text-xs text-ink-muted">
-          사진은 최대 {MAX_IMAGES}장까지입니다. 더 올리려면 기존 사진을 지워
-          주세요.
+          {t.sell.photoLimit.replace("{max}", String(MAX_IMAGES))}
         </p>
       )}
     </div>

@@ -1,17 +1,19 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import { notifyOrderEvent } from "@/lib/notifications/dispatch";
 
 export async function buyListingAction(listingId: string) {
+  const { t } = await getI18n();
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { ok: false as const, error: "로그인이 필요합니다." };
+    return { ok: false as const, error: t.errors.loginRequired };
   }
 
   const { data, error } = await supabase.rpc("buy_listing", {
@@ -21,7 +23,7 @@ export async function buyListingAction(listingId: string) {
   if (error || !data) {
     return {
       ok: false as const,
-      error: error?.message || "구매에 실패했습니다.",
+      error: error?.message || t.errors.buyFailed,
     };
   }
 
@@ -40,12 +42,13 @@ export async function buyListingAction(listingId: string) {
 }
 
 export async function adminMarkDropoffAction(orderId: string) {
+  const { t } = await getI18n();
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("admin_mark_dropoff", {
     p_order_id: orderId,
   });
   if (error || !data) {
-    return { ok: false as const, error: error?.message || "처리 실패" };
+    return { ok: false as const, error: error?.message || t.errors.actionFailed };
   }
   try {
     await notifyOrderEvent({ orderId, event: "dropoff" });
@@ -60,12 +63,13 @@ export async function adminMarkDropoffAction(orderId: string) {
 }
 
 export async function adminMarkPickupAction(orderId: string) {
+  const { t } = await getI18n();
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("admin_mark_pickup_complete", {
     p_order_id: orderId,
   });
   if (error || !data) {
-    return { ok: false as const, error: error?.message || "처리 실패" };
+    return { ok: false as const, error: error?.message || t.errors.actionFailed };
   }
   try {
     await notifyOrderEvent({ orderId, event: "completed" });

@@ -12,7 +12,7 @@ type Props = SelectHTMLAttributes<HTMLSelectElement> & {
 export function SelectField({
   label,
   options,
-  placeholder = "선택",
+  placeholder = "",
   className = "",
   id,
   ...props

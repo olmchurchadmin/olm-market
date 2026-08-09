@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
@@ -14,7 +15,8 @@ export async function GET(request: Request) {
     }
   }
 
+  const { t } = await getI18n();
   return NextResponse.redirect(
-    new URL(`/login?error=${encodeURIComponent("인증에 실패했습니다.")}`, origin),
+    new URL(`/login?error=${encodeURIComponent(t.errors.authFailed)}`, origin),
   );
 }

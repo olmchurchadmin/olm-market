@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 
 async function requireSeller() {
@@ -15,7 +16,8 @@ async function requireSeller() {
   return { supabase, user };
 }
 
-function parseListingFields(formData: FormData) {
+async function parseListingFields(formData: FormData) {
+  const { t } = await getI18n();
   const title = String(formData.get("title") || "").trim();
   const description = String(formData.get("description") || "").trim();
   const categoryId = String(formData.get("category_id") || "");
@@ -25,7 +27,7 @@ function parseListingFields(formData: FormData) {
     .filter((f): f is File => f instanceof File && f.size > 0);
 
   if (!title || !categoryId || Number.isNaN(priceDollars) || priceDollars < 0) {
-    throw new Error("필수 항목을 확인해 주세요.");
+    throw new Error(t.errors.requiredFields);
   }
 
   return {
@@ -71,7 +73,7 @@ async function uploadListingImages(
 export async function createListingAction(formData: FormData) {
   const { supabase, user } = await requireSeller();
   const { title, description, categoryId, priceCents, files } =
-    parseListingFields(formData);
+    await parseListingFields(formData);
 
   const { data: listing, error } = await supabase
     .from("listings")
@@ -87,7 +89,8 @@ export async function createListingAction(formData: FormData) {
     .single();
 
   if (error || !listing) {
-    throw new Error(error?.message || "등록에 실패했습니다.");
+    const { t } = await getI18n();
+    throw new Error(error?.message || t.errors.createFailed);
   }
 
   const uploadedPaths = await uploadListingImages(
@@ -112,11 +115,12 @@ export async function createListingAction(formData: FormData) {
 
 export async function updateListingAction(formData: FormData) {
   const { supabase, user } = await requireSeller();
+  const { t } = await getI18n();
   const listingId = String(formData.get("listing_id") || "");
-  if (!listingId) throw new Error("물품을 찾을 수 없습니다.");
+  if (!listingId) throw new Error(t.errors.listingNotFound);
 
   const { title, description, categoryId, priceCents, files } =
-    parseListingFields(formData);
+    await parseListingFields(formData);
 
   const { data: existing, error: loadError } = await supabase
     .from("listings")
@@ -125,10 +129,10 @@ export async function updateListingAction(formData: FormData) {
     .maybeSingle();
 
   if (loadError || !existing || existing.seller_id !== user.id) {
-    throw new Error("수정할 수 없는 물품입니다.");
+    throw new Error(t.errors.cannotEdit);
   }
   if (existing.status !== "available" && existing.status !== "cancelled") {
-    throw new Error("거래 진행 중이거나 완료된 물품은 수정할 수 없습니다.");
+    throw new Error(t.errors.cannotEditActive);
   }
 
   const { error } = await supabase
@@ -144,7 +148,7 @@ export async function updateListingAction(formData: FormData) {
     .eq("seller_id", user.id);
 
   if (error) {
-    throw new Error(error.message || "수정에 실패했습니다.");
+    throw new Error(error.message || t.errors.updateFailed);
   }
 
   const removeIds = formData
@@ -205,6 +209,7 @@ export async function updateListingAction(formData: FormData) {
 
 export async function deleteListingAction(formData: FormData) {
   const { supabase, user } = await requireSeller();
+  const { t } = await getI18n();
   const listingId = String(formData.get("listing_id") || "");
   if (!listingId) {
     redirect("/account/transactions?error=missing");
@@ -218,7 +223,7 @@ export async function deleteListingAction(formData: FormData) {
 
   if (!existing || existing.seller_id !== user.id) {
     redirect(
-      `/account/transactions?error=${encodeURIComponent("삭제할 수 없는 물품입니다.")}`,
+      `/account/transactions?error=${encodeURIComponent(t.errors.cannotDelete)}`,
     );
   }
 
@@ -228,7 +233,7 @@ export async function deleteListingAction(formData: FormData) {
     existing.status === "sold"
   ) {
     redirect(
-      `/account/transactions?error=${encodeURIComponent("거래 중인 물품은 삭제할 수 없습니다.")}`,
+      `/account/transactions?error=${encodeURIComponent(t.errors.cannotDeleteActive)}`,
     );
   }
 
@@ -251,7 +256,7 @@ export async function deleteListingAction(formData: FormData) {
 
   if (cancelError) {
     redirect(
-      `/account/transactions?error=${encodeURIComponent(cancelError.message || "삭제에 실패했습니다.")}`,
+      `/account/transactions?error=${encodeURIComponent(cancelError.message || t.errors.deleteFailed)}`,
     );
   }
 

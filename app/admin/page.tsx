@@ -339,7 +339,7 @@ export default async function AdminPage({
             </tbody>
           </table>
           {!orders?.length ? (
-            <p className="px-4 py-6 text-sm text-ink-muted">주문이 없습니다.</p>
+            <p className="px-4 py-6 text-sm text-ink-muted">{t.admin.noOrders}</p>
           ) : null}
         </div>
       </section>

@@ -7,7 +7,7 @@ import { useI18n } from "@/components/locale-provider";
 import { deleteListingAction } from "@/lib/actions/listings";
 
 export function DeleteListingButton({ listingId }: { listingId: string }) {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
   const confirm = useConfirm();
   const formRef = useRef<HTMLFormElement>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -24,11 +24,8 @@ export function DeleteListingButton({ listingId }: { listingId: string }) {
         disabled={submitting}
         onClick={async () => {
           const ok = await confirm({
-            title: locale === "en" ? "Delete listing" : "물품 삭제",
-            message:
-              locale === "en"
-                ? "Delete this listing? This cannot be undone."
-                : "이 물품을 삭제할까요? 삭제 후 되돌릴 수 없습니다.",
+            title: t.sell.deleteTitle,
+            message: t.sell.deleteMessage,
             confirmLabel: t.account.delete,
             cancelLabel: t.common.cancel,
             tone: "danger",

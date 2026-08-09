@@ -2,6 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
+import { getI18n } from "@/lib/i18n/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/notifications/email";
 
@@ -31,19 +33,21 @@ export async function signInWithOAuth(
     },
   });
   if (error || !data.url) {
-    throw new Error(error?.message || "로그인에 실패했습니다.");
+    const { t } = await getI18n();
+    throw new Error(error?.message || t.errors.requestFailed);
   }
   redirect(data.url);
 }
 
 export async function signInWithPasswordAction(formData: FormData) {
+  const { t } = await getI18n();
   const email = String(formData.get("email") || "").trim();
   const password = String(formData.get("password") || "");
   const next = String(formData.get("next") || "/market");
 
   if (!email || !password) {
     redirect(
-      `/login?error=${encodeURIComponent("이메일과 비밀번호를 입력해 주세요.")}&next=${encodeURIComponent(next)}`,
+      `/login?error=${encodeURIComponent(t.errors.emailPasswordRequired)}&next=${encodeURIComponent(next)}`,
     );
   }
 
@@ -51,13 +55,14 @@ export async function signInWithPasswordAction(formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) {
     redirect(
-      `/login?error=${encodeURIComponent(mapAuthError(error.message))}&next=${encodeURIComponent(next)}`,
+      `/login?error=${encodeURIComponent(mapAuthError(error.message, t))}&next=${encodeURIComponent(next)}`,
     );
   }
   redirect(next);
 }
 
 export async function signUpWithPasswordAction(formData: FormData) {
+  const { t } = await getI18n();
   const email = String(formData.get("email") || "").trim();
   const password = String(formData.get("password") || "");
   const confirm = String(formData.get("confirm") || "");
@@ -65,17 +70,17 @@ export async function signUpWithPasswordAction(formData: FormData) {
 
   if (!email || !password) {
     redirect(
-      `/login?mode=signup&error=${encodeURIComponent("이메일과 비밀번호를 입력해 주세요.")}&next=${encodeURIComponent(next)}`,
+      `/login?mode=signup&error=${encodeURIComponent(t.errors.emailPasswordRequired)}&next=${encodeURIComponent(next)}`,
     );
   }
   if (password.length < 6) {
     redirect(
-      `/login?mode=signup&error=${encodeURIComponent("비밀번호는 6자 이상이어야 합니다.")}&next=${encodeURIComponent(next)}`,
+      `/login?mode=signup&error=${encodeURIComponent(t.errors.passwordMin)}&next=${encodeURIComponent(next)}`,
     );
   }
   if (password !== confirm) {
     redirect(
-      `/login?mode=signup&error=${encodeURIComponent("비밀번호가 일치하지 않습니다.")}&next=${encodeURIComponent(next)}`,
+      `/login?mode=signup&error=${encodeURIComponent(t.errors.passwordMismatch)}&next=${encodeURIComponent(next)}`,
     );
   }
 
@@ -98,11 +103,11 @@ export async function signUpWithPasswordAction(formData: FormData) {
       const signedIn = await confirmAndSignIn(email, password);
       if (signedIn) redirect(next);
       redirect(
-        `/login?mode=signin&error=${encodeURIComponent("이미 가입된 이메일입니다. 로그인해 주세요.")}&next=${encodeURIComponent(next)}`,
+        `/login?mode=signin&error=${encodeURIComponent(t.errors.alreadyRegistered)}&next=${encodeURIComponent(next)}`,
       );
     }
     redirect(
-      `/login?mode=signup&error=${encodeURIComponent(mapAuthError(error.message))}&next=${encodeURIComponent(next)}`,
+      `/login?mode=signup&error=${encodeURIComponent(mapAuthError(error.message, t))}&next=${encodeURIComponent(next)}`,
     );
   }
 
@@ -132,7 +137,7 @@ export async function signUpWithPasswordAction(formData: FormData) {
   }
 
   redirect(
-    `/login?mode=signin&error=${encodeURIComponent(mapAuthError(signInError.message))}&next=${encodeURIComponent(next)}`,
+    `/login?mode=signin&error=${encodeURIComponent(mapAuthError(signInError.message, t))}&next=${encodeURIComponent(next)}`,
   );
 }
 
@@ -161,8 +166,9 @@ export async function requestPasswordResetAction(formData: FormData) {
   const next = String(formData.get("next") || "/market");
 
   if (!email) {
+    const { t } = await getI18n();
     redirect(
-      `/login?mode=forgot&error=${encodeURIComponent("이메일을 입력해 주세요.")}`,
+      `/login?mode=forgot&error=${encodeURIComponent(t.errors.emailRequired)}`,
     );
   }
 
@@ -197,6 +203,7 @@ export async function requestPasswordResetAction(formData: FormData) {
 }
 
 export async function updatePasswordAction(formData: FormData) {
+  const { t } = await getI18n();
   const password = String(formData.get("password") || "");
   const confirm = String(formData.get("confirm") || "");
   const next = String(formData.get("next") || "/login/update-password");
@@ -206,12 +213,12 @@ export async function updatePasswordAction(formData: FormData) {
 
   if (password.length < 6) {
     redirect(
-      `${errorBase}?error=${encodeURIComponent("비밀번호는 6자 이상이어야 합니다.")}`,
+      `${errorBase}?error=${encodeURIComponent(t.errors.passwordMin)}`,
     );
   }
   if (password !== confirm) {
     redirect(
-      `${errorBase}?error=${encodeURIComponent("비밀번호가 일치하지 않습니다.")}`,
+      `${errorBase}?error=${encodeURIComponent(t.errors.passwordMismatch)}`,
     );
   }
 
@@ -219,7 +226,7 @@ export async function updatePasswordAction(formData: FormData) {
   const { error } = await supabase.auth.updateUser({ password });
   if (error) {
     redirect(
-      `${errorBase}?error=${encodeURIComponent(mapAuthError(error.message))}`,
+      `${errorBase}?error=${encodeURIComponent(mapAuthError(error.message, t))}`,
     );
   }
   if (next.startsWith("/account")) {
@@ -251,9 +258,10 @@ export async function updateProfileAction(formData: FormData) {
   const phone = String(formData.get("phone") || "").trim();
   const isAnonymous = formData.get("is_anonymous") === "on";
 
+  const { t } = await getI18n();
   if (nickname.length > 40) {
     redirect(
-      `/account/profile?error=${encodeURIComponent("닉네임은 40자 이하여야 합니다.")}`,
+      `/account/profile?error=${encodeURIComponent(t.errors.nicknameTooLong)}`,
     );
   }
 
@@ -274,32 +282,32 @@ export async function updateProfileAction(formData: FormData) {
 
   if (error) {
     redirect(
-      `/account/profile?error=${encodeURIComponent(error.message || "프로필을 저장하지 못했습니다.")}`,
+      `/account/profile?error=${encodeURIComponent(error.message || t.errors.profileSaveFailed)}`,
     );
   }
 
   redirect("/account/profile?saved=profile");
 }
 
-function mapAuthError(message: string) {
+function mapAuthError(message: string, t: Dictionary) {
   const lower = message.toLowerCase();
   if (
     lower.includes("invalid login") ||
     lower.includes("invalid credentials") ||
     lower.includes("invalid email or password")
   ) {
-    return "이메일 또는 비밀번호가 올바르지 않습니다.";
+    return t.errors.invalidCredentials;
   }
   if (lower.includes("already registered") || lower.includes("already exists")) {
-    return "이미 가입된 이메일입니다. 로그인해 주세요.";
+    return t.errors.alreadyRegistered;
   }
   if (lower.includes("password") && lower.includes("6")) {
-    return "비밀번호는 6자 이상이어야 합니다.";
+    return t.errors.passwordMin;
   }
   if (lower.includes("email not confirmed")) {
-    return "이메일 인증이 필요합니다. 받은편지함을 확인해 주세요.";
+    return t.errors.emailNotConfirmed;
   }
-  return message || "요청을 처리하지 못했습니다.";
+  return message || t.errors.requestFailed;
 }
 
 function brandedAuthHtml(options: {

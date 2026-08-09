@@ -295,7 +295,7 @@ export function ListingGallery({
                 type="button"
                 onClick={() => setActive(index)}
                 onDoubleClick={() => openLightbox(index)}
-                aria-label={`사진 ${index + 1}`}
+                aria-label={t.sell.photoN.replace("{n}", String(index + 1))}
                 aria-pressed={selected}
                 className={`flex aspect-square items-center justify-center overflow-hidden rounded-md border-2 bg-white transition ${
                   selected

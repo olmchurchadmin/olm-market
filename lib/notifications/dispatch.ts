@@ -81,8 +81,14 @@ export async function notifyOrderEvent(input: OrderNotifyInput) {
         .maybeSingle(),
     ]);
 
-  const title = listing?.title || "물품";
+  const title = listing?.title || "Item";
   const copy = eventCopy(input.event, title, order.price_cents);
+  const payload = {
+    order_id: order.id,
+    event: input.event,
+    listing_title: title,
+    price_cents: order.price_cents,
+  };
 
   const recipients = [buyer, seller].filter(Boolean) as Array<{
     id: string;
@@ -96,7 +102,7 @@ export async function notifyOrderEvent(input: OrderNotifyInput) {
       type: copy.type,
       title: copy.title,
       body: copy.body,
-      payload: { order_id: order.id, event: input.event },
+      payload,
     });
   }
 
@@ -120,7 +126,7 @@ export async function notifyOrderEvent(input: OrderNotifyInput) {
       recipient: email,
       subject: copy.title,
       body: copy.body,
-      payload: { order_id: order.id, event: input.event },
+      payload,
       status: result.ok
         ? "sent"
         : result.reason === "pending_credentials"
@@ -137,7 +143,7 @@ export async function notifyOrderEvent(input: OrderNotifyInput) {
     recipient: getAdminEmail(),
     subject: copy.title,
     body: copy.body,
-    payload: { order_id: order.id, event: input.event },
+    payload,
     status: "sent",
     related_order_id: order.id,
     sent_at: new Date().toISOString(),
@@ -152,7 +158,7 @@ export async function notifyOrderEvent(input: OrderNotifyInput) {
       channel: "kakao",
       recipient: "n/a",
       body: copy.body,
-      payload: { order_id: order.id, event: input.event },
+      payload,
       status: "skipped",
       error: "No phone numbers on profiles",
       related_order_id: order.id,
@@ -166,7 +172,7 @@ export async function notifyOrderEvent(input: OrderNotifyInput) {
       channel: "kakao",
       recipient: phone,
       body: copy.body,
-      payload: { order_id: order.id, event: input.event },
+      payload,
       status: result.ok
         ? "sent"
         : result.reason === "pending_credentials"

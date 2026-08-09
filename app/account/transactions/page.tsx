@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AccountShell } from "@/components/account-shell";
 import { SellingListingRow } from "@/components/selling-listing-row";
 import { getCurrentProfile } from "@/lib/auth";
+import { localizeNotification } from "@/lib/i18n/notifications";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import type { Listing } from "@/lib/types";
@@ -61,7 +62,7 @@ export default async function AccountTransactionsPage({
       ) : null}
       {deleted ? (
         <p className="mb-6 rounded-md border border-brand/20 bg-brand/5 px-3 py-2 text-sm text-brand">
-          물품을 삭제했습니다.
+          {t.account.deleted}
         </p>
       ) : null}
 
@@ -72,15 +73,30 @@ export default async function AccountTransactionsPage({
         </h2>
         <ul className="mt-4 space-y-3">
           {(notifications || []).length ? (
-            notifications!.map((n) => (
-              <li
-                key={n.id}
-                className="rounded-md border border-brand/10 bg-white/70 px-4 py-3"
-              >
-                <p className="font-medium">{n.title}</p>
-                <p className="mt-1 text-sm text-ink-muted">{n.body}</p>
-              </li>
-            ))
+            notifications!.map((n) => {
+              const copy = localizeNotification(
+                {
+                  type: n.type,
+                  title: n.title,
+                  body: n.body,
+                  payload: n.payload as {
+                    listing_title?: string;
+                    price_cents?: number;
+                  } | null,
+                },
+                t,
+                locale,
+              );
+              return (
+                <li
+                  key={n.id}
+                  className="rounded-md border border-brand/10 bg-white/70 px-4 py-3"
+                >
+                  <p className="font-medium">{copy.title}</p>
+                  <p className="mt-1 text-sm text-ink-muted">{copy.body}</p>
+                </li>
+              );
+            })
           ) : (
             <li className="text-sm text-ink-muted">{t.account.noNotifications}</li>
           )}
@@ -128,7 +144,7 @@ export default async function AccountTransactionsPage({
                       />
                     ) : (
                       <span className="flex h-full items-center justify-center text-[10px] text-ink-muted">
-                        No image
+                        {t.market.noImage}
                       </span>
                     )}
                   </div>
@@ -138,10 +154,12 @@ export default async function AccountTransactionsPage({
                         href={`/market/${listing.id}`}
                         className="font-medium text-brand hover:underline"
                       >
-                        {listing.title || "물품"}
+                        {listing.title || t.account.item}
                       </Link>
                     ) : (
-                      <p className="font-medium">{listing?.title || "물품"}</p>
+                      <p className="font-medium">
+                        {listing?.title || t.account.item}
+                      </p>
                     )}
                     <p className="text-sm text-ink-muted">
                       {formatPrice(order.price_cents, locale)} ·{" "}

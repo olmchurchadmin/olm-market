@@ -29,6 +29,7 @@ export function BuyButton({
             const result = await buyListingAction(listingId);
             if (!result.ok) {
               if (
+                result.error === t.errors.loginRequired ||
                 result.error.includes("로그인") ||
                 result.error.toLowerCase().includes("log in") ||
                 result.error.toLowerCase().includes("sign in")
