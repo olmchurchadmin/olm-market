@@ -1,6 +1,7 @@
 import { PlusIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { ListingCard } from "@/components/listing-card";
+import { categoryLabel } from "@/lib/i18n/categories";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import type { Listing } from "@/lib/types";
@@ -13,7 +14,7 @@ export default async function MarketPage({
   searchParams: Promise<{ category?: string }>;
 }) {
   const { category } = await searchParams;
-  const { t } = await getI18n();
+  const { locale, t } = await getI18n();
   const configured = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -90,7 +91,7 @@ export default async function MarketPage({
                 : "bg-white/70 text-foreground hover:bg-white"
             }`}
           >
-            {cat.name_ko}
+            {categoryLabel(cat, locale)}
           </Link>
         ))}
       </div>

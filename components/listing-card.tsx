@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useI18n } from "@/components/locale-provider";
+import { categoryLabel } from "@/lib/i18n/categories";
 import type { Listing } from "@/lib/types";
 import {
   formatPrice,
@@ -44,7 +45,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
       </div>
       <div className="space-y-1 p-4">
         <p className="text-xs font-medium tracking-wide text-brand-soft uppercase">
-          {listing.categories?.name_ko || "—"}
+          {categoryLabel(listing.categories, locale)}
         </p>
         <h3 className="line-clamp-2 font-[family-name:var(--font-display)] text-lg text-brand">
           {listing.title}

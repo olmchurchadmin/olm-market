@@ -5,6 +5,7 @@ import { FileUploadField } from "@/components/ui/file-upload-field";
 import { SelectField } from "@/components/ui/select-field";
 import { updateListingAction } from "@/lib/actions/listings";
 import { getSessionUser } from "@/lib/auth";
+import { categoryLabel } from "@/lib/i18n/categories";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 
@@ -75,7 +76,7 @@ export default async function EditListingPage({
           placeholder=""
           options={(categories || []).map((cat) => ({
             value: cat.id,
-            label: cat.name_ko,
+            label: categoryLabel(cat, locale),
           }))}
         />
 

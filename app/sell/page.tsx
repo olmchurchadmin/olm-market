@@ -2,12 +2,13 @@ import { createClient } from "@/lib/supabase/server";
 import { createListingAction } from "@/lib/actions/listings";
 import { FileUploadField } from "@/components/ui/file-upload-field";
 import { SelectField } from "@/components/ui/select-field";
+import { categoryLabel } from "@/lib/i18n/categories";
 import { getI18n } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function SellPage() {
-  const { t } = await getI18n();
+  const { locale, t } = await getI18n();
   const supabase = await createClient();
   const { data: categories } = await supabase
     .from("categories")
@@ -39,7 +40,7 @@ export default async function SellPage() {
           placeholder={t.sell.select}
           options={(categories || []).map((cat) => ({
             value: cat.id,
-            label: cat.name_ko,
+            label: categoryLabel(cat, locale),
           }))}
         />
 

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { BuyButton } from "@/components/buy-button";
 import { ListingGallery } from "@/components/listing-gallery";
 import { getSessionUser } from "@/lib/auth";
+import { categoryLabel } from "@/lib/i18n/categories";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -61,7 +62,7 @@ export default async function ListingDetailPage({
 
         <div>
           <p className="text-sm font-medium tracking-wide text-brand-soft uppercase">
-            {listing.categories?.name_ko}
+            {categoryLabel(listing.categories, locale)}
           </p>
           <h1 className="mt-2 break-words font-[family-name:var(--font-display)] text-3xl text-brand sm:text-4xl">
             {listing.title}

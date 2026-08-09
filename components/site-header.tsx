@@ -21,7 +21,6 @@ export async function SiteHeader() {
           <span className="truncate">{t.brand}</span>
         </Link>
         <div className="flex items-center gap-0.5 sm:gap-1">
-          <LocaleSwitcher />
           <SiteNav
             profile={
               profile
@@ -33,6 +32,7 @@ export async function SiteHeader() {
                 : null
             }
           />
+          <LocaleSwitcher />
         </div>
       </div>
     </header>
