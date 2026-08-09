@@ -1,3 +1,4 @@
+import { ArrowLeftIcon, EnvelopeIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { signInWithEmail, signInWithOAuth } from "@/lib/actions/auth";
 
@@ -78,14 +79,19 @@ export default async function LoginPage({
         </label>
         <button
           type="submit"
-          className="w-full rounded-md bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-brand-soft"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-brand-soft"
         >
+          <EnvelopeIcon className="size-5" aria-hidden />
           매직 링크 받기
         </button>
       </form>
 
       <p className="mt-8 text-center text-sm text-ink-muted">
-        <Link href="/market" className="underline">
+        <Link
+          href="/market"
+          className="inline-flex items-center gap-1.5 underline"
+        >
+          <ArrowLeftIcon className="size-4" aria-hidden />
           장터로 돌아가기
         </Link>
       </p>

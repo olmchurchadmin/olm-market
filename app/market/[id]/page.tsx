@@ -1,3 +1,4 @@
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BuyButton } from "@/components/buy-button";
@@ -40,8 +41,12 @@ export default async function ListingDetailPage({
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <Link href="/market" className="text-sm text-ink-muted hover:text-brand">
-        ← 장터
+      <Link
+        href="/market"
+        className="inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-brand"
+      >
+        <ArrowLeftIcon className="size-4" aria-hidden />
+        장터
       </Link>
 
       <div className="mt-6 grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">

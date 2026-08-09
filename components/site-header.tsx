@@ -1,3 +1,11 @@
+import {
+  ArrowLeftOnRectangleIcon,
+  ArrowRightOnRectangleIcon,
+  BuildingStorefrontIcon,
+  PlusCircleIcon,
+  ShieldCheckIcon,
+  UserCircleIcon,
+} from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { getCurrentProfile } from "@/lib/auth";
 import { signOutAction } from "@/lib/actions/auth";
@@ -10,29 +18,50 @@ export async function SiteHeader() {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <Link
           href="/"
-          className="font-[family-name:var(--font-display)] text-xl tracking-tight text-brand"
+          className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-xl tracking-tight text-brand"
         >
+          <BuildingStorefrontIcon className="size-6" aria-hidden />
           Church Market
         </Link>
-        <nav className="flex flex-wrap items-center gap-3 text-sm font-medium text-foreground">
-          <Link href="/market" className="hover:text-brand">
+        <nav className="flex flex-wrap items-center gap-1 text-sm font-medium text-foreground sm:gap-2">
+          <Link
+            href="/market"
+            className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 hover:bg-brand/5 hover:text-brand"
+          >
+            <BuildingStorefrontIcon className="size-4" aria-hidden />
             장터
           </Link>
-          <Link href="/sell" className="hover:text-brand">
+          <Link
+            href="/sell"
+            className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 hover:bg-brand/5 hover:text-brand"
+          >
+            <PlusCircleIcon className="size-4" aria-hidden />
             판매등록
           </Link>
           {profile ? (
             <>
-              <Link href="/me" className="hover:text-brand">
+              <Link
+                href="/me"
+                className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 hover:bg-brand/5 hover:text-brand"
+              >
+                <UserCircleIcon className="size-4" aria-hidden />
                 내 거래
               </Link>
               {profile.role === "admin" ? (
-                <Link href="/admin" className="hover:text-brand">
+                <Link
+                  href="/admin"
+                  className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 hover:bg-brand/5 hover:text-brand"
+                >
+                  <ShieldCheckIcon className="size-4" aria-hidden />
                   관리자
                 </Link>
               ) : null}
               <form action={signOutAction}>
-                <button type="submit" className="text-ink-muted hover:text-brand">
+                <button
+                  type="submit"
+                  className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-ink-muted hover:bg-brand/5 hover:text-brand"
+                >
+                  <ArrowLeftOnRectangleIcon className="size-4" aria-hidden />
                   로그아웃
                 </button>
               </form>
@@ -40,8 +69,9 @@ export async function SiteHeader() {
           ) : (
             <Link
               href="/login"
-              className="rounded-md bg-brand px-3 py-1.5 text-white hover:bg-brand-soft"
+              className="inline-flex items-center gap-1.5 rounded-md bg-brand px-3 py-1.5 text-white hover:bg-brand-soft"
             >
+              <ArrowRightOnRectangleIcon className="size-4" aria-hidden />
               로그인
             </Link>
           )}

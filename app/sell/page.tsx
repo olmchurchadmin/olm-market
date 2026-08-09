@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createListingAction } from "@/lib/actions/listings";
+import { FileUploadField } from "@/components/ui/file-upload-field";
+import { SelectField } from "@/components/ui/select-field";
 
 export const dynamic = "force-dynamic";
 
@@ -29,24 +31,16 @@ export default async function SellPage() {
           />
         </label>
 
-        <label className="block text-sm font-medium">
-          카테고리
-          <select
-            name="category_id"
-            required
-            className="mt-1 w-full rounded-md border border-brand/15 bg-white px-3 py-2 outline-none focus:border-brand"
-            defaultValue=""
-          >
-            <option value="" disabled>
-              선택
-            </option>
-            {(categories || []).map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name_ko}
-              </option>
-            ))}
-          </select>
-        </label>
+        <SelectField
+          label="카테고리"
+          name="category_id"
+          required
+          defaultValue=""
+          options={(categories || []).map((cat) => ({
+            value: cat.id,
+            label: cat.name_ko,
+          }))}
+        />
 
         <label className="block text-sm font-medium">
           가격 (USD)
@@ -69,16 +63,7 @@ export default async function SellPage() {
           />
         </label>
 
-        <label className="block text-sm font-medium">
-          사진 (최대 6장)
-          <input
-            name="images"
-            type="file"
-            accept="image/*"
-            multiple
-            className="mt-1 block w-full text-sm"
-          />
-        </label>
+        <FileUploadField label="사진" name="images" hint="최대 6장" />
 
         <button
           type="submit"

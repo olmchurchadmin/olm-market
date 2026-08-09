@@ -1,3 +1,4 @@
+import { PlusIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { ListingCard } from "@/components/listing-card";
 import { createClient } from "@/lib/supabase/server";
@@ -61,8 +62,9 @@ export default async function MarketPage({
         </div>
         <Link
           href="/sell"
-          className="inline-flex items-center justify-center rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-soft"
+          className="inline-flex items-center justify-center gap-1.5 rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-soft"
         >
+          <PlusIcon className="size-4" aria-hidden />
           판매 등록
         </Link>
       </div>

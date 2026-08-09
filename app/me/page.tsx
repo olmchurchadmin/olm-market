@@ -1,3 +1,4 @@
+import { BellIcon, DevicePhoneMobileIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { updatePhoneAction } from "@/lib/actions/auth";
 import { getCurrentProfile } from "@/lib/auth";
@@ -48,7 +49,8 @@ export default async function MePage() {
       </p>
 
       <section className="mt-8 rounded-lg border border-brand/10 bg-white/70 p-5">
-        <h2 className="font-[family-name:var(--font-display)] text-2xl text-brand">
+        <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-brand">
+          <DevicePhoneMobileIcon className="size-6" aria-hidden />
           알림톡용 전화번호
         </h2>
         <p className="mt-1 text-sm text-ink-muted">
@@ -71,7 +73,8 @@ export default async function MePage() {
       </section>
 
       <section className="mt-10">
-        <h2 className="font-[family-name:var(--font-display)] text-2xl text-brand">
+        <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-brand">
+          <BellIcon className="size-6" aria-hidden />
           알림
         </h2>
         <ul className="mt-4 space-y-3">
