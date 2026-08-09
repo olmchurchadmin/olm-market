@@ -56,7 +56,7 @@ export default async function MarketPage({
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="font-[family-name:var(--font-display)] text-4xl text-brand">
+          <h1 className="font-[family-name:var(--font-display)] text-3xl text-brand sm:text-4xl">
             장터
           </h1>
           <p className="mt-2 text-ink-muted">

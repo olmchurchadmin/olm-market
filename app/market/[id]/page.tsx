@@ -60,7 +60,7 @@ export default async function ListingDetailPage({
           <p className="text-sm font-medium tracking-wide text-brand-soft uppercase">
             {listing.categories?.name_ko}
           </p>
-          <h1 className="mt-2 font-[family-name:var(--font-display)] text-4xl text-brand">
+          <h1 className="mt-2 break-words font-[family-name:var(--font-display)] text-3xl text-brand sm:text-4xl">
             {listing.title}
           </h1>
           <p className="mt-3 text-2xl font-semibold">

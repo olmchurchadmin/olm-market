@@ -43,11 +43,15 @@ export function AccountShell({
   children: ReactNode;
 }) {
   return (
-    <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-      <h1 className="font-[family-name:var(--font-display)] text-4xl text-brand">
+    <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
+      <h1 className="font-[family-name:var(--font-display)] text-3xl text-brand sm:text-4xl">
         {title}
       </h1>
-      {subtitle ? <p className="mt-2 text-ink-muted">{subtitle}</p> : null}
+      {subtitle ? (
+        <p className="mt-2 break-words text-sm text-ink-muted sm:text-base">
+          {subtitle}
+        </p>
+      ) : null}
       <div className="mt-8">
         <AccountNav active={active} />
       </div>
