@@ -1,9 +1,28 @@
+import type { Profile, PublicSeller } from "@/lib/types";
+
 export function formatPrice(cents: number) {
   return new Intl.NumberFormat("ko-KR", {
     style: "currency",
     currency: "USD",
     maximumFractionDigits: 0,
   }).format(cents / 100);
+}
+
+/** Label shown in the signed-in user's own menu (never anonymized). */
+export function accountDisplayName(
+  profile: Pick<Profile, "nickname" | "full_name" | "email">,
+) {
+  return profile.nickname || profile.full_name || profile.email || "회원";
+}
+
+/** Public seller label on market cards/detail. Honors is_anonymous. */
+export function publicSellerLabel(
+  seller: PublicSeller | PublicSeller[] | null | undefined,
+) {
+  const row = Array.isArray(seller) ? seller[0] : seller;
+  if (!row) return "판매자";
+  if (row.is_anonymous) return "익명";
+  return row.nickname || row.full_name || "판매자";
 }
 
 export function listingImageUrl(path: string | null | undefined) {

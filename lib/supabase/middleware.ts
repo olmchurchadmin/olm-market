@@ -33,6 +33,7 @@ export async function updateSession(request: NextRequest) {
   const needsAuth =
     path.startsWith("/sell") ||
     path.startsWith("/me") ||
+    path.startsWith("/account") ||
     path.startsWith("/admin");
 
   if (needsAuth && !user) {

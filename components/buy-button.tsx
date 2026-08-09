@@ -33,7 +33,7 @@ export function BuyButton({
               setError(result.error);
               return;
             }
-            router.push("/me");
+            router.push("/account/transactions");
             router.refresh();
           });
         }}

@@ -25,7 +25,13 @@ export async function getCurrentProfile(): Promise<Profile | null> {
     .eq("id", user.id)
     .maybeSingle();
 
-  return data as Profile | null;
+  if (!data) return null;
+
+  return {
+    ...data,
+    nickname: data.nickname ?? null,
+    is_anonymous: Boolean(data.is_anonymous),
+  } as Profile;
 }
 
 export async function requireAdmin() {

@@ -16,11 +16,20 @@ export type Profile = {
   id: string;
   email: string | null;
   full_name: string | null;
+  nickname: string | null;
   phone: string | null;
   kakao_id: string | null;
   role: UserRole;
+  is_anonymous: boolean;
   created_at: string;
   updated_at: string;
+};
+
+export type PublicSeller = {
+  nickname: string | null;
+  full_name: string | null;
+  email: string | null;
+  is_anonymous: boolean;
 };
 
 export type Category = {
@@ -43,6 +52,7 @@ export type Listing = {
   updated_at: string;
   categories?: Category | null;
   listing_images?: ListingImage[];
+  seller?: PublicSeller | PublicSeller[] | null;
 };
 
 export type ListingImage = {

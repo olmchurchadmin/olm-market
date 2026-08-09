@@ -199,15 +199,19 @@ export async function requestPasswordResetAction(formData: FormData) {
 export async function updatePasswordAction(formData: FormData) {
   const password = String(formData.get("password") || "");
   const confirm = String(formData.get("confirm") || "");
+  const next = String(formData.get("next") || "/login/update-password");
+  const errorBase = next.startsWith("/account")
+    ? "/account/profile"
+    : "/login/update-password";
 
   if (password.length < 6) {
     redirect(
-      `/login/update-password?error=${encodeURIComponent("비밀번호는 6자 이상이어야 합니다.")}`,
+      `${errorBase}?error=${encodeURIComponent("비밀번호는 6자 이상이어야 합니다.")}`,
     );
   }
   if (password !== confirm) {
     redirect(
-      `/login/update-password?error=${encodeURIComponent("비밀번호가 일치하지 않습니다.")}`,
+      `${errorBase}?error=${encodeURIComponent("비밀번호가 일치하지 않습니다.")}`,
     );
   }
 
@@ -215,8 +219,11 @@ export async function updatePasswordAction(formData: FormData) {
   const { error } = await supabase.auth.updateUser({ password });
   if (error) {
     redirect(
-      `/login/update-password?error=${encodeURIComponent(mapAuthError(error.message))}`,
+      `${errorBase}?error=${encodeURIComponent(mapAuthError(error.message))}`,
     );
+  }
+  if (next.startsWith("/account")) {
+    redirect("/account/profile?saved=password");
   }
   redirect("/market");
 }
@@ -236,7 +243,42 @@ export async function updatePhoneAction(formData: FormData) {
   if (!user) redirect("/login");
 
   await supabase.from("profiles").update({ phone }).eq("id", user.id);
-  redirect("/me");
+  redirect("/account/profile?saved=phone");
+}
+
+export async function updateProfileAction(formData: FormData) {
+  const nickname = String(formData.get("nickname") || "").trim();
+  const phone = String(formData.get("phone") || "").trim();
+  const isAnonymous = formData.get("is_anonymous") === "on";
+
+  if (nickname.length > 40) {
+    redirect(
+      `/account/profile?error=${encodeURIComponent("닉네임은 40자 이하여야 합니다.")}`,
+    );
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      nickname: nickname || null,
+      phone: phone || null,
+      is_anonymous: isAnonymous,
+    })
+    .eq("id", user.id);
+
+  if (error) {
+    redirect(
+      `/account/profile?error=${encodeURIComponent(error.message || "프로필을 저장하지 못했습니다.")}`,
+    );
+  }
+
+  redirect("/account/profile?saved=profile");
 }
 
 function mapAuthError(message: string) {

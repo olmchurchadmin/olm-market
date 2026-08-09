@@ -1,10 +1,18 @@
 import Link from "next/link";
 import type { Listing } from "@/lib/types";
-import { formatPrice, listingImageUrl, listingStatusLabel } from "@/lib/utils";
+import {
+  formatPrice,
+  listingImageUrl,
+  listingStatusLabel,
+  publicSellerLabel,
+} from "@/lib/utils";
 
 export function ListingCard({ listing }: { listing: Listing }) {
   const image = listingImageUrl(listing.cover_image_path);
-  const soldLike = listing.status === "sold" || listing.status === "reserved" || listing.status === "at_church";
+  const soldLike =
+    listing.status === "sold" ||
+    listing.status === "reserved" ||
+    listing.status === "at_church";
 
   return (
     <Link
@@ -39,6 +47,9 @@ export function ListingCard({ listing }: { listing: Listing }) {
         </h3>
         <p className="text-base font-semibold text-foreground">
           {formatPrice(listing.price_cents)}
+        </p>
+        <p className="text-xs text-ink-muted">
+          판매자 · {publicSellerLabel(listing.seller)}
         </p>
       </div>
     </Link>

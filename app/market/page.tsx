@@ -39,7 +39,9 @@ export default async function MarketPage({
 
   let query = supabase
     .from("listings")
-    .select("*, categories(*), listing_images(*)")
+    .select(
+      "*, categories(*), listing_images(*), seller:profiles!listings_seller_id_fkey(nickname, full_name, email, is_anonymous)",
+    )
     .order("created_at", { ascending: false });
 
   if (category) {

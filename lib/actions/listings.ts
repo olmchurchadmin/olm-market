@@ -69,6 +69,7 @@ export async function createListingAction(formData: FormData) {
   }
 
   revalidatePath("/market");
+  revalidatePath("/account/transactions");
   revalidatePath("/me");
   redirect(`/market/${listing.id}`);
 }

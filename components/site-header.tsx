@@ -1,14 +1,12 @@
 import {
-  ArrowLeftOnRectangleIcon,
   ArrowRightOnRectangleIcon,
   BuildingStorefrontIcon,
   PlusCircleIcon,
-  ShieldCheckIcon,
-  UserCircleIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
+import { UserMenu } from "@/components/user-menu";
 import { getCurrentProfile } from "@/lib/auth";
-import { signOutAction } from "@/lib/actions/auth";
+import { accountDisplayName } from "@/lib/utils";
 
 export async function SiteHeader() {
   const profile = await getCurrentProfile();
@@ -39,33 +37,11 @@ export async function SiteHeader() {
             판매등록
           </Link>
           {profile ? (
-            <>
-              <Link
-                href="/me"
-                className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 hover:bg-brand/5 hover:text-brand"
-              >
-                <UserCircleIcon className="size-4" aria-hidden />
-                내 거래
-              </Link>
-              {profile.role === "admin" ? (
-                <Link
-                  href="/admin"
-                  className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 hover:bg-brand/5 hover:text-brand"
-                >
-                  <ShieldCheckIcon className="size-4" aria-hidden />
-                  관리자
-                </Link>
-              ) : null}
-              <form action={signOutAction}>
-                <button
-                  type="submit"
-                  className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-ink-muted hover:bg-brand/5 hover:text-brand"
-                >
-                  <ArrowLeftOnRectangleIcon className="size-4" aria-hidden />
-                  로그아웃
-                </button>
-              </form>
-            </>
+            <UserMenu
+              displayName={accountDisplayName(profile)}
+              email={profile.email}
+              isAdmin={profile.role === "admin"}
+            />
           ) : (
             <Link
               href="/login"

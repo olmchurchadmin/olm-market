@@ -8,6 +8,7 @@ import {
   formatPrice,
   listingImageUrl,
   listingStatusLabel,
+  publicSellerLabel,
 } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +24,9 @@ export default async function ListingDetailPage({
 
   const { data: listing } = await supabase
     .from("listings")
-    .select("*, categories(*), listing_images(*)")
+    .select(
+      "*, categories(*), listing_images(*), seller:profiles!listings_seller_id_fkey(nickname, full_name, email, is_anonymous)",
+    )
     .eq("id", id)
     .maybeSingle();
 
@@ -92,6 +95,9 @@ export default async function ListingDetailPage({
           </p>
           <p className="mt-2 text-sm text-ink-muted">
             상태: {listingStatusLabel(listing.status)}
+          </p>
+          <p className="mt-1 text-sm text-ink-muted">
+            판매자 · {publicSellerLabel(listing.seller)}
           </p>
           <p className="mt-6 whitespace-pre-wrap leading-relaxed text-foreground">
             {listing.description || "설명이 없습니다."}
