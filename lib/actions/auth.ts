@@ -31,9 +31,8 @@ export async function signInWithOAuth(
     provider,
     options: {
       redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(safeNext)}`,
-      // Kakao nickname is enough for basic login. Enable account_email in Kakao
-      // (Biz App) + Supabase if you need email addresses.
-      ...(provider === "kakao" ? { scopes: "profile_nickname" } : {}),
+      // Do not pass Kakao scopes here — invalid/unconfigured scopes cause
+      // invalid_scope / KOE205. Consent items are controlled in Kakao Console.
     },
   });
   if (error || !data.url) {
