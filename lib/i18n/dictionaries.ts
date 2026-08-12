@@ -50,6 +50,13 @@ const ko = {
     loginToBuy: "로그인 후 Buy",
     buyHint:
       "Buy 후 판매자는 다음 주 성당에 물건을 맡기고, 구매자는 관리자에게 현금 결제 후 픽업합니다.",
+    buyHintChurch:
+      "Buy 후 판매자는 성당에 물건을 맡기고, 구매자는 관리자에게 현금 결제 후 픽업합니다.",
+    buyHintSeller:
+      "Buy 후 판매자와 직접 연락해 판매자 위치에서 픽업·결제합니다.",
+    pickup: "픽업",
+    pickupChurch: "성당에서 픽업",
+    pickupSeller: "판매자 위치에서 픽업",
     noImage: "No image",
     openFullscreen: "전체 화면으로 보기",
     closeFullscreen: "닫기",
@@ -81,6 +88,12 @@ const ko = {
     photoLimit: "사진은 최대 {max}장까지입니다. 더 올리려면 기존 사진을 지워 주세요.",
     removePhoto: "사진 제거",
     photoN: "사진 {n}",
+    pickupMethod: "픽업 방법",
+    pickupHint: "구매자가 물건을 어디서 받을지 선택하세요.",
+    pickupChurch: "성당에서 픽업",
+    pickupChurchHint: "성당에 맡긴 뒤 구매자가 찾아갑니다.",
+    pickupSeller: "판매자 위치에서 픽업",
+    pickupSellerHint: "판매자와 약속한 장소에서 직접 전달합니다.",
     deleteTitle: "물품 삭제",
     deleteMessage: "이 물품을 삭제할까요? 삭제 후 되돌릴 수 없습니다.",
     cannotEditActive: "거래 중인 물품은 수정할 수 없습니다.",
@@ -323,6 +336,13 @@ const en: Dictionary = {
     loginToBuy: "Log in to Buy",
     buyHint:
       "After Buy, the seller drops the item at church next week; the buyer pays cash to the admin and picks it up.",
+    buyHintChurch:
+      "After Buy, the seller drops the item at church; the buyer pays cash to the admin and picks it up.",
+    buyHintSeller:
+      "After Buy, arrange pickup and payment directly with the seller at their location.",
+    pickup: "Pickup",
+    pickupChurch: "Pickup at church",
+    pickupSeller: "Pickup at seller location",
     noImage: "No image",
     openFullscreen: "View fullscreen",
     closeFullscreen: "Close",
@@ -354,6 +374,12 @@ const en: Dictionary = {
     photoLimit: "You can upload up to {max} photos. Remove one to add another.",
     removePhoto: "Remove photo",
     photoN: "Photo {n}",
+    pickupMethod: "Pickup method",
+    pickupHint: "Choose where the buyer will pick up the item.",
+    pickupChurch: "Pickup at church",
+    pickupChurchHint: "Drop off at church; the buyer collects there.",
+    pickupSeller: "Pickup at seller location",
+    pickupSellerHint: "Meet the buyer at your location to hand it over.",
     deleteTitle: "Delete listing",
     deleteMessage: "Delete this listing? This cannot be undone.",
     cannotEditActive: "Items in an active trade cannot be edited.",

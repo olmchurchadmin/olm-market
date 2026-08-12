@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createListingAction } from "@/lib/actions/listings";
 import { FileUploadField } from "@/components/ui/file-upload-field";
+import { PickupMethodField } from "@/components/pickup-method-field";
 import { SelectField } from "@/components/ui/select-field";
 import { categoryLabel } from "@/lib/i18n/categories";
 import { getI18n } from "@/lib/i18n/server";
@@ -70,6 +71,8 @@ export default async function SellPage() {
             />
           </span>
         </label>
+
+        <PickupMethodField />
 
         <label className="block text-sm font-medium">
           {t.sell.description}

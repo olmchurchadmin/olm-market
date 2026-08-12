@@ -5,6 +5,7 @@ export type ListingStatus =
   | "at_church"
   | "sold"
   | "cancelled";
+export type PickupMethod = "church" | "seller_location";
 export type OrderStatus =
   | "reserved"
   | "awaiting_dropoff"
@@ -47,6 +48,7 @@ export type Listing = {
   description: string;
   price_cents: number;
   status: ListingStatus;
+  pickup_method?: PickupMethod;
   cover_image_path: string | null;
   created_at: string;
   updated_at: string;

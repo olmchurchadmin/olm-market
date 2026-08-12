@@ -2,12 +2,14 @@ import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { FileUploadField } from "@/components/ui/file-upload-field";
+import { PickupMethodField } from "@/components/pickup-method-field";
 import { SelectField } from "@/components/ui/select-field";
 import { updateListingAction } from "@/lib/actions/listings";
 import { getSessionUser } from "@/lib/auth";
 import { categoryLabel } from "@/lib/i18n/categories";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
+import type { PickupMethod } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +46,7 @@ export default async function EditListingPage({
     (a: { sort_order: number }, b: { sort_order: number }) =>
       a.sort_order - b.sort_order,
   );
+  const pickupMethod = (listing.pickup_method || "church") as PickupMethod;
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
@@ -105,6 +108,8 @@ export default async function EditListingPage({
             />
           </span>
         </label>
+
+        <PickupMethodField defaultValue={pickupMethod} />
 
         <label className="block text-sm font-medium">
           {t.sell.description}

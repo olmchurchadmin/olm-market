@@ -42,6 +42,16 @@ export default async function ListingDetailPage({
   const canBuy =
     listing.status === "available" && user?.id !== listing.seller_id;
   const statusLabel = listingStatusLabel(listing.status, t.status);
+  const pickupMethod =
+    listing.pickup_method === "seller_location" ? "seller_location" : "church";
+  const pickupLabel =
+    pickupMethod === "seller_location"
+      ? t.market.pickupSeller
+      : t.market.pickupChurch;
+  const buyHint =
+    pickupMethod === "seller_location"
+      ? t.market.buyHintSeller
+      : t.market.buyHintChurch;
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
@@ -74,6 +84,9 @@ export default async function ListingDetailPage({
             {t.market.status}: {statusLabel}
           </p>
           <p className="mt-1 text-sm text-ink-muted">
+            {t.market.pickup}: {pickupLabel}
+          </p>
+          <p className="mt-1 text-sm text-ink-muted">
             {t.market.seller} ·{" "}
             {publicSellerLabel(listing.seller, {
               seller: t.market.seller,
@@ -103,9 +116,7 @@ export default async function ListingDetailPage({
             ) : (
               <BuyButton listingId={listing.id} disabled={!canBuy} />
             )}
-            <p className="text-xs leading-relaxed text-ink-muted">
-              {t.market.buyHint}
-            </p>
+            <p className="text-xs leading-relaxed text-ink-muted">{buyHint}</p>
           </div>
         </div>
       </div>
