@@ -51,7 +51,7 @@ export default async function EditListingPage({
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
-      <h1 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-4xl text-brand">
+      <h1 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-4xl text-foreground">
         <PencilSquareIcon className="size-8" aria-hidden />
         {t.sell.editTitle}
       </h1>
@@ -119,7 +119,7 @@ export default async function EditListingPage({
           </button>
           <Link
             href="/account/transactions"
-            className="rounded-md border border-brand/15 bg-white px-5 py-3 text-sm font-medium text-brand hover:bg-brand/5"
+            className="rounded-md border border-brand/15 bg-white px-5 py-3 text-sm font-medium text-foreground hover:bg-brand/5"
           >
             {t.sell.cancel}
           </Link>

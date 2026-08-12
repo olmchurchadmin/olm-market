@@ -28,12 +28,12 @@ export function MarketPagination({
       {prev ? (
         <Link
           href={hrefForPage(prev)}
-          className="rounded-xl border border-brand/15 bg-surface px-3.5 py-2 text-sm font-medium text-foreground transition hover:bg-sun"
+          className="rounded-md border border-brand/15 bg-surface px-3.5 py-2 text-sm font-medium text-foreground transition hover:bg-sun"
         >
           {labels.prev}
         </Link>
       ) : (
-        <span className="rounded-xl border border-transparent px-3.5 py-2 text-sm text-ink-muted/50">
+        <span className="rounded-md border border-transparent px-3.5 py-2 text-sm text-ink-muted/50">
           {labels.prev}
         </span>
       )}
@@ -47,12 +47,12 @@ export function MarketPagination({
       {next ? (
         <Link
           href={hrefForPage(next)}
-          className="rounded-xl border border-brand/15 bg-surface px-3.5 py-2 text-sm font-medium text-foreground transition hover:bg-sun"
+          className="rounded-md border border-brand/15 bg-surface px-3.5 py-2 text-sm font-medium text-foreground transition hover:bg-sun"
         >
           {labels.next}
         </Link>
       ) : (
-        <span className="rounded-xl border border-transparent px-3.5 py-2 text-sm text-ink-muted/50">
+        <span className="rounded-md border border-transparent px-3.5 py-2 text-sm text-ink-muted/50">
           {labels.next}
         </span>
       )}

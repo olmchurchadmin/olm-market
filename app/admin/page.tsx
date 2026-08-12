@@ -27,7 +27,7 @@ function StatCard({
   return (
     <div className="rounded-lg border border-brand/10 bg-white/70 p-4">
       <p className="text-sm text-ink-muted">{label}</p>
-      <p className="mt-2 font-[family-name:var(--font-display)] text-3xl text-brand">
+      <p className="mt-2 font-[family-name:var(--font-display)] text-3xl text-foreground">
         {value}
       </p>
       {hint ? <p className="mt-1 text-xs text-ink-muted">{hint}</p> : null}
@@ -90,7 +90,7 @@ export default async function AdminPage({
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-[family-name:var(--font-display)] text-3xl text-brand sm:text-4xl">
+          <h1 className="font-[family-name:var(--font-display)] text-3xl text-foreground sm:text-4xl">
             {t.admin.title}
           </h1>
           <p className="mt-2 text-sm text-ink-muted sm:text-base">
@@ -117,7 +117,7 @@ export default async function AdminPage({
       ) : null}
 
       <section className="mt-8">
-        <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-brand">
+        <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-foreground">
           <ChartBarIcon className="size-6" aria-hidden />
           {t.admin.stats}
         </h2>
@@ -165,7 +165,7 @@ export default async function AdminPage({
       </section>
 
       <section className="mt-12">
-        <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-brand">
+        <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-foreground">
           <UsersIcon className="size-6" aria-hidden />
           {t.admin.members}
         </h2>
@@ -213,7 +213,7 @@ export default async function AdminPage({
       </section>
 
       <section className="mt-12">
-        <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-brand">
+        <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-foreground">
           <ExclamationTriangleIcon className="size-6" aria-hidden />
           {t.admin.complaints}
         </h2>
@@ -285,7 +285,7 @@ export default async function AdminPage({
       </section>
 
       <section className="mt-12">
-        <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-brand">
+        <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-foreground">
           <ShoppingBagIcon className="size-6" aria-hidden />
           {t.admin.orders}
         </h2>

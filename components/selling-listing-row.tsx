@@ -40,7 +40,7 @@ export function SellingListingRow({ listing }: { listing: Listing }) {
       <div className="min-w-0 flex-1">
         <Link
           href={`/market/${listing.id}`}
-          className="font-medium text-brand hover:underline"
+          className="font-medium text-foreground hover:underline"
         >
           {listing.title}
         </Link>
@@ -53,7 +53,7 @@ export function SellingListingRow({ listing }: { listing: Listing }) {
           <div className="mt-2 flex flex-wrap gap-2">
             <Link
               href={`/sell/${listing.id}/edit`}
-              className="inline-flex items-center gap-1 rounded-md border border-brand/15 bg-white px-2.5 py-1 text-xs font-medium text-brand hover:bg-brand/5"
+              className="inline-flex items-center gap-1 rounded-md border border-brand/15 bg-white px-2.5 py-1 text-xs font-medium text-foreground hover:bg-brand/5"
             >
               <PencilSquareIcon className="size-3.5" aria-hidden />
               {t.account.edit}

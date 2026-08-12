@@ -187,7 +187,7 @@ export function SiteNav({ profile }: SiteNavProps) {
 
       <button
         type="button"
-        className="inline-flex items-center justify-center rounded-md p-2 text-brand hover:bg-brand/5 md:hidden"
+        className="inline-flex items-center justify-center rounded-md p-2 text-foreground hover:bg-black/5 md:hidden"
         aria-expanded={open}
         aria-controls="mobile-nav"
         onClick={() => setOpen(true)}

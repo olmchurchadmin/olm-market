@@ -67,7 +67,7 @@ export default async function AccountTransactionsPage({
       ) : null}
 
       <section>
-        <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-brand">
+        <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-foreground">
           <BellIcon className="size-6" aria-hidden />
           {t.account.notifications}
         </h2>
@@ -104,7 +104,7 @@ export default async function AccountTransactionsPage({
       </section>
 
       <section className="mt-10">
-        <h2 className="font-[family-name:var(--font-display)] text-2xl text-brand">
+        <h2 className="font-[family-name:var(--font-display)] text-2xl text-foreground">
           {t.account.selling}
         </h2>
         <ul className="mt-4 space-y-3">
@@ -119,7 +119,7 @@ export default async function AccountTransactionsPage({
       </section>
 
       <section className="mt-10">
-        <h2 className="font-[family-name:var(--font-display)] text-2xl text-brand">
+        <h2 className="font-[family-name:var(--font-display)] text-2xl text-foreground">
           {t.account.buying}
         </h2>
         <ul className="mt-4 space-y-3">
@@ -152,7 +152,7 @@ export default async function AccountTransactionsPage({
                     {listing?.id ? (
                       <Link
                         href={`/market/${listing.id}`}
-                        className="font-medium text-brand hover:underline"
+                        className="font-medium text-foreground hover:underline"
                       >
                         {listing.title || t.account.item}
                       </Link>

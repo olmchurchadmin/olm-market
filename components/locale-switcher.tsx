@@ -106,7 +106,7 @@ export function LocaleSwitcher() {
         aria-label={t.nav.language}
         disabled={pending}
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex items-center justify-center rounded-md p-2 text-brand hover:bg-brand/5 disabled:opacity-60"
+        className="inline-flex items-center justify-center rounded-md p-2 text-foreground hover:bg-black/5 disabled:opacity-60"
       >
         <GlobeAltIcon className="size-6" aria-hidden />
       </button>

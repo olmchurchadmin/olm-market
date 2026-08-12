@@ -101,7 +101,7 @@ export function EmailAuthPanel({
           </div>
           <button
             type="submit"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-sun hover:bg-brand-soft"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-brand px-4 py-3 text-sm font-semibold text-sun hover:bg-brand-soft"
           >
             <KeyIcon className="size-5" aria-hidden />
             {t.auth.signInCta}
@@ -155,7 +155,7 @@ export function EmailAuthPanel({
           </label>
           <button
             type="submit"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-sun hover:bg-brand-soft"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-brand px-4 py-3 text-sm font-semibold text-sun hover:bg-brand-soft"
           >
             <UserPlusIcon className="size-5" aria-hidden />
             {t.auth.signUpCta}
@@ -188,7 +188,7 @@ export function EmailAuthPanel({
           </label>
           <button
             type="submit"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-sun hover:bg-brand-soft"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-brand px-4 py-3 text-sm font-semibold text-sun hover:bg-brand-soft"
           >
             <EnvelopeIcon className="size-5" aria-hidden />
             {t.auth.sendReset}

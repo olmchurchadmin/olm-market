@@ -75,10 +75,10 @@ export default async function ListingDetailPage({
         />
 
         <div>
-          <p className="text-sm font-medium tracking-wide text-brand-soft uppercase">
+          <p className="text-sm font-medium tracking-wide text-ink-muted uppercase">
             {categoryLabel(listing.categories, locale)}
           </p>
-          <h1 className="mt-2 break-words font-[family-name:var(--font-display)] text-3xl text-brand sm:text-4xl">
+          <h1 className="mt-2 break-words font-[family-name:var(--font-display)] text-3xl text-foreground sm:text-4xl">
             {listing.title}
           </h1>
           <p className="mt-3 text-2xl font-semibold">
@@ -111,7 +111,7 @@ export default async function ListingDetailPage({
                 {t.market.sold}
               </p>
             ) : listing.status !== "available" ? (
-              <p className="text-sm font-medium text-brand">
+              <p className="text-sm font-medium text-foreground">
                 {t.market.notAvailable.replace("{status}", statusLabel)}
               </p>
             ) : !user ? (

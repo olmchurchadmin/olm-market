@@ -100,7 +100,7 @@ export async function MarketBrowse({
       <form
         action="/"
         method="get"
-        className="animate-rise flex gap-2 rounded-2xl border border-brand/10 bg-surface/90 p-2 shadow-[0_10px_30px_rgba(36,59,143,0.06)] backdrop-blur-sm"
+        className="animate-rise flex gap-2 rounded-md border border-brand/10 bg-surface/90 p-2 shadow-[0_10px_30px_rgba(36,59,143,0.06)] backdrop-blur-sm"
       >
         {category ? (
           <input type="hidden" name="category" value={category} />
@@ -116,18 +116,18 @@ export async function MarketBrowse({
             name="q"
             defaultValue={queryText}
             placeholder={t.market.searchPlaceholder}
-            className="w-full rounded-xl border-0 bg-transparent py-2.5 pr-3 pl-10 text-sm outline-none placeholder:text-ink-muted/80 focus:ring-0"
+            className="w-full rounded-md border-0 bg-transparent py-2.5 pr-3 pl-10 text-sm outline-none placeholder:text-ink-muted/80 focus:ring-0"
           />
         </label>
         <button
           type="submit"
-          className="shrink-0 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-sun transition hover:bg-brand-soft"
+          className="shrink-0 rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-sun transition hover:bg-brand-soft"
         >
           {t.market.search}
         </button>
         <Link
           href="/sell"
-          className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-brand/15 bg-surface px-3 py-2.5 text-sm font-semibold text-foreground transition hover:bg-sun sm:px-4"
+          className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md border border-brand/15 bg-surface px-3 py-2.5 text-sm font-semibold text-foreground transition hover:bg-sun sm:px-4"
         >
           <PlusIcon className="size-4" aria-hidden />
           <span className="hidden sm:inline">{t.market.sellCta}</span>
@@ -137,7 +137,7 @@ export async function MarketBrowse({
       <div className="animate-rise-delay-1 mt-5 flex gap-2 overflow-x-auto pb-1">
         <Link
           href={hrefFor({ q: queryText || undefined })}
-          className={`shrink-0 rounded-xl px-3.5 py-1.5 text-sm whitespace-nowrap transition ${
+          className={`shrink-0 rounded-md px-3.5 py-1.5 text-sm whitespace-nowrap transition ${
             !category
               ? "bg-brand text-sun shadow-sm"
               : "bg-surface/90 text-foreground ring-1 ring-brand/10 hover:bg-sun"
@@ -152,7 +152,7 @@ export async function MarketBrowse({
               category: cat.slug,
               q: queryText || undefined,
             })}
-            className={`shrink-0 rounded-xl px-3.5 py-1.5 text-sm whitespace-nowrap transition ${
+            className={`shrink-0 rounded-md px-3.5 py-1.5 text-sm whitespace-nowrap transition ${
               category === cat.slug
                 ? "bg-brand text-sun shadow-sm"
                 : "bg-surface/90 text-foreground ring-1 ring-brand/10 hover:bg-sun"
@@ -169,7 +169,7 @@ export async function MarketBrowse({
             <ListingCard key={listing.id} listing={listing} />
           ))
         ) : (
-          <p className="col-span-full rounded-2xl border border-dashed border-black/10 bg-white/50 px-4 py-10 text-center text-ink-muted">
+          <p className="col-span-full rounded-md border border-dashed border-black/10 bg-white/50 px-4 py-10 text-center text-ink-muted">
             {queryText ? t.market.noResults : t.market.empty}
           </p>
         )}

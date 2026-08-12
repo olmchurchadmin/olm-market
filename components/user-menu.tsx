@@ -68,7 +68,7 @@ export function UserMenu({ displayName, email, isAdmin }: UserMenuProps) {
             <p className="text-[11px] font-medium tracking-wide text-ink-muted uppercase">
               {t.nav.signedInAs}
             </p>
-            <p className="mt-0.5 truncate text-sm font-semibold text-brand">
+            <p className="mt-0.5 truncate text-sm font-semibold text-foreground">
               {displayName}
             </p>
             {email && email !== displayName ? (

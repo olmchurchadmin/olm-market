@@ -19,7 +19,7 @@ export default async function SellPage() {
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
-      <h1 className="font-[family-name:var(--font-display)] text-4xl text-brand">
+      <h1 className="font-[family-name:var(--font-display)] text-4xl text-foreground">
         {t.sell.title}
       </h1>
       <p className="mt-2 text-ink-muted">{t.sell.blurb}</p>

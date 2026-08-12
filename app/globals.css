@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  /* Blueberry + soft cream-gray */
+  /* Blueberry accents + cream-gray ground */
   --background: #f4f2ea;
-  --foreground: #243b8f;
+  --foreground: #111111;
   --brand: #243b8f;
   --brand-soft: #1a2f73;
   --sun: #fff6de;
   --mist: rgba(255, 252, 245, 0.88);
-  --ink-muted: #5a6488;
+  --ink-muted: #5c5c5c;
   --surface: #fbfaf7;
-  --line: rgba(36, 59, 143, 0.12);
+  --line: rgba(17, 17, 17, 0.12);
   --font-body: var(--font-inter), var(--font-noto-kr);
   --font-display: var(--font-inter), var(--font-noto-kr);
 }

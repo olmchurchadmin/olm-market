@@ -50,7 +50,7 @@ export function AccountShell({
 }) {
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
-      <h1 className="font-[family-name:var(--font-display)] text-3xl text-brand sm:text-4xl">
+      <h1 className="font-[family-name:var(--font-display)] text-3xl text-foreground sm:text-4xl">
         {title}
       </h1>
       {subtitle ? (

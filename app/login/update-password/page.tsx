@@ -27,7 +27,7 @@ export default async function UpdatePasswordPage({
 
   return (
     <main className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-6 py-16">
-      <h1 className="font-[family-name:var(--font-display)] text-4xl text-brand">
+      <h1 className="font-[family-name:var(--font-display)] text-4xl text-foreground">
         {t.auth.updatePasswordTitle}
       </h1>
       <p className="mt-2 text-ink-muted">{t.auth.updatePasswordBlurb}</p>

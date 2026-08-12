@@ -22,7 +22,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
   return (
     <Link
       href={`/market/${listing.id}`}
-      className="group block overflow-hidden rounded-2xl border border-black/6 bg-white shadow-[0_8px_24px_rgba(26,28,31,0.04)] transition duration-300 hover:-translate-y-0.5 hover:border-black/12 hover:shadow-[0_14px_36px_rgba(26,28,31,0.08)]"
+      className="group block overflow-hidden rounded-md border border-black/6 bg-white shadow-[0_8px_24px_rgba(26,28,31,0.04)] transition duration-300 hover:-translate-y-0.5 hover:border-black/12 hover:shadow-[0_14px_36px_rgba(26,28,31,0.08)]"
     >
       <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-[color-mix(in_oklab,var(--sun)_70%,white)]">
         {image ? (
@@ -38,13 +38,13 @@ export function ListingCard({ listing }: { listing: Listing }) {
           </div>
         )}
         {soldLike ? (
-          <span className="absolute left-2 top-2 rounded-lg bg-brand px-2 py-1 text-[10px] font-semibold text-sun shadow-sm sm:left-3 sm:top-3 sm:text-xs">
+          <span className="absolute left-2 top-2 rounded-md bg-brand px-2 py-1 text-[10px] font-semibold text-sun shadow-sm sm:left-3 sm:top-3 sm:text-xs">
             {listingStatusLabel(listing.status, t.status)}
           </span>
         ) : null}
       </div>
       <div className="space-y-0.5 p-2.5 sm:space-y-1 sm:p-3.5">
-        <p className="truncate text-[10px] font-medium tracking-wide text-brand uppercase sm:text-xs">
+        <p className="truncate text-[10px] font-medium tracking-wide text-ink-muted uppercase sm:text-xs">
           {categoryLabel(listing.categories, locale)}
         </p>
         <h3 className="line-clamp-2 font-[family-name:var(--font-display)] text-sm text-foreground sm:text-base">

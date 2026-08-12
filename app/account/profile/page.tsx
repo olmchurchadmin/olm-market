@@ -65,7 +65,7 @@ export default async function AccountProfilePage({
       ) : null}
 
       <section className="rounded-lg border border-brand/10 bg-white/70 p-5">
-        <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-brand">
+        <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-foreground">
           <UserIcon className="size-6" aria-hidden />
           {t.account.myProfile}
         </h2>
@@ -126,7 +126,7 @@ export default async function AccountProfilePage({
       </section>
 
       <section className="mt-8 rounded-lg border border-brand/10 bg-white/70 p-5">
-        <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-brand">
+        <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-foreground">
           <KeyIcon className="size-6" aria-hidden />
           {t.account.changePassword}
         </h2>
@@ -167,7 +167,7 @@ export default async function AccountProfilePage({
       </section>
 
       <section className="mt-8 rounded-lg border border-brand/10 bg-white/70 p-5">
-        <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-brand">
+        <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-foreground">
           <ChatBubbleLeftRightIcon className="size-6" aria-hidden />
           {t.account.complaint}
         </h2>
