@@ -283,6 +283,9 @@ export function ListingGallery({
           src={current}
           alt={title}
           className="h-full w-full object-cover object-center"
+        />
+      </button>
+      {urls.length > 1 ? (
         <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
           {urls.map((url, index) => {
             const selected = index === active;
