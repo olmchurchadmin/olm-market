@@ -54,6 +54,18 @@ export function ListingCard({ listing }: { listing: Listing }) {
           {formatPrice(listing.price_cents, locale)}
         </p>
         <p className="truncate text-[10px] text-ink-muted sm:text-xs">
+          {t.market.donation}{" "}
+          {t.market.donationValue.replace(
+            "{percent}",
+            String(
+              Math.min(
+                100,
+                Math.max(30, Math.round(listing.donation_percent ?? 30)),
+              ),
+            ),
+          )}
+        </p>
+        <p className="truncate text-[10px] text-ink-muted sm:text-xs">
           {listing.pickup_method === "seller_location"
             ? t.market.pickupSeller
             : t.market.pickupChurch}

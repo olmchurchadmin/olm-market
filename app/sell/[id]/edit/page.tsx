@@ -2,6 +2,7 @@ import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { FileUploadField } from "@/components/ui/file-upload-field";
+import { DonationPercentField } from "@/components/donation-percent-field";
 import { PickupMethodField } from "@/components/pickup-method-field";
 import { SelectField } from "@/components/ui/select-field";
 import { updateListingAction } from "@/lib/actions/listings";
@@ -85,29 +86,10 @@ export default async function EditListingPage({
           }))}
         />
 
-        <label className="block text-sm font-medium">
-          {t.sell.price}
-          <span className="ml-0.5 text-red-600" aria-hidden>
-            *
-          </span>
-          <span className="relative mt-1 block">
-            <span
-              aria-hidden
-              className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-muted"
-            >
-              $
-            </span>
-            <input
-              name="price"
-              type="number"
-              min="0"
-              step="1"
-              required
-              defaultValue={Math.round(listing.price_cents / 100)}
-              className="w-full rounded-md border border-brand/15 bg-white py-2 pr-3 pl-7 outline-none focus:border-brand"
-            />
-          </span>
-        </label>
+        <DonationPercentField
+          defaultValue={listing.donation_percent ?? 30}
+          defaultPrice={Math.round(listing.price_cents / 100)}
+        />
 
         <PickupMethodField defaultValue={pickupMethod} />
 

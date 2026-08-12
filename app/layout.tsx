@@ -1,20 +1,23 @@
 import type { Metadata } from "next";
-import { Fraunces, Manrope } from "next/font/google";
+import { Inter, Noto_Sans_KR } from "next/font/google";
 import { ConfirmDialogProvider } from "@/components/confirm-dialog";
 import { LocaleProvider } from "@/components/locale-provider";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { getI18n } from "@/lib/i18n/server";
 import "./globals.css";
 
-const display = Fraunces({
-  variable: "--font-display",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-  axes: ["SOFT", "WONK", "opsz"],
+  display: "swap",
 });
 
-const body = Manrope({
-  variable: "--font-body",
+const notoSansKr = Noto_Sans_KR({
+  variable: "--font-noto-kr",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -31,12 +34,16 @@ export default async function RootLayout({
   const { locale, t } = await getI18n();
 
   return (
-    <html lang={locale} className={`${display.variable} ${body.variable} h-full`}>
-      <body className="min-h-full antialiased">
+    <html
+      lang={locale}
+      className={`${inter.variable} ${notoSansKr.variable} h-full`}
+    >
+      <body className="flex min-h-full flex-col antialiased">
         <LocaleProvider locale={locale} dictionary={t}>
           <ConfirmDialogProvider>
             <SiteHeader />
-            {children}
+            <div className="flex-1">{children}</div>
+            <SiteFooter />
           </ConfirmDialogProvider>
         </LocaleProvider>
       </body>

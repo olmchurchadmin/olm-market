@@ -1,32 +1,50 @@
 import { MagnifyingGlassIcon, PlusIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { ListingCard } from "@/components/listing-card";
+import { MarketPagination } from "@/components/market-pagination";
 import { categoryLabel } from "@/lib/i18n/categories";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import type { Listing } from "@/lib/types";
 
+/** 3 rows × 4 columns on large screens */
+const PAGE_SIZE = 12;
+
 function sanitizeSearch(value: string) {
   return value.trim().replace(/[%_,]/g, " ").replace(/\s+/g, " ").slice(0, 80);
 }
 
-function hrefFor(params: { category?: string; q?: string }) {
+function hrefFor(params: {
+  category?: string;
+  q?: string;
+  page?: number;
+}) {
   const sp = new URLSearchParams();
   if (params.category) sp.set("category", params.category);
   if (params.q) sp.set("q", params.q);
+  if (params.page && params.page > 1) sp.set("page", String(params.page));
   const qs = sp.toString();
   return qs ? `/?${qs}` : "/";
+}
+
+function parsePage(value?: string) {
+  const n = Number(value || "1");
+  if (!Number.isFinite(n) || n < 1) return 1;
+  return Math.floor(n);
 }
 
 export async function MarketBrowse({
   category,
   q,
+  page: pageParam,
 }: {
   category?: string;
   q?: string;
+  page?: string;
 }) {
   const { locale, t } = await getI18n();
   const queryText = sanitizeSearch(q || "");
+  const page = parsePage(pageParam);
   const configured = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -53,6 +71,7 @@ export async function MarketBrowse({
     .from("listings")
     .select(
       "*, categories(*), listing_images(*), seller:profiles!listings_seller_id_fkey(nickname, full_name, email, is_anonymous)",
+      { count: "exact" },
     )
     .neq("status", "cancelled")
     .order("created_at", { ascending: false });
@@ -68,8 +87,13 @@ export async function MarketBrowse({
     );
   }
 
-  const { data: listings } = await query;
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+  const { data: listings, count } = await query.range(from, to);
   const rows = (listings as Listing[] | null) || [];
+  const total = count ?? rows.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
@@ -150,6 +174,23 @@ export async function MarketBrowse({
           </p>
         )}
       </div>
+
+      <MarketPagination
+        page={safePage}
+        totalPages={totalPages}
+        hrefForPage={(p) =>
+          hrefFor({
+            category,
+            q: queryText || undefined,
+            page: p,
+          })
+        }
+        labels={{
+          prev: t.market.prevPage,
+          next: t.market.nextPage,
+          pageOf: t.market.pageOf,
+        }}
+      />
     </main>
   );
 }

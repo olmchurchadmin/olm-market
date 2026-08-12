@@ -22,6 +22,11 @@ async function parseListingFields(formData: FormData) {
   const description = String(formData.get("description") || "").trim();
   const categoryId = String(formData.get("category_id") || "");
   const priceDollars = Number(formData.get("price") || 0);
+  const donationRaw = Number(formData.get("donation_percent") || 30);
+  const donationPercent = Math.min(
+    100,
+    Math.max(30, Math.round(Number.isFinite(donationRaw) ? donationRaw : 30)),
+  );
   const pickupRaw = String(formData.get("pickup_method") || "church");
   const pickupMethod =
     pickupRaw === "seller_location" ? "seller_location" : "church";
@@ -38,6 +43,7 @@ async function parseListingFields(formData: FormData) {
     description,
     categoryId,
     priceCents: Math.round(priceDollars * 100),
+    donationPercent,
     pickupMethod,
     files,
   };
@@ -76,7 +82,7 @@ async function uploadListingImages(
 
 export async function createListingAction(formData: FormData) {
   const { supabase, user } = await requireSeller();
-  const { title, description, categoryId, priceCents, pickupMethod, files } =
+  const { title, description, categoryId, priceCents, donationPercent, pickupMethod, files } =
     await parseListingFields(formData);
 
   const { data: listing, error } = await supabase
@@ -87,6 +93,7 @@ export async function createListingAction(formData: FormData) {
       title,
       description,
       price_cents: priceCents,
+      donation_percent: donationPercent,
       pickup_method: pickupMethod,
       status: "available",
     })
@@ -125,7 +132,7 @@ export async function updateListingAction(formData: FormData) {
   const listingId = String(formData.get("listing_id") || "");
   if (!listingId) throw new Error(t.errors.listingNotFound);
 
-  const { title, description, categoryId, priceCents, pickupMethod, files } =
+  const { title, description, categoryId, priceCents, donationPercent, pickupMethod, files } =
     await parseListingFields(formData);
 
   const { data: existing, error: loadError } = await supabase
@@ -148,6 +155,7 @@ export async function updateListingAction(formData: FormData) {
       title,
       description,
       price_cents: priceCents,
+      donation_percent: donationPercent,
       pickup_method: pickupMethod,
       status: "available",
     })

@@ -49,6 +49,7 @@ export type Listing = {
   price_cents: number;
   status: ListingStatus;
   pickup_method?: PickupMethod;
+  donation_percent?: number;
   cover_image_path: string | null;
   created_at: string;
   updated_at: string;
