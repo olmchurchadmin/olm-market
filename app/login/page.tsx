@@ -47,7 +47,7 @@ export default async function LoginPage({
     <main className="mx-auto flex min-h-[75vh] max-w-md flex-col justify-center px-4 py-12 sm:px-6 sm:py-16">
       <div className="animate-rise rounded-2xl border border-black/6 bg-white/90 p-6 shadow-[0_20px_50px_rgba(26,28,31,0.08)] sm:p-8">
         <div className="mb-6 flex justify-center sm:mb-8">
-          <BrandLogo className="[&_img]:h-10 [&_img]:max-w-[260px] sm:[&_img]:h-11" />
+          <BrandLogo className="[&_img]:h-12 [&_img]:max-w-[320px] sm:[&_img]:h-14 sm:[&_img]:max-w-[380px]" />
         </div>
 
         <h1 className="text-center font-[family-name:var(--font-display)] text-3xl tracking-tight text-foreground sm:text-4xl">
