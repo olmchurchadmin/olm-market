@@ -352,15 +352,15 @@ function brandedAuthHtml(options: {
   actionLink: string;
 }) {
   return `
-  <div style="font-family:Inter,'Noto Sans KR',Helvetica,Arial,sans-serif;background:#eceef1;padding:32px 16px;color:#1a1c1f;">
-    <div style="max-width:480px;margin:0 auto;background:#fff;border-radius:12px;padding:28px;border:1px solid rgba(37,99,235,0.12);">
-      <p style="margin:0 0 8px;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;color:#2563eb;">OLM Market</p>
-      <h1 style="margin:0 0 12px;font-size:24px;color:#1d4ed8;">${options.title}</h1>
-      <p style="margin:0 0 20px;line-height:1.6;color:#5c6169;">${options.body}</p>
+  <div style="font-family:Inter,'Noto Sans KR',Helvetica,Arial,sans-serif;background:#fff0c9;padding:32px 16px;color:#243b8f;">
+    <div style="max-width:480px;margin:0 auto;background:#fffaf0;border-radius:12px;padding:28px;border:1px solid rgba(36,59,143,0.14);">
+      <p style="margin:0 0 8px;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;color:#243b8f;">OLM Market</p>
+      <h1 style="margin:0 0 12px;font-size:24px;color:#243b8f;">${options.title}</h1>
+      <p style="margin:0 0 20px;line-height:1.6;color:#5a6488;">${options.body}</p>
       <p style="margin:0 0 24px;">
-        <a href="${options.actionLink}" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:600;">${options.buttonLabel}</a>
+        <a href="${options.actionLink}" style="display:inline-block;background:#243b8f;color:#fff0c9;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:600;">${options.buttonLabel}</a>
       </p>
-      <p style="margin:0;font-size:12px;line-height:1.5;color:#5c6169;word-break:break-all;">버튼이 작동하지 않으면 이 링크를 복사하세요:<br/>${options.actionLink}</p>
+      <p style="margin:0;font-size:12px;line-height:1.5;color:#5a6488;word-break:break-all;">버튼이 작동하지 않으면 이 링크를 복사하세요:<br/>${options.actionLink}</p>
     </div>
   </div>`;
 }

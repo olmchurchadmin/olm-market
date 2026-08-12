@@ -3,18 +3,26 @@
 import { useState } from "react";
 import { useI18n } from "@/components/locale-provider";
 
-const MIN = 30;
-const MAX = 100;
+const OPTIONS = [100, 90, 80, 70, 60, 50, 40, 30] as const;
+
+function nearestOption(value: number) {
+  if (OPTIONS.includes(value as (typeof OPTIONS)[number])) return value;
+  return OPTIONS.reduce((best, option) =>
+    Math.abs(option - value) < Math.abs(best - value) ? option : best,
+  );
+}
 
 export function DonationPercentField({
-  defaultValue = 30,
+  defaultValue = 100,
   defaultPrice = "",
 }: {
   defaultValue?: number;
   defaultPrice?: string | number;
 }) {
   const { t, locale } = useI18n();
-  const initial = Math.min(MAX, Math.max(MIN, Math.round(defaultValue) || MIN));
+  const initial = nearestOption(
+    Math.min(100, Math.max(30, Math.round(defaultValue) || 100)),
+  );
   const [percent, setPercent] = useState(initial);
   const [price, setPrice] = useState(
     defaultPrice === "" || defaultPrice === undefined
@@ -71,32 +79,32 @@ export function DonationPercentField({
         </legend>
         <p className="text-xs text-ink-muted">{t.sell.donationHint}</p>
 
-        <div className="rounded-xl border border-black/8 bg-white px-3 py-3 sm:px-4">
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-sm text-ink-muted">{t.sell.donationToChurch}</span>
-            <span className="font-[family-name:var(--font-display)] text-xl font-semibold text-brand tabular-nums">
-              {percent}%
-            </span>
-          </div>
-          <input
-            type="range"
-            min={MIN}
-            max={MAX}
-            step={1}
-            value={percent}
-            onChange={(e) => setPercent(Number(e.target.value))}
-            className="mt-3 w-full accent-[var(--brand)]"
-            aria-valuemin={MIN}
-            aria-valuemax={MAX}
-            aria-valuenow={percent}
-            aria-label={t.sell.donationPercent}
-          />
-          <div className="mt-1 flex justify-between text-[11px] text-ink-muted">
-            <span>{MIN}%</span>
-            <span>{MAX}%</span>
-          </div>
-          <input type="hidden" name="donation_percent" value={percent} />
+        <div
+          className="grid grid-cols-4 gap-2"
+          role="radiogroup"
+          aria-label={t.sell.donationPercent}
+        >
+          {OPTIONS.map((option) => {
+            const selected = percent === option;
+            return (
+              <button
+                key={option}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                onClick={() => setPercent(option)}
+                className={`rounded-xl px-2 py-2.5 text-sm font-semibold tabular-nums transition ${
+                  selected
+                    ? "bg-brand text-sun shadow-sm"
+                    : "border border-black/8 bg-white text-foreground hover:border-brand/30 hover:bg-brand/5"
+                }`}
+              >
+                {option}%
+              </button>
+            );
+          })}
         </div>
+        <input type="hidden" name="donation_percent" value={percent} />
 
         {hasPrice ? (
           <p className="text-xs leading-relaxed text-ink-muted">

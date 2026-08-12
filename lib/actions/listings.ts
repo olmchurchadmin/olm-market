@@ -22,10 +22,10 @@ async function parseListingFields(formData: FormData) {
   const description = String(formData.get("description") || "").trim();
   const categoryId = String(formData.get("category_id") || "");
   const priceDollars = Number(formData.get("price") || 0);
-  const donationRaw = Number(formData.get("donation_percent") || 30);
+  const donationRaw = Number(formData.get("donation_percent") || 100);
   const donationPercent = Math.min(
     100,
-    Math.max(30, Math.round(Number.isFinite(donationRaw) ? donationRaw : 30)),
+    Math.max(30, Math.round(Number.isFinite(donationRaw) ? donationRaw : 100)),
   );
   const pickupRaw = String(formData.get("pickup_method") || "church");
   const pickupMethod =

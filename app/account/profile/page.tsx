@@ -118,7 +118,7 @@ export default async function AccountProfilePage({
 
           <button
             type="submit"
-            className="rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-soft"
+            className="rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-sun hover:bg-brand-soft"
           >
             {t.account.saveProfile}
           </button>
@@ -159,7 +159,7 @@ export default async function AccountProfilePage({
           </label>
           <button
             type="submit"
-            className="rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-soft"
+            className="rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-sun hover:bg-brand-soft"
           >
             {t.account.changePasswordCta}
           </button>
@@ -199,7 +199,7 @@ export default async function AccountProfilePage({
           </label>
           <button
             type="submit"
-            className="rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-soft"
+            className="rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-sun hover:bg-brand-soft"
           >
             {t.account.complaintSubmit}
           </button>

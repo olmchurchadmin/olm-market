@@ -54,7 +54,7 @@ export default async function ListingDetailPage({
       : t.market.buyHintChurch;
   const donationPercent = Math.min(
     100,
-    Math.max(30, Math.round(listing.donation_percent ?? 30)),
+    Math.max(30, Math.round(listing.donation_percent ?? 100)),
   );
 
   return (
@@ -107,7 +107,7 @@ export default async function ListingDetailPage({
 
           <div className="mt-8 space-y-3 border-t border-brand/10 pt-6">
             {listing.status === "sold" ? (
-              <p className="inline-flex rounded-md bg-brand px-3 py-2 text-sm font-semibold text-white">
+              <p className="inline-flex rounded-md bg-brand px-3 py-2 text-sm font-semibold text-sun">
                 {t.market.sold}
               </p>
             ) : listing.status !== "available" ? (
@@ -117,7 +117,7 @@ export default async function ListingDetailPage({
             ) : !user ? (
               <Link
                 href={`/login?next=/market/${listing.id}`}
-                className="inline-flex rounded-md bg-sun px-5 py-3 text-sm font-semibold text-[#1c2a1f]"
+                className="inline-flex rounded-md border border-brand/20 bg-sun px-5 py-3 text-sm font-semibold text-brand"
               >
                 {t.market.loginToBuy}
               </Link>

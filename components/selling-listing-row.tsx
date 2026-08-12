@@ -28,7 +28,7 @@ export function SellingListingRow({ listing }: { listing: Listing }) {
           <img
             src={thumb}
             alt=""
-            className="max-h-full max-w-full object-contain"
+            className="h-full w-full object-cover object-center"
           />
         ) : (
           <span className="flex h-full items-center justify-center text-[10px] text-ink-muted">

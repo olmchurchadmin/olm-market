@@ -43,7 +43,7 @@ export function AdminOrderActions({
             setPending(false);
           }
         }}
-        className="inline-flex items-center gap-1.5 rounded-md bg-brand px-3 py-2 text-xs font-semibold text-white hover:bg-brand-soft disabled:opacity-50"
+        className="inline-flex items-center gap-1.5 rounded-md bg-brand px-3 py-2 text-xs font-semibold text-sun hover:bg-brand-soft disabled:opacity-50"
       >
         <TruckIcon className="size-4" aria-hidden />
         {pending ? t.common.loading : t.admin.confirmDropoffCta}
@@ -72,7 +72,7 @@ export function AdminOrderActions({
             setPending(false);
           }
         }}
-        className="inline-flex items-center gap-1.5 rounded-md bg-sun px-3 py-2 text-xs font-semibold text-[#1c2a1f] hover:bg-[#f0c65d] disabled:opacity-50"
+        className="inline-flex items-center gap-1.5 rounded-md border border-brand/20 bg-sun px-3 py-2 text-xs font-semibold text-brand hover:brightness-[0.97] disabled:opacity-50"
       >
         <CheckIcon className="size-4" aria-hidden />
         {pending ? t.common.loading : t.admin.confirmPickupCta}

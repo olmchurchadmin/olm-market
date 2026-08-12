@@ -26,18 +26,22 @@ export function GoogleIcon({ className = "size-5" }: { className?: string }) {
   );
 }
 
+/** Kakao speech-bubble mark, tinted to match button text (#191600). */
 export function KakaoIcon({ className = "size-5" }: { className?: string }) {
   return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
+    <span
+      className={`inline-block shrink-0 bg-[#191600] ${className}`}
+      style={{
+        maskImage: "url(/icon-kakao.png)",
+        WebkitMaskImage: "url(/icon-kakao.png)",
+        maskSize: "contain",
+        maskRepeat: "no-repeat",
+        maskPosition: "center",
+        WebkitMaskSize: "contain",
+        WebkitMaskRepeat: "no-repeat",
+        WebkitMaskPosition: "center",
+      }}
       aria-hidden
-      focusable="false"
-    >
-      <path
-        fill="#191600"
-        d="M12 3.2c-4.97 0-9 3.14-9 7.01 0 2.5 1.66 4.7 4.16 5.97-.14.5-.88 3.15-.91 3.35 0 0-.18.15.01.29.16.12.34-.01.34-.01.45-.06 5.19-3.41 6.02-3.99.45.06.91.09 1.38.09 4.97 0 9-3.14 9-7.01S16.97 3.2 12 3.2z"
-      />
-    </svg>
+    />
   );
 }

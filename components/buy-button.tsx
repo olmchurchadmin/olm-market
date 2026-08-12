@@ -44,7 +44,7 @@ export function BuyButton({
             router.refresh();
           });
         }}
-        className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-sun px-5 py-3 text-sm font-semibold text-[#1c2a1f] transition hover:bg-[#f0c65d] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+        className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-brand/20 bg-sun px-5 py-3 text-sm font-semibold text-brand transition hover:brightness-[0.97] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
       >
         <ShoppingBagIcon className="size-5" aria-hidden />
         {pending ? t.buy.working : t.buy.cta}

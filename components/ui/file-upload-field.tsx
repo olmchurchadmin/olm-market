@@ -143,7 +143,7 @@ export function FileUploadField({
                   <img
                     src={src}
                     alt=""
-                    className="h-full w-full object-contain object-center"
+                    className="h-full w-full object-cover object-center"
                   />
                 ) : null}
                 <button
@@ -166,7 +166,7 @@ export function FileUploadField({
               <img
                 src={preview.url}
                 alt=""
-                className="h-full w-full object-contain object-center"
+                className="h-full w-full object-cover object-center"
               />
               <button
                 type="button"

@@ -282,10 +282,7 @@ export function ListingGallery({
         <img
           src={current}
           alt={title}
-          className="h-full w-full object-contain object-center"
-        />
-      </button>
-      {urls.length > 1 ? (
+          className="h-full w-full object-cover object-center"
         <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
           {urls.map((url, index) => {
             const selected = index === active;
@@ -307,7 +304,7 @@ export function ListingGallery({
                 <img
                   src={url}
                   alt=""
-                  className="h-full w-full object-contain object-center"
+                  className="h-full w-full object-cover object-center"
                 />
               </button>
             );

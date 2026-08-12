@@ -24,13 +24,13 @@ export function ListingCard({ listing }: { listing: Listing }) {
       href={`/market/${listing.id}`}
       className="group block overflow-hidden rounded-2xl border border-black/6 bg-white shadow-[0_8px_24px_rgba(26,28,31,0.04)] transition duration-300 hover:-translate-y-0.5 hover:border-black/12 hover:shadow-[0_14px_36px_rgba(26,28,31,0.08)]"
     >
-      <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-[#f7f8fa]">
+      <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-[color-mix(in_oklab,var(--sun)_70%,white)]">
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={image}
             alt={listing.title}
-            className="h-full w-full object-contain object-center transition duration-500 group-hover:scale-[1.03]"
+            className="h-full w-full object-cover object-center transition duration-500 group-hover:scale-[1.03]"
           />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-ink-muted">
@@ -38,7 +38,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
           </div>
         )}
         {soldLike ? (
-          <span className="absolute left-2 top-2 rounded-lg bg-brand px-2 py-1 text-[10px] font-semibold text-white shadow-sm sm:left-3 sm:top-3 sm:text-xs">
+          <span className="absolute left-2 top-2 rounded-lg bg-brand px-2 py-1 text-[10px] font-semibold text-sun shadow-sm sm:left-3 sm:top-3 sm:text-xs">
             {listingStatusLabel(listing.status, t.status)}
           </span>
         ) : null}
@@ -60,7 +60,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
             String(
               Math.min(
                 100,
-                Math.max(30, Math.round(listing.donation_percent ?? 30)),
+                Math.max(30, Math.round(listing.donation_percent ?? 100)),
               ),
             ),
           )}

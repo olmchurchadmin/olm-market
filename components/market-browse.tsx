@@ -100,7 +100,7 @@ export async function MarketBrowse({
       <form
         action="/"
         method="get"
-        className="animate-rise flex gap-2 rounded-2xl border border-black/6 bg-white/85 p-2 shadow-[0_10px_30px_rgba(26,28,31,0.05)] backdrop-blur-sm"
+        className="animate-rise flex gap-2 rounded-2xl border border-brand/10 bg-surface/90 p-2 shadow-[0_10px_30px_rgba(36,59,143,0.06)] backdrop-blur-sm"
       >
         {category ? (
           <input type="hidden" name="category" value={category} />
@@ -121,13 +121,13 @@ export async function MarketBrowse({
         </label>
         <button
           type="submit"
-          className="shrink-0 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-soft"
+          className="shrink-0 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-sun transition hover:bg-brand-soft"
         >
           {t.market.search}
         </button>
         <Link
           href="/sell"
-          className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-black/8 bg-white px-3 py-2.5 text-sm font-semibold text-foreground transition hover:bg-[#f7f8fa] sm:px-4"
+          className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-brand/15 bg-surface px-3 py-2.5 text-sm font-semibold text-foreground transition hover:bg-sun sm:px-4"
         >
           <PlusIcon className="size-4" aria-hidden />
           <span className="hidden sm:inline">{t.market.sellCta}</span>
@@ -139,8 +139,8 @@ export async function MarketBrowse({
           href={hrefFor({ q: queryText || undefined })}
           className={`shrink-0 rounded-xl px-3.5 py-1.5 text-sm whitespace-nowrap transition ${
             !category
-              ? "bg-brand text-white shadow-sm"
-              : "bg-white/90 text-foreground ring-1 ring-black/6 hover:bg-white"
+              ? "bg-brand text-sun shadow-sm"
+              : "bg-surface/90 text-foreground ring-1 ring-brand/10 hover:bg-sun"
           }`}
         >
           {t.market.all}
@@ -154,8 +154,8 @@ export async function MarketBrowse({
             })}
             className={`shrink-0 rounded-xl px-3.5 py-1.5 text-sm whitespace-nowrap transition ${
               category === cat.slug
-                ? "bg-brand text-white shadow-sm"
-                : "bg-white/90 text-foreground ring-1 ring-black/6 hover:bg-white"
+                ? "bg-brand text-sun shadow-sm"
+                : "bg-surface/90 text-foreground ring-1 ring-brand/10 hover:bg-sun"
             }`}
           >
             {categoryLabel(cat, locale)}

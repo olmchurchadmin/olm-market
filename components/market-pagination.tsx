@@ -28,7 +28,7 @@ export function MarketPagination({
       {prev ? (
         <Link
           href={hrefForPage(prev)}
-          className="rounded-xl border border-black/8 bg-white px-3.5 py-2 text-sm font-medium text-foreground transition hover:bg-[#f7f8fa]"
+          className="rounded-xl border border-brand/15 bg-surface px-3.5 py-2 text-sm font-medium text-foreground transition hover:bg-sun"
         >
           {labels.prev}
         </Link>
@@ -47,7 +47,7 @@ export function MarketPagination({
       {next ? (
         <Link
           href={hrefForPage(next)}
-          className="rounded-xl border border-black/8 bg-white px-3.5 py-2 text-sm font-medium text-foreground transition hover:bg-[#f7f8fa]"
+          className="rounded-xl border border-brand/15 bg-surface px-3.5 py-2 text-sm font-medium text-foreground transition hover:bg-sun"
         >
           {labels.next}
         </Link>

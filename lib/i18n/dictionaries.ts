@@ -88,7 +88,8 @@ const ko = {
     category: "카테고리",
     price: "가격 (USD)",
     donationPercent: "성당 도네이션",
-    donationHint: "판매 금액 중 성당에 기부할 비율입니다. 최소 30%부터 설정할 수 있습니다.",
+    donationHint:
+      "판매 금액 중 성당에 기부할 비율입니다. 기본 100%, 최소 30%입니다.",
     donationToChurch: "성당 기부 비율",
     donationSplit: "성당 {donation} · 판매자 {seller}",
     description: "설명",
@@ -393,7 +394,7 @@ const en: Dictionary = {
     price: "Price (USD)",
     donationPercent: "Church donation",
     donationHint:
-      "Share of the sale price donated to the parish. Minimum 30%.",
+      "Share of the sale price donated to the parish. Default 100%, minimum 30%.",
     donationToChurch: "Donation to church",
     donationSplit: "Church {donation} · Seller {seller}",
     description: "Description",
