@@ -35,7 +35,7 @@ export async function MarketBrowse({
   if (!configured) {
     return (
       <main className="mx-auto max-w-3xl px-6 py-20">
-        <h1 className="font-[family-name:var(--font-display)] text-4xl text-brand">
+        <h1 className="font-[family-name:var(--font-display)] text-4xl text-foreground">
           {t.market.title}
         </h1>
         <p className="mt-4 text-ink-muted">{t.market.noConfig}</p>
@@ -73,7 +73,11 @@ export async function MarketBrowse({
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
-      <form action="/" method="get" className="flex gap-2">
+      <form
+        action="/"
+        method="get"
+        className="animate-rise flex gap-2 rounded-2xl border border-black/6 bg-white/85 p-2 shadow-[0_10px_30px_rgba(26,28,31,0.05)] backdrop-blur-sm"
+      >
         {category ? (
           <input type="hidden" name="category" value={category} />
         ) : null}
@@ -88,31 +92,31 @@ export async function MarketBrowse({
             name="q"
             defaultValue={queryText}
             placeholder={t.market.searchPlaceholder}
-            className="w-full rounded-md border border-brand/15 bg-white py-3 pr-3 pl-10 text-sm outline-none focus:border-brand"
+            className="w-full rounded-xl border-0 bg-transparent py-2.5 pr-3 pl-10 text-sm outline-none placeholder:text-ink-muted/80 focus:ring-0"
           />
         </label>
         <button
           type="submit"
-          className="shrink-0 rounded-md bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-brand-soft"
+          className="shrink-0 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-soft"
         >
           {t.market.search}
         </button>
         <Link
           href="/sell"
-          className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md border border-brand/15 bg-white px-3 py-3 text-sm font-semibold text-brand hover:bg-brand/5 sm:px-4"
+          className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl border border-black/8 bg-white px-3 py-2.5 text-sm font-semibold text-foreground transition hover:bg-[#f7f8fa] sm:px-4"
         >
           <PlusIcon className="size-4" aria-hidden />
           <span className="hidden sm:inline">{t.market.sellCta}</span>
         </Link>
       </form>
 
-      <div className="mt-5 flex gap-2 overflow-x-auto pb-1">
+      <div className="animate-rise-delay-1 mt-5 flex gap-2 overflow-x-auto pb-1">
         <Link
           href={hrefFor({ q: queryText || undefined })}
-          className={`shrink-0 rounded-md px-3 py-1.5 text-sm whitespace-nowrap ${
+          className={`shrink-0 rounded-xl px-3.5 py-1.5 text-sm whitespace-nowrap transition ${
             !category
-              ? "bg-brand text-white"
-              : "bg-white text-foreground hover:bg-brand/5"
+              ? "bg-brand text-white shadow-sm"
+              : "bg-white/90 text-foreground ring-1 ring-black/6 hover:bg-white"
           }`}
         >
           {t.market.all}
@@ -124,10 +128,10 @@ export async function MarketBrowse({
               category: cat.slug,
               q: queryText || undefined,
             })}
-            className={`shrink-0 rounded-md px-3 py-1.5 text-sm whitespace-nowrap ${
+            className={`shrink-0 rounded-xl px-3.5 py-1.5 text-sm whitespace-nowrap transition ${
               category === cat.slug
-                ? "bg-brand text-white"
-                : "bg-white text-foreground hover:bg-brand/5"
+                ? "bg-brand text-white shadow-sm"
+                : "bg-white/90 text-foreground ring-1 ring-black/6 hover:bg-white"
             }`}
           >
             {categoryLabel(cat, locale)}
@@ -135,13 +139,13 @@ export async function MarketBrowse({
         ))}
       </div>
 
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
+      <div className="animate-rise-delay-2 mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
         {rows.length ? (
           rows.map((listing) => (
             <ListingCard key={listing.id} listing={listing} />
           ))
         ) : (
-          <p className="col-span-full text-ink-muted">
+          <p className="col-span-full rounded-2xl border border-dashed border-black/10 bg-white/50 px-4 py-10 text-center text-ink-muted">
             {queryText ? t.market.noResults : t.market.empty}
           </p>
         )}

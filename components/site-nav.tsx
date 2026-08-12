@@ -54,18 +54,18 @@ export function SiteNav({ profile }: SiteNavProps) {
             <button
               type="button"
               aria-label={t.nav.closeMenu}
-              className="absolute inset-0 bg-[rgba(28,42,31,0.45)]"
+              className="absolute inset-0 bg-[rgba(26,28,31,0.4)]"
               onClick={() => setOpen(false)}
             />
-            <div className="absolute inset-y-0 right-0 flex h-dvh w-[min(20rem,88vw)] flex-col bg-white shadow-[-12px_0_40px_rgba(28,42,31,0.18)]">
-              <div className="flex items-center justify-between border-b border-brand/10 px-4 py-3">
-                <p className="font-[family-name:var(--font-display)] text-lg text-brand">
+            <div className="absolute inset-y-0 right-0 flex h-dvh w-[min(20rem,88vw)] flex-col bg-white shadow-[-12px_0_40px_rgba(26,28,31,0.16)]">
+              <div className="flex items-center justify-between border-b border-black/6 px-4 py-3">
+                <p className="font-[family-name:var(--font-display)] text-lg text-foreground">
                   {t.nav.menu}
                 </p>
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="rounded-md p-2 text-brand hover:bg-brand/5"
+                  className="rounded-md p-2 text-foreground hover:bg-black/5"
                 >
                   <XMarkIcon className="size-6" aria-hidden />
                   <span className="sr-only">{t.nav.closeMenu}</span>
@@ -73,11 +73,11 @@ export function SiteNav({ profile }: SiteNavProps) {
               </div>
 
               {profile ? (
-                <div className="border-b border-brand/10 px-4 py-3">
+                <div className="border-b border-black/6 px-4 py-3">
                   <p className="text-[11px] font-medium tracking-wide text-ink-muted uppercase">
                     {t.nav.signedInAs}
                   </p>
-                  <p className="mt-0.5 truncate text-sm font-semibold text-brand">
+                  <p className="mt-0.5 truncate text-sm font-semibold text-foreground">
                     {profile.displayName}
                   </p>
                   {profile.email && profile.email !== profile.displayName ? (

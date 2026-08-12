@@ -18,9 +18,9 @@ const body = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "Church Market | 성당 온라인 장터",
+  title: "OLM Market | 성당 온라인 장터",
   description:
-    "성당 공동체 온라인 가라지 세일. 물건을 올리고, 사고, 성당에서 픽업하세요.",
+    "Our Lady of Mercy Parish 공동체 온라인 가라지 세일. 물건을 올리고, 사고, 성당에서 픽업하세요.",
 };
 
 export default async function RootLayout({
