@@ -10,14 +10,26 @@ export async function SiteFooter() {
           <p className="text-xs font-semibold tracking-wide text-ink-muted uppercase">
             {t.siteFooter.contactLabel}
           </p>
-          <p className="mt-1.5 text-sm text-foreground">{t.siteFooter.contact}</p>
+          <p className="mt-1.5 text-sm text-foreground">
+            <a
+              href={`tel:${t.siteFooter.contact.replace(/\D/g, "")}`}
+              className="hover:underline"
+            >
+              {t.siteFooter.contact}
+            </a>
+          </p>
         </div>
         <div>
           <p className="text-xs font-semibold tracking-wide text-ink-muted uppercase">
-            {t.siteFooter.contactPersonLabel}
+            {t.siteFooter.emailLabel}
           </p>
           <p className="mt-1.5 text-sm text-foreground">
-            {t.siteFooter.contactPerson}
+            <a
+              href={`mailto:${t.siteFooter.email}`}
+              className="break-all hover:underline"
+            >
+              {t.siteFooter.email}
+            </a>
           </p>
         </div>
         <div>
@@ -28,11 +40,6 @@ export async function SiteFooter() {
             {t.siteFooter.address}
           </p>
         </div>
-      </div>
-      <div className="border-t border-black/5">
-        <p className="mx-auto max-w-6xl px-4 py-3 text-xs text-ink-muted sm:px-6">
-          {t.siteFooter.note}
-        </p>
       </div>
     </footer>
   );
