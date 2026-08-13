@@ -63,7 +63,7 @@ export default async function UpdatePasswordPage({
         </label>
         <button
           type="submit"
-          className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-brand px-4 py-3 text-sm font-semibold text-sun hover:bg-brand-soft"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-brand-soft"
         >
           <KeyIcon className="size-5" aria-hidden />
           {t.auth.updatePasswordCta}

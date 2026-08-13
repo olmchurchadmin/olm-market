@@ -358,7 +358,7 @@ function brandedAuthHtml(options: {
       <h1 style="margin:0 0 12px;font-size:24px;color:#111111;">${options.title}</h1>
       <p style="margin:0 0 20px;line-height:1.6;color:#5c5c5c;">${options.body}</p>
       <p style="margin:0 0 24px;">
-        <a href="${options.actionLink}" style="display:inline-block;background:#243b8f;color:#fff6de;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:600;">${options.buttonLabel}</a>
+        <a href="${options.actionLink}" style="display:inline-block;background:#243b8f;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:600;">${options.buttonLabel}</a>
       </p>
       <p style="margin:0;font-size:12px;line-height:1.5;color:#5c5c5c;word-break:break-all;">버튼이 작동하지 않으면 이 링크를 복사하세요:<br/>${options.actionLink}</p>
     </div>

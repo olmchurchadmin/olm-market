@@ -96,7 +96,7 @@ export function DonationPercentField({
                 onClick={() => setPercent(option)}
                 className={`rounded-md px-2 py-2.5 text-sm font-semibold tabular-nums transition ${
                   selected
-                    ? "bg-brand text-sun shadow-sm"
+                    ? "bg-brand text-white shadow-sm"
                     : "border border-black/8 bg-white text-foreground hover:border-brand/30 hover:bg-brand/5"
                 }`}
               >

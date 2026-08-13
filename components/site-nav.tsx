@@ -122,7 +122,7 @@ export function SiteNav({ profile }: SiteNavProps) {
                   <Link
                     href="/login"
                     onClick={() => setOpen(false)}
-                    className="mt-2 inline-flex items-center justify-center gap-2 rounded-md bg-brand px-3 py-3 text-sun hover:bg-brand-soft"
+                    className="mt-2 inline-flex items-center justify-center gap-2 rounded-md bg-brand px-3 py-3 text-white hover:bg-brand-soft"
                   >
                     <ArrowRightOnRectangleIcon className="size-5" aria-hidden />
                     {t.nav.login}
@@ -162,7 +162,7 @@ export function SiteNav({ profile }: SiteNavProps) {
         {profile?.isAdmin ? (
           <Link
             href="/admin"
-            className="inline-flex items-center gap-1.5 rounded-md bg-brand px-3 py-1.5 text-sun hover:bg-brand-soft"
+            className="inline-flex items-center gap-1.5 rounded-md bg-brand px-3 py-1.5 text-white hover:bg-brand-soft"
           >
             <ShieldCheckIcon className="size-4" aria-hidden />
             {t.nav.admin}
@@ -177,7 +177,7 @@ export function SiteNav({ profile }: SiteNavProps) {
         ) : (
           <Link
             href="/login"
-            className="inline-flex items-center gap-1.5 rounded-md bg-brand px-3 py-1.5 text-sun hover:bg-brand-soft"
+            className="inline-flex items-center gap-1.5 rounded-md bg-brand px-3 py-1.5 text-white hover:bg-brand-soft"
           >
             <ArrowRightOnRectangleIcon className="size-4" aria-hidden />
             {t.nav.login}

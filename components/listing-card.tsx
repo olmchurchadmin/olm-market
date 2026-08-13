@@ -38,7 +38,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
           </div>
         )}
         {soldLike ? (
-          <span className="absolute left-2 top-2 rounded-md bg-brand px-2 py-1 text-[10px] font-semibold text-sun shadow-sm sm:left-3 sm:top-3 sm:text-xs">
+          <span className="absolute left-2 top-2 rounded-md bg-brand px-2 py-1 text-[10px] font-semibold text-white shadow-sm sm:left-3 sm:top-3 sm:text-xs">
             {listingStatusLabel(listing.status, t.status)}
           </span>
         ) : null}

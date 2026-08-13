@@ -121,7 +121,7 @@ export async function MarketBrowse({
         </label>
         <button
           type="submit"
-          className="shrink-0 rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-sun transition hover:bg-brand-soft"
+          className="shrink-0 rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-soft"
         >
           {t.market.search}
         </button>
@@ -139,7 +139,7 @@ export async function MarketBrowse({
           href={hrefFor({ q: queryText || undefined })}
           className={`shrink-0 rounded-md px-3.5 py-1.5 text-sm whitespace-nowrap transition ${
             !category
-              ? "bg-brand text-sun shadow-sm"
+              ? "bg-brand text-white shadow-sm"
               : "bg-surface/90 text-foreground ring-1 ring-brand/10 hover:bg-sun"
           }`}
         >
@@ -154,7 +154,7 @@ export async function MarketBrowse({
             })}
             className={`shrink-0 rounded-md px-3.5 py-1.5 text-sm whitespace-nowrap transition ${
               category === cat.slug
-                ? "bg-brand text-sun shadow-sm"
+                ? "bg-brand text-white shadow-sm"
                 : "bg-surface/90 text-foreground ring-1 ring-brand/10 hover:bg-sun"
             }`}
           >

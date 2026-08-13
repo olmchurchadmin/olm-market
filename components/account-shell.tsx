@@ -25,7 +25,7 @@ export function AccountNav({ active }: { active: "profile" | "transactions" }) {
             href={link.href}
             className={`rounded-md px-3 py-1.5 text-sm font-medium ${
               isActive
-                ? "bg-brand text-sun"
+                ? "bg-brand text-white"
                 : "bg-white/70 text-foreground hover:bg-white"
             }`}
           >

@@ -107,7 +107,7 @@ export default async function ListingDetailPage({
 
           <div className="mt-8 space-y-3 border-t border-brand/10 pt-6">
             {listing.status === "sold" ? (
-              <p className="inline-flex rounded-md bg-brand px-3 py-2 text-sm font-semibold text-sun">
+              <p className="inline-flex rounded-md bg-brand px-3 py-2 text-sm font-semibold text-white">
                 {t.market.sold}
               </p>
             ) : listing.status !== "available" ? (
@@ -117,7 +117,7 @@ export default async function ListingDetailPage({
             ) : !user ? (
               <Link
                 href={`/login?next=/market/${listing.id}`}
-                className="inline-flex rounded-md bg-brand px-5 py-3 text-sm font-semibold text-sun hover:bg-brand-soft"
+                className="inline-flex rounded-md bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-soft"
               >
                 {t.market.loginToBuy}
               </Link>

@@ -71,7 +71,7 @@ export default async function SellPage() {
 
         <button
           type="submit"
-          className="rounded-md bg-brand px-5 py-3 text-sm font-semibold text-sun hover:bg-brand-soft"
+          className="rounded-md bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-soft"
         >
           {t.sell.submit}
         </button>
