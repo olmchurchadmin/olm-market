@@ -19,7 +19,7 @@ export function DonationPercentField({
   defaultValue?: number;
   defaultPrice?: string | number;
 }) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const initial = nearestOption(
     Math.min(100, Math.max(30, Math.round(defaultValue) || 100)),
   );
@@ -37,9 +37,10 @@ export function DonationPercentField({
     hasPrice && donationAmount !== null ? priceNum - donationAmount : null;
 
   const money = (n: number) =>
-    new Intl.NumberFormat(locale === "en" ? "en-US" : "ko-KR", {
+    new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
+      currencyDisplay: "narrowSymbol",
       maximumFractionDigits: 0,
     }).format(n);
 

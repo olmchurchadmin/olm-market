@@ -1,10 +1,11 @@
 import type { Profile, PublicSeller } from "@/lib/types";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 
-export function formatPrice(cents: number, locale = "ko") {
-  return new Intl.NumberFormat(locale === "en" ? "en-US" : "ko-KR", {
+export function formatPrice(cents: number, _locale = "ko") {
+  return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
+    currencyDisplay: "narrowSymbol",
     maximumFractionDigits: 0,
   }).format(cents / 100);
 }

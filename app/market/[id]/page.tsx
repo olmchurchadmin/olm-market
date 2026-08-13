@@ -117,7 +117,7 @@ export default async function ListingDetailPage({
             ) : !user ? (
               <Link
                 href={`/login?next=/market/${listing.id}`}
-                className="inline-flex rounded-md border border-brand/20 bg-sun px-5 py-3 text-sm font-semibold text-brand"
+                className="inline-flex rounded-md bg-brand px-5 py-3 text-sm font-semibold text-sun hover:bg-brand-soft"
               >
                 {t.market.loginToBuy}
               </Link>

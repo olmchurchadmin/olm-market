@@ -352,7 +352,7 @@ function brandedAuthHtml(options: {
   actionLink: string;
 }) {
   return `
-  <div style="font-family:Inter,'Noto Sans KR',Helvetica,Arial,sans-serif;background:#f4f2ea;padding:32px 16px;color:#111111;">
+  <div style="font-family:Inter,'Noto Sans KR',Helvetica,Arial,sans-serif;background:#fdfcf9;padding:32px 16px;color:#111111;">
     <div style="max-width:480px;margin:0 auto;background:#fbfaf7;border-radius:8px;padding:28px;border:1px solid rgba(17,17,17,0.12);">
       <p style="margin:0 0 8px;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;color:#243b8f;">OLM Market</p>
       <h1 style="margin:0 0 12px;font-size:24px;color:#111111;">${options.title}</h1>
