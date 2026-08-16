@@ -165,7 +165,7 @@ const ko = {
     saveProfile: "프로필 저장",
     profileSaved: "프로필이 저장되었습니다.",
     passwordSaved: "비밀번호가 변경되었습니다.",
-    phoneHint: "카카오 알림을 받으려면 휴대폰 번호를 저장해 주세요.",
+    phoneHint: "문자(SMS) 알림을 받으려면 휴대폰 번호를 저장해 주세요.",
     passwordBlurb: "Google로만 가입한 경우에도 여기서 비밀번호를 설정할 수 있습니다.",
     changePassword: "비밀번호 변경",
     newPassword: "새 비밀번호",
@@ -245,6 +245,18 @@ const ko = {
     reservedTitle: "거래가 성립되었습니다",
     reservedBody:
       "「{title}」({price}) 예약이 확정되었습니다. 판매자는 다음 주 성당에 물건을 가져와 주세요.",
+    reservedSellerChurchTitle: "팔렸습니다",
+    reservedSellerChurchBody:
+      "「{title}」({price})이 팔렸습니다. 구매자는 {buyer}입니다. 다음 주 성당으로 가져와 주세요.",
+    reservedSellerHomeTitle: "팔렸습니다",
+    reservedSellerHomeBody:
+      "「{title}」({price})이 팔렸습니다. 구매자는 {buyer}입니다. 집으로 픽업하러 옵니다. 구매자와 상의하여 날짜와 시간을 정하세요.",
+    reservedBuyerChurchTitle: "거래가 성립되었습니다",
+    reservedBuyerChurchBody:
+      "「{title}」({price}) 거래가 성립되었습니다. 다음 주 성당에서 판매자({seller})를 찾아 물건을 전달받으세요.",
+    reservedBuyerHomeTitle: "거래가 성립되었습니다",
+    reservedBuyerHomeBody:
+      "「{title}」({price}) 거래가 성립되었습니다. 판매자({seller})와 상의하여 날짜와 시간을 정하세요.",
     atChurchTitle: "물건이 성당에 도착했습니다",
     atChurchBody:
       "「{title}」({price}) 픽업 준비가 되었습니다. 관리자에게 현금으로 결제 후 수령해 주세요.",
@@ -469,7 +481,7 @@ const en: Dictionary = {
     saveProfile: "Save profile",
     profileSaved: "Profile saved.",
     passwordSaved: "Password updated.",
-    phoneHint: "Save a mobile number to receive Kakao alerts.",
+    phoneHint: "Save a mobile number to receive SMS alerts.",
     passwordBlurb: "You can set a password here even if you signed up with Google only.",
     changePassword: "Change password",
     newPassword: "New password",
@@ -549,6 +561,18 @@ const en: Dictionary = {
     reservedTitle: "Purchase reserved",
     reservedBody:
       '"{title}" ({price}) is reserved. Please drop the item off at church next week.',
+    reservedSellerChurchTitle: "Sold",
+    reservedSellerChurchBody:
+      '"{title}" ({price}) sold. Buyer: {buyer}. Please bring it to church next week.',
+    reservedSellerHomeTitle: "Sold",
+    reservedSellerHomeBody:
+      '"{title}" ({price}) sold. Buyer: {buyer}. They will pick up at your place — arrange date and time with the buyer.',
+    reservedBuyerChurchTitle: "Purchase confirmed",
+    reservedBuyerChurchBody:
+      '"{title}" ({price}) is confirmed. Meet the seller ({seller}) at church next week to receive the item.',
+    reservedBuyerHomeTitle: "Purchase confirmed",
+    reservedBuyerHomeBody:
+      '"{title}" ({price}) is confirmed. Arrange date and time with the seller ({seller}).',
     atChurchTitle: "Item arrived at church",
     atChurchBody:
       '"{title}" ({price}) is ready for pickup. Pay cash to the admin, then collect it.',

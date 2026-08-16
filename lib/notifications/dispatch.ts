@@ -1,41 +1,96 @@
 import { createServiceClient } from "@/lib/supabase/server";
 import { getAdminEmail, sendEmail } from "@/lib/notifications/email";
-import { sendKakaoAlimtalk } from "@/lib/notifications/kakao";
+import { sendSms } from "@/lib/notifications/sms";
 import { formatPrice } from "@/lib/utils";
+import type { PickupMethod } from "@/lib/types";
 
 type OrderNotifyInput = {
   orderId: string;
   event: "buy" | "dropoff" | "completed";
 };
 
-function eventCopy(event: OrderNotifyInput["event"], title: string, price: number) {
-  const priceLabel = formatPrice(price);
-  switch (event) {
-    case "buy":
-      return {
-        type: "order_reserved",
-        title: "거래가 성립되었습니다",
-        body: `「${title}」(${priceLabel}) 예약이 확정되었습니다. 판매자는 다음 주 성당에 물건을 가져와 주세요.`,
-      };
-    case "dropoff":
-      return {
-        type: "order_at_church",
-        title: "물건이 성당에 도착했습니다",
-        body: `「${title}」(${priceLabel}) 픽업 준비가 되었습니다. 관리자에게 현금으로 결제 후 수령해 주세요.`,
-      };
-    case "completed":
-      return {
-        type: "order_completed",
-        title: "거래가 완료되었습니다",
-        body: `「${title}」(${priceLabel}) 거래가 완료되었습니다.`,
-      };
+type ProfileRow = {
+  id: string;
+  email: string | null;
+  phone: string | null;
+  full_name: string | null;
+  nickname: string | null;
+};
+
+type MessageCopy = {
+  type: string;
+  title: string;
+  body: string;
+  role?: "buyer" | "seller" | "admin";
+};
+
+function displayName(
+  profile: Pick<ProfileRow, "nickname" | "full_name" | "email"> | null | undefined,
+  fallback: string,
+) {
+  return (
+    profile?.nickname?.trim() ||
+    profile?.full_name?.trim() ||
+    profile?.email?.trim() ||
+    fallback
+  );
+}
+
+function buyCopies(options: {
+  title: string;
+  priceCents: number;
+  pickupMethod: PickupMethod;
+  buyerName: string;
+  sellerName: string;
+}) {
+  const priceLabel = formatPrice(options.priceCents);
+  const item = `「${options.title}」(${priceLabel})`;
+  const church = options.pickupMethod !== "seller_location";
+
+  return {
+    seller: {
+      type: "order_reserved",
+      title: "팔렸습니다",
+      body: church
+        ? `${item}이 팔렸습니다. 구매자는 ${options.buyerName}입니다. 다음 주 성당으로 가져와 주세요.`
+        : `${item}이 팔렸습니다. 구매자는 ${options.buyerName}입니다. 집으로 픽업하러 옵니다. 구매자와 상의하여 날짜와 시간을 정하세요.`,
+      role: "seller" as const,
+    },
+    buyer: {
+      type: "order_reserved",
+      title: "거래가 성립되었습니다",
+      body: church
+        ? `${item} 거래가 성립되었습니다. 다음 주 성당에서 판매자(${options.sellerName})를 찾아 물건을 전달받으세요.`
+        : `${item} 거래가 성립되었습니다. 판매자(${options.sellerName})와 상의하여 날짜와 시간을 정하세요.`,
+      role: "buyer" as const,
+    },
+  };
+}
+
+function sharedEventCopy(
+  event: "dropoff" | "completed",
+  title: string,
+  priceCents: number,
+): MessageCopy {
+  const priceLabel = formatPrice(priceCents);
+  if (event === "dropoff") {
+    return {
+      type: "order_at_church",
+      title: "물건이 성당에 도착했습니다",
+      body: `「${title}」(${priceLabel}) 픽업 준비가 되었습니다. 관리자에게 현금으로 결제 후 수령해 주세요.`,
+    };
   }
+  return {
+    type: "order_completed",
+    title: "거래가 완료되었습니다",
+    body: `「${title}」(${priceLabel}) 거래가 완료되었습니다.`,
+  };
 }
 
 async function recordJob(
   supabase: ReturnType<typeof createServiceClient>,
   row: {
-    channel: "in_app" | "email" | "kakao";
+    channel: "in_app" | "email" | "kakao" | "sms";
     recipient: string;
     subject?: string;
     body: string;
@@ -46,7 +101,100 @@ async function recordJob(
     sent_at?: string | null;
   },
 ) {
-  await supabase.from("notification_jobs").insert(row);
+  const { error } = await supabase.from("notification_jobs").insert(row);
+  // Older DBs may lack the `sms` enum value — fall back to `kakao` label.
+  if (error && row.channel === "sms") {
+    await supabase
+      .from("notification_jobs")
+      .insert({ ...row, channel: "kakao" });
+  }
+}
+
+async function deliverToPerson(
+  supabase: ReturnType<typeof createServiceClient>,
+  options: {
+    person: ProfileRow;
+    copy: MessageCopy;
+    payload: Record<string, unknown>;
+    orderId: string;
+  },
+) {
+  const { person, copy, payload, orderId } = options;
+
+  await supabase.from("notifications").insert({
+    user_id: person.id,
+    type: copy.type,
+    title: copy.title,
+    body: copy.body,
+    payload,
+  });
+
+  if (person.email) {
+    const result = await sendEmail({
+      to: person.email,
+      subject: `[OLM Market] ${copy.title}`,
+      html: `<p>${copy.body}</p><p>주문번호: ${orderId}</p>`,
+    });
+    await recordJob(supabase, {
+      channel: "email",
+      recipient: person.email,
+      subject: copy.title,
+      body: copy.body,
+      payload,
+      status: result.ok
+        ? "sent"
+        : result.reason === "pending_credentials"
+          ? "pending_credentials"
+          : "failed",
+      error: result.ok ? null : "error" in result ? result.error : result.reason,
+      related_order_id: orderId,
+      sent_at: result.ok ? new Date().toISOString() : null,
+    });
+  } else {
+    await recordJob(supabase, {
+      channel: "email",
+      recipient: person.id,
+      subject: copy.title,
+      body: copy.body,
+      payload,
+      status: "skipped",
+      error: "No email on profile",
+      related_order_id: orderId,
+    });
+  }
+
+  if (person.phone) {
+    const result = await sendSms({
+      to: person.phone,
+      body: `[OLM Market] ${copy.body}`,
+    });
+    await recordJob(supabase, {
+      channel: "sms",
+      recipient: person.phone,
+      body: copy.body,
+      payload,
+      status: result.ok
+        ? "sent"
+        : result.reason === "pending_credentials"
+          ? "pending_credentials"
+          : result.reason === "skipped"
+            ? "skipped"
+            : "failed",
+      error: result.ok ? null : "error" in result ? result.error : result.reason,
+      related_order_id: orderId,
+      sent_at: result.ok ? new Date().toISOString() : null,
+    });
+  } else {
+    await recordJob(supabase, {
+      channel: "sms",
+      recipient: person.id,
+      body: copy.body,
+      payload,
+      status: "skipped",
+      error: "No phone on profile",
+      related_order_id: orderId,
+    });
+  }
 }
 
 export async function notifyOrderEvent(input: OrderNotifyInput) {
@@ -66,123 +214,136 @@ export async function notifyOrderEvent(input: OrderNotifyInput) {
     await Promise.all([
       supabase
         .from("listings")
-        .select("id, title")
+        .select("id, title, pickup_method")
         .eq("id", order.listing_id)
         .maybeSingle(),
       supabase
         .from("profiles")
-        .select("id, email, phone, full_name")
+        .select("id, email, phone, full_name, nickname")
         .eq("id", order.buyer_id)
         .maybeSingle(),
       supabase
         .from("profiles")
-        .select("id, email, phone, full_name")
+        .select("id, email, phone, full_name, nickname")
         .eq("id", order.seller_id)
         .maybeSingle(),
     ]);
 
   const title = listing?.title || "Item";
-  const copy = eventCopy(input.event, title, order.price_cents);
+  const pickupMethod: PickupMethod =
+    listing?.pickup_method === "seller_location" ? "seller_location" : "church";
+  const buyerName = displayName(buyer, "구매자");
+  const sellerName = displayName(seller, "판매자");
+
+  if (input.event === "buy") {
+    if (!buyer || !seller) {
+      throw new Error("Buyer or seller profile missing for notification");
+    }
+
+    const copies = buyCopies({
+      title,
+      priceCents: order.price_cents,
+      pickupMethod,
+      buyerName,
+      sellerName,
+    });
+
+    const basePayload = {
+      order_id: order.id,
+      event: input.event,
+      listing_title: title,
+      price_cents: order.price_cents,
+      pickup_method: pickupMethod,
+      buyer_name: buyerName,
+      seller_name: sellerName,
+    };
+
+    await deliverToPerson(supabase, {
+      person: seller,
+      copy: copies.seller,
+      payload: { ...basePayload, role: "seller", counterparty_name: buyerName },
+      orderId: order.id,
+    });
+
+    await deliverToPerson(supabase, {
+      person: buyer,
+      copy: copies.buyer,
+      payload: { ...basePayload, role: "buyer", counterparty_name: sellerName },
+      orderId: order.id,
+    });
+
+    const adminSummary = `${copies.seller.body}\n\n${copies.buyer.body}`;
+    const adminEmail = getAdminEmail();
+    const adminResult = await sendEmail({
+      to: adminEmail,
+      subject: `[OLM Market] 거래 성립 · ${title}`,
+      html: `<p>${copies.seller.body}</p><p>${copies.buyer.body}</p><p>주문번호: ${order.id}</p>`,
+    });
+    await recordJob(supabase, {
+      channel: "email",
+      recipient: adminEmail,
+      subject: `거래 성립 · ${title}`,
+      body: adminSummary,
+      payload: { ...basePayload, role: "admin" },
+      status: adminResult.ok
+        ? "sent"
+        : adminResult.reason === "pending_credentials"
+          ? "pending_credentials"
+          : "failed",
+      error: adminResult.ok
+        ? null
+        : "error" in adminResult
+          ? adminResult.error
+          : adminResult.reason,
+      related_order_id: order.id,
+      sent_at: adminResult.ok ? new Date().toISOString() : null,
+    });
+
+    return;
+  }
+
+  const copy = sharedEventCopy(input.event, title, order.price_cents);
   const payload = {
     order_id: order.id,
     event: input.event,
     listing_title: title,
     price_cents: order.price_cents,
+    pickup_method: pickupMethod,
   };
 
-  const recipients = [buyer, seller].filter(Boolean) as Array<{
-    id: string;
-    email: string | null;
-    phone: string | null;
-  }>;
-
+  const recipients = [buyer, seller].filter(Boolean) as ProfileRow[];
   for (const person of recipients) {
-    await supabase.from("notifications").insert({
-      user_id: person.id,
-      type: copy.type,
-      title: copy.title,
-      body: copy.body,
+    await deliverToPerson(supabase, {
+      person,
+      copy,
       payload,
+      orderId: order.id,
     });
   }
 
-  const emailTargets = [
-    ...recipients.map((r) => r.email).filter(Boolean),
-    getAdminEmail(),
-  ] as string[];
-
-  const uniqueEmails = [...new Set(emailTargets)];
-  const html = `<p>${copy.body}</p><p>주문번호: ${order.id}</p>`;
-
-  for (const email of uniqueEmails) {
-    const result = await sendEmail({
-      to: email,
-      subject: `[Church Market] ${copy.title}`,
-      html,
-    });
-
-    await recordJob(supabase, {
-      channel: "email",
-      recipient: email,
-      subject: copy.title,
-      body: copy.body,
-      payload,
-      status: result.ok
-        ? "sent"
-        : result.reason === "pending_credentials"
-          ? "pending_credentials"
-          : "failed",
-      error: result.ok ? null : "error" in result ? result.error : result.reason,
-      related_order_id: order.id,
-      sent_at: result.ok ? new Date().toISOString() : null,
-    });
-  }
-
+  const adminEmail = getAdminEmail();
+  const adminResult = await sendEmail({
+    to: adminEmail,
+    subject: `[OLM Market] ${copy.title}`,
+    html: `<p>${copy.body}</p><p>주문번호: ${order.id}</p>`,
+  });
   await recordJob(supabase, {
-    channel: "in_app",
-    recipient: getAdminEmail(),
+    channel: "email",
+    recipient: adminEmail,
     subject: copy.title,
     body: copy.body,
-    payload,
-    status: "sent",
+    payload: { ...payload, role: "admin" },
+    status: adminResult.ok
+      ? "sent"
+      : adminResult.reason === "pending_credentials"
+        ? "pending_credentials"
+        : "failed",
+    error: adminResult.ok
+      ? null
+      : "error" in adminResult
+        ? adminResult.error
+        : adminResult.reason,
     related_order_id: order.id,
-    sent_at: new Date().toISOString(),
+    sent_at: adminResult.ok ? new Date().toISOString() : null,
   });
-
-  const phones = recipients
-    .map((r) => r.phone)
-    .filter((p): p is string => Boolean(p));
-
-  if (phones.length === 0) {
-    await recordJob(supabase, {
-      channel: "kakao",
-      recipient: "n/a",
-      body: copy.body,
-      payload,
-      status: "skipped",
-      error: "No phone numbers on profiles",
-      related_order_id: order.id,
-    });
-    return;
-  }
-
-  for (const phone of phones) {
-    const result = await sendKakaoAlimtalk({ to: phone, text: copy.body });
-    await recordJob(supabase, {
-      channel: "kakao",
-      recipient: phone,
-      body: copy.body,
-      payload,
-      status: result.ok
-        ? "sent"
-        : result.reason === "pending_credentials"
-          ? "pending_credentials"
-          : result.reason === "skipped"
-            ? "skipped"
-            : "failed",
-      error: result.ok ? null : "error" in result ? result.error : result.reason,
-      related_order_id: order.id,
-      sent_at: result.ok ? new Date().toISOString() : null,
-    });
-  }
 }
