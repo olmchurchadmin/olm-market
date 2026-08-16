@@ -29,8 +29,8 @@ export async function buyListingAction(listingId: string) {
 
   try {
     await notifyOrderEvent({ orderId: data.id, event: "buy" });
-  } catch {
-    // Order already reserved; notification failure should not roll back.
+  } catch (error) {
+    console.error("[notifyOrderEvent:buy]", error);
   }
 
   revalidatePath("/");

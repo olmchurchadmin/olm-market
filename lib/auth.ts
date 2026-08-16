@@ -40,5 +40,5 @@ export async function requireAdmin() {
   if (!profile || profile.role !== "admin") {
     redirect("/");
   }
-  return profile;
+  return profile as Profile;
 }
