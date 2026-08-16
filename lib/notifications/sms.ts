@@ -31,9 +31,9 @@ export function toE164(phone: string): string | null {
 }
 
 export async function sendSms(options: { to: string; body: string }) {
-  const accountSid = process.env.TWILIO_ACCOUNT_SID;
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  const from = process.env.TWILIO_PHONE_NUMBER;
+  const accountSid = process.env.TWILIO_ACCOUNT_SID?.trim();
+  const authToken = process.env.TWILIO_AUTH_TOKEN?.trim();
+  const from = process.env.TWILIO_PHONE_NUMBER?.trim();
 
   if (!accountSid || !authToken || !from) {
     return { ok: false as const, reason: "pending_credentials" as const };
@@ -44,7 +44,15 @@ export async function sendSms(options: { to: string; body: string }) {
     return { ok: false as const, reason: "skipped" as const };
   }
 
-  const fromE164 = toE164(from) || from;
+  const fromE164 = toE164(from);
+  if (!fromE164) {
+    return {
+      ok: false as const,
+      reason: "failed" as const,
+      error: "Invalid TWILIO_PHONE_NUMBER",
+    };
+  }
+
   const auth = Buffer.from(`${accountSid}:${authToken}`).toString("base64");
   const params = new URLSearchParams({
     To: to,

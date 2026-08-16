@@ -110,6 +110,100 @@ async function recordJob(
   }
 }
 
+async function deliverEmail(
+  supabase: ReturnType<typeof createServiceClient>,
+  person: ProfileRow,
+  copy: MessageCopy,
+  payload: Record<string, unknown>,
+  orderId: string,
+) {
+  if (!person.email) {
+    await recordJob(supabase, {
+      channel: "email",
+      recipient: person.id,
+      subject: copy.title,
+      body: copy.body,
+      payload,
+      status: "skipped",
+      error: "No email on profile",
+      related_order_id: orderId,
+    });
+    return;
+  }
+
+  const result = await sendEmail({
+    to: person.email,
+    subject: `[OLM Market] ${copy.title}`,
+    html: `<p>${copy.body}</p><p>주문번호: ${orderId}</p>`,
+  });
+  await recordJob(supabase, {
+    channel: "email",
+    recipient: person.email,
+    subject: copy.title,
+    body: copy.body,
+    payload,
+    status: result.ok
+      ? "sent"
+      : result.reason === "pending_credentials"
+        ? "pending_credentials"
+        : "failed",
+    error: result.ok ? null : "error" in result ? result.error : result.reason,
+    related_order_id: orderId,
+    sent_at: result.ok ? new Date().toISOString() : null,
+  });
+}
+
+async function deliverSms(
+  supabase: ReturnType<typeof createServiceClient>,
+  person: ProfileRow,
+  copy: MessageCopy,
+  payload: Record<string, unknown>,
+  orderId: string,
+) {
+  if (!person.phone) {
+    await recordJob(supabase, {
+      channel: "sms",
+      recipient: person.id,
+      body: copy.body,
+      payload,
+      status: "skipped",
+      error: "No phone on profile",
+      related_order_id: orderId,
+    });
+    return;
+  }
+
+  const result = await sendSms({
+    to: person.phone,
+    body: `[OLM] ${copy.title}\n${copy.body}`,
+  });
+
+  if (!result.ok) {
+    console.error("[sms]", {
+      to: person.phone,
+      reason: result.reason,
+      error: "error" in result ? result.error : null,
+    });
+  }
+
+  await recordJob(supabase, {
+    channel: "sms",
+    recipient: person.phone,
+    body: copy.body,
+    payload,
+    status: result.ok
+      ? "sent"
+      : result.reason === "pending_credentials"
+        ? "pending_credentials"
+        : result.reason === "skipped"
+          ? "skipped"
+          : "failed",
+    error: result.ok ? null : "error" in result ? result.error : result.reason,
+    related_order_id: orderId,
+    sent_at: result.ok ? new Date().toISOString() : null,
+  });
+}
+
 async function deliverToPerson(
   supabase: ReturnType<typeof createServiceClient>,
   options: {
@@ -129,72 +223,11 @@ async function deliverToPerson(
     payload,
   });
 
-  if (person.email) {
-    const result = await sendEmail({
-      to: person.email,
-      subject: `[OLM Market] ${copy.title}`,
-      html: `<p>${copy.body}</p><p>주문번호: ${orderId}</p>`,
-    });
-    await recordJob(supabase, {
-      channel: "email",
-      recipient: person.email,
-      subject: copy.title,
-      body: copy.body,
-      payload,
-      status: result.ok
-        ? "sent"
-        : result.reason === "pending_credentials"
-          ? "pending_credentials"
-          : "failed",
-      error: result.ok ? null : "error" in result ? result.error : result.reason,
-      related_order_id: orderId,
-      sent_at: result.ok ? new Date().toISOString() : null,
-    });
-  } else {
-    await recordJob(supabase, {
-      channel: "email",
-      recipient: person.id,
-      subject: copy.title,
-      body: copy.body,
-      payload,
-      status: "skipped",
-      error: "No email on profile",
-      related_order_id: orderId,
-    });
-  }
-
-  if (person.phone) {
-    const result = await sendSms({
-      to: person.phone,
-      body: `[OLM Market] ${copy.body}`,
-    });
-    await recordJob(supabase, {
-      channel: "sms",
-      recipient: person.phone,
-      body: copy.body,
-      payload,
-      status: result.ok
-        ? "sent"
-        : result.reason === "pending_credentials"
-          ? "pending_credentials"
-          : result.reason === "skipped"
-            ? "skipped"
-            : "failed",
-      error: result.ok ? null : "error" in result ? result.error : result.reason,
-      related_order_id: orderId,
-      sent_at: result.ok ? new Date().toISOString() : null,
-    });
-  } else {
-    await recordJob(supabase, {
-      channel: "sms",
-      recipient: person.id,
-      body: copy.body,
-      payload,
-      status: "skipped",
-      error: "No phone on profile",
-      related_order_id: orderId,
-    });
-  }
+  // Run SMS and email in parallel so a slow/failing email never blocks SMS.
+  await Promise.allSettled([
+    deliverSms(supabase, person, copy, payload, orderId),
+    deliverEmail(supabase, person, copy, payload, orderId),
+  ]);
 }
 
 export async function notifyOrderEvent(input: OrderNotifyInput) {
