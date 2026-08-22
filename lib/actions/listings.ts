@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getI18n } from "@/lib/i18n/server";
+import { notifyListingCreated } from "@/lib/notifications/dispatch";
 import { createClient } from "@/lib/supabase/server";
 
 async function requireSeller() {
@@ -117,6 +118,12 @@ export async function createListingAction(formData: FormData) {
       .from("listings")
       .update({ cover_image_path: uploadedPaths[0] })
       .eq("id", listing.id);
+  }
+
+  try {
+    await notifyListingCreated(listing.id);
+  } catch (error) {
+    console.error("[notifyListingCreated]", error);
   }
 
   revalidatePath("/");

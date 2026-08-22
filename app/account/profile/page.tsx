@@ -1,6 +1,7 @@
 import {
   ChatBubbleLeftRightIcon,
   DevicePhoneMobileIcon,
+  EnvelopeIcon,
   EyeSlashIcon,
   KeyIcon,
   UserIcon,
@@ -70,6 +71,7 @@ export default async function AccountProfilePage({
           {t.account.myProfile}
         </h2>
         <p className="mt-1 text-sm text-ink-muted">{t.account.profileBlurb}</p>
+        <p className="mt-2 text-xs text-ink-muted">{t.account.notificationsBlurb}</p>
         <form action={updateProfileAction} className="mt-5 space-y-4">
           <label className="block space-y-1.5">
             <span className="text-sm font-medium text-foreground">
@@ -96,6 +98,23 @@ export default async function AccountProfilePage({
               className="w-full rounded-md border border-brand/15 bg-white px-3 py-2"
             />
             <span className="text-xs text-ink-muted">{t.account.phoneHint}</span>
+          </label>
+
+          <label className="block space-y-1.5">
+            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground">
+              <EnvelopeIcon className="size-4" aria-hidden />
+              {t.account.notificationEmail}
+            </span>
+            <input
+              type="email"
+              name="notification_email"
+              defaultValue={profile.notification_email || profile.email || ""}
+              placeholder="you@example.com"
+              className="w-full rounded-md border border-brand/15 bg-white px-3 py-2"
+            />
+            <span className="text-xs text-ink-muted">
+              {t.account.notificationEmailHint}
+            </span>
           </label>
 
           <label className="flex items-start gap-3 rounded-md border border-brand/10 bg-[color-mix(in_oklab,var(--background)_70%,white)] px-3 py-3">

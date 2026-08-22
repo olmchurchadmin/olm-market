@@ -19,6 +19,7 @@ export type Profile = {
   full_name: string | null;
   nickname: string | null;
   phone: string | null;
+  notification_email: string | null;
   kakao_id: string | null;
   role: UserRole;
   is_anonymous: boolean;

@@ -157,9 +157,14 @@ const ko = {
     item: "물품",
     deleted: "물품을 삭제했습니다.",
     profileBlurb: "장터에 보이는 이름과 연락처를 설정하세요.",
+    notificationsBlurb:
+      "판매 등록, 거래 성립, 성당 도착, 거래 완료 알림은 저장한 이메일과 휴대폰 문자로 발송됩니다.",
     nickname: "닉네임",
     nicknamePlaceholder: "장터에 표시할 이름",
     phone: "전화번호",
+    notificationEmail: "알림 이메일",
+    notificationEmailHint:
+      "거래·판매 알림을 받을 이메일입니다. 비우면 로그인 이메일로 발송합니다.",
     anonymous: "익명으로 판매",
     anonymousHint: '켜면 장터에 올린 물건의 판매자가 "익명"으로 표시됩니다.',
     saveProfile: "프로필 저장",
@@ -273,6 +278,8 @@ const ko = {
       "「{title}」({price}) 픽업 준비가 되었습니다. 관리자에게 현금으로 결제 후 수령해 주세요.",
     completedTitle: "거래가 완료되었습니다",
     completedBody: "「{title}」({price}) 거래가 완료되었습니다.",
+    listingCreatedTitle: "물품이 등록되었습니다",
+    listingCreatedBody: "「{title}」({price})이 장터에 등록되었습니다.",
   },
   errors: {
     loginRequired: "로그인이 필요합니다.",
@@ -300,6 +307,7 @@ const ko = {
     requestFailed: "요청을 처리하지 못했습니다.",
     nicknameTooLong: "닉네임은 40자 이하여야 합니다.",
     profileSaveFailed: "프로필을 저장하지 못했습니다.",
+    notificationEmailInvalid: "알림 이메일 형식이 올바르지 않습니다.",
     authFailed: "인증에 실패했습니다.",
   },
   status: {
@@ -484,9 +492,14 @@ const en: Dictionary = {
     item: "Item",
     deleted: "Listing deleted.",
     profileBlurb: "Set the name and contact shown on the market.",
+    notificationsBlurb:
+      "Listing, trade, drop-off, and completion alerts go to your saved email and phone SMS.",
     nickname: "Nickname",
     nicknamePlaceholder: "Name shown on the market",
     phone: "Phone",
+    notificationEmail: "Notification email",
+    notificationEmailHint:
+      "Email for trade and listing alerts. Leave blank to use your login email.",
     anonymous: "Sell anonymously",
     anonymousHint: 'When on, your listings show the seller as "Anonymous".',
     saveProfile: "Save profile",
@@ -600,6 +613,8 @@ const en: Dictionary = {
       '"{title}" ({price}) is ready for pickup. Pay cash to the admin, then collect it.',
     completedTitle: "Trade completed",
     completedBody: '"{title}" ({price}) has been completed.',
+    listingCreatedTitle: "Listing published",
+    listingCreatedBody: '"{title}" ({price}) is now on the marketplace.',
   },
   errors: {
     loginRequired: "Please log in.",
@@ -627,6 +642,7 @@ const en: Dictionary = {
     requestFailed: "Could not process the request.",
     nicknameTooLong: "Nickname must be 40 characters or fewer.",
     profileSaveFailed: "Could not save profile.",
+    notificationEmailInvalid: "Notification email format is invalid.",
     authFailed: "Authentication failed.",
   },
   status: {

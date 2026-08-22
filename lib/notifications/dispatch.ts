@@ -12,6 +12,7 @@ type OrderNotifyInput = {
 type ProfileRow = {
   id: string;
   email: string | null;
+  notification_email: string | null;
   phone: string | null;
   full_name: string | null;
   nickname: string | null;
@@ -34,6 +35,13 @@ function displayName(
     profile?.email?.trim() ||
     fallback
   );
+}
+
+function notifyEmailFor(person: ProfileRow): string | null {
+  const notify = person.notification_email?.trim();
+  if (notify) return notify;
+  const login = person.email?.trim();
+  return login || null;
 }
 
 function buyCopies(options: {
@@ -97,12 +105,11 @@ async function recordJob(
     payload: Record<string, unknown>;
     status: "pending" | "sent" | "failed" | "skipped" | "pending_credentials";
     error?: string | null;
-    related_order_id: string;
+    related_order_id?: string | null;
     sent_at?: string | null;
   },
 ) {
   const { error } = await supabase.from("notification_jobs").insert(row);
-  // Older DBs may lack the `sms` enum value — fall back to `kakao` label.
   if (error && row.channel === "sms") {
     await supabase
       .from("notification_jobs")
@@ -115,9 +122,10 @@ async function deliverEmail(
   person: ProfileRow,
   copy: MessageCopy,
   payload: Record<string, unknown>,
-  orderId: string,
+  orderId: string | null,
 ) {
-  if (!person.email) {
+  const to = notifyEmailFor(person);
+  if (!to) {
     await recordJob(supabase, {
       channel: "email",
       recipient: person.id,
@@ -125,20 +133,26 @@ async function deliverEmail(
       body: copy.body,
       payload,
       status: "skipped",
-      error: "No email on profile",
+      error: "No notification email on profile",
       related_order_id: orderId,
     });
     return;
   }
 
+  const footer = orderId
+    ? `<p>주문번호: ${orderId}</p>`
+    : payload.listing_id
+      ? `<p>물품 ID: ${payload.listing_id}</p>`
+      : "";
+
   const result = await sendEmail({
-    to: person.email,
+    to,
     subject: `[OLM Market] ${copy.title}`,
-    html: `<p>${copy.body}</p><p>주문번호: ${orderId}</p>`,
+    html: `<p>${copy.body}</p>${footer}`,
   });
   await recordJob(supabase, {
     channel: "email",
-    recipient: person.email,
+    recipient: to,
     subject: copy.title,
     body: copy.body,
     payload,
@@ -158,7 +172,7 @@ async function deliverSms(
   person: ProfileRow,
   copy: MessageCopy,
   payload: Record<string, unknown>,
-  orderId: string,
+  orderId: string | null,
 ) {
   if (!person.phone) {
     await recordJob(supabase, {
@@ -210,7 +224,7 @@ async function deliverToPerson(
     person: ProfileRow;
     copy: MessageCopy;
     payload: Record<string, unknown>;
-    orderId: string;
+    orderId: string | null;
   },
 ) {
   const { person, copy, payload, orderId } = options;
@@ -223,11 +237,60 @@ async function deliverToPerson(
     payload,
   });
 
-  // Run SMS and email in parallel so a slow/failing email never blocks SMS.
   await Promise.allSettled([
     deliverSms(supabase, person, copy, payload, orderId),
     deliverEmail(supabase, person, copy, payload, orderId),
   ]);
+}
+
+const profileSelect =
+  "id, email, notification_email, phone, full_name, nickname";
+
+export async function notifyListingCreated(listingId: string) {
+  const supabase = createServiceClient();
+
+  const { data: listing, error } = await supabase
+    .from("listings")
+    .select("id, title, price_cents, seller_id")
+    .eq("id", listingId)
+    .single();
+
+  if (error || !listing) {
+    throw new Error(error?.message || "Listing not found for notification");
+  }
+
+  const { data: seller } = await supabase
+    .from("profiles")
+    .select(profileSelect)
+    .eq("id", listing.seller_id)
+    .maybeSingle();
+
+  if (!seller) {
+    throw new Error("Seller profile missing for listing notification");
+  }
+
+  const priceLabel = formatPrice(listing.price_cents);
+  const copy: MessageCopy = {
+    type: "listing_created",
+    title: "물품이 등록되었습니다",
+    body: `「${listing.title}」(${priceLabel})이 장터에 등록되었습니다.`,
+    role: "seller",
+  };
+
+  const payload = {
+    event: "listing_created",
+    listing_id: listing.id,
+    listing_title: listing.title,
+    price_cents: listing.price_cents,
+    role: "seller",
+  };
+
+  await deliverToPerson(supabase, {
+    person: seller,
+    copy,
+    payload,
+    orderId: null,
+  });
 }
 
 export async function notifyOrderEvent(input: OrderNotifyInput) {
@@ -252,12 +315,12 @@ export async function notifyOrderEvent(input: OrderNotifyInput) {
         .maybeSingle(),
       supabase
         .from("profiles")
-        .select("id, email, phone, full_name, nickname")
+        .select(profileSelect)
         .eq("id", order.buyer_id)
         .maybeSingle(),
       supabase
         .from("profiles")
-        .select("id, email, phone, full_name, nickname")
+        .select(profileSelect)
         .eq("id", order.seller_id)
         .maybeSingle(),
     ]);

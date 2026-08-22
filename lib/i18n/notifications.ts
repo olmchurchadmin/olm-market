@@ -75,6 +75,13 @@ export function localizeNotification(
     };
   }
 
+  if (notification.type === "listing_created") {
+    return {
+      title: t.notify.listingCreatedTitle,
+      body: fill(t.notify.listingCreatedBody),
+    };
+  }
+
   const titles: Record<string, string> = {
     order_at_church: t.notify.atChurchTitle,
     order_completed: t.notify.completedTitle,

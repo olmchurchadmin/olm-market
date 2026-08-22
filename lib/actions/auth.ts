@@ -291,12 +291,22 @@ export async function updatePhoneAction(formData: FormData) {
 export async function updateProfileAction(formData: FormData) {
   const nickname = String(formData.get("nickname") || "").trim();
   const phone = String(formData.get("phone") || "").trim();
+  const notificationEmail = String(formData.get("notification_email") || "").trim();
   const isAnonymous = formData.get("is_anonymous") === "on";
 
   const { t } = await getI18n();
   if (nickname.length > 40) {
     redirect(
       `/account/profile?error=${encodeURIComponent(t.errors.nicknameTooLong)}`,
+    );
+  }
+
+  if (
+    notificationEmail &&
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(notificationEmail)
+  ) {
+    redirect(
+      `/account/profile?error=${encodeURIComponent(t.errors.notificationEmailInvalid)}`,
     );
   }
 
@@ -311,6 +321,7 @@ export async function updateProfileAction(formData: FormData) {
     .update({
       nickname: nickname || null,
       phone: phone || null,
+      notification_email: notificationEmail || null,
       is_anonymous: isAnonymous,
     })
     .eq("id", user.id);
