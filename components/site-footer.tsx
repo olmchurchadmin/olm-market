@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getI18n } from "@/lib/i18n/server";
 
 export async function SiteFooter() {
@@ -39,6 +40,16 @@ export async function SiteFooter() {
           <p className="mt-1.5 text-sm leading-relaxed text-foreground">
             {t.siteFooter.address}
           </p>
+        </div>
+      </div>
+      <div className="border-t border-black/6">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-4 text-sm text-ink-muted sm:px-6">
+          <Link href="/privacy" className="hover:text-brand hover:underline">
+            {t.siteFooter.privacy}
+          </Link>
+          <Link href="/terms" className="hover:text-brand hover:underline">
+            {t.siteFooter.terms}
+          </Link>
         </div>
       </div>
     </footer>

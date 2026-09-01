@@ -37,6 +37,12 @@ const ko = {
     email: "office@edisonkcc.org",
     addressLabel: "주소",
     address: "122 High Street, South Bound Brook, NJ 08880",
+    privacy: "개인정보처리방침",
+    terms: "이용약관",
+  },
+  legal: {
+    privacyLink: "이용약관 보기",
+    termsLink: "개인정보처리방침 보기",
   },
   market: {
     title: "장터",
@@ -372,6 +378,12 @@ const en: Dictionary = {
     email: "office@edisonkcc.org",
     addressLabel: "Address",
     address: "122 High Street, South Bound Brook, NJ 08880",
+    privacy: "Privacy Policy",
+    terms: "Terms & Conditions",
+  },
+  legal: {
+    privacyLink: "View Terms & Conditions",
+    termsLink: "View Privacy Policy",
   },
   market: {
     title: "Market",
