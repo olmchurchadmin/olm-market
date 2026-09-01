@@ -7,7 +7,7 @@ export async function SiteFooter() {
   const copyright = t.siteFooter.copyright.replace("{year}", String(year));
 
   return (
-    <footer className="mt-auto border-t border-black/6 bg-[color-mix(in_oklab,var(--background)_55%,white)]">
+    <footer className="mt-auto border-t border-black/6 bg-[color-mix(in_oklab,var(--background)_55%,white)] pb-6 sm:pb-8">
       <div className="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:grid-cols-3 sm:px-6 sm:py-10">
         <div>
           <p className="text-xs font-semibold tracking-wide text-ink-muted uppercase">
@@ -45,7 +45,7 @@ export async function SiteFooter() {
         </div>
       </div>
       <div className="border-t border-black/6">
-        <div className="mx-auto max-w-6xl px-4 py-4 text-center sm:px-6">
+        <div className="mx-auto max-w-6xl px-4 pt-4 pb-2 text-center sm:px-6">
           <p className="text-xs text-ink-muted">
             <Link href="/privacy" className="hover:text-brand hover:underline">
               {t.siteFooter.privacy}
