@@ -1,4 +1,5 @@
 import type { Locale } from "@/lib/i18n/config";
+import { getRegisteredBrandName } from "@/lib/legal/brand";
 
 export type LegalSection = {
   title: string;
@@ -8,6 +9,7 @@ export type LegalSection = {
 
 export type LegalPage = {
   title: string;
+  brandName: string;
   updated: string;
   intro: string;
   sections: LegalSection[];
@@ -15,13 +17,21 @@ export type LegalPage = {
 
 const siteUrl = "https://olm.skyface.com";
 const contactEmail = "office@edisonkcc.org";
-const parishName = "Our Lady of Mercy Parish (OLM Market)";
+const parishName = "Our Lady of Mercy Parish";
 
-const privacyEn: LegalPage = {
+function privacyEn(brandName: string): LegalPage {
+  return {
   title: "Privacy Policy",
+  brandName,
   updated: "September 1, 2026",
-  intro: `${parishName} operates OLM Market at ${siteUrl}. This policy explains how we collect, use, and protect your information.`,
+  intro: `This Privacy Policy applies to ${brandName} ("${brandName}", "we", "us", or "our"). ${brandName} operates the OLM Market parish garage-sale website at ${siteUrl} on behalf of ${parishName}. This policy explains how we collect, use, and protect your information.`,
   sections: [
+    {
+      title: "About our business",
+      paragraphs: [
+        `${brandName} is the registered business name for OLM Market at ${siteUrl}. OLM Market is a transactional marketplace for ${parishName} community members.`,
+      ],
+    },
     {
       title: "Information we collect",
       paragraphs: [
@@ -42,9 +52,13 @@ const privacyEn: LegalPage = {
     {
       title: "SMS / text messaging",
       paragraphs: [
-        "If you save a mobile phone number on your profile at /account/profile and click Save Profile, you consent to receive transactional SMS from OLM Market about marketplace activity (for example, when an item is listed, reserved, dropped off at church, or ready for pickup).",
+        "If you save a mobile phone number on your profile at /account/profile and click Save Profile, you consent to receive transactional SMS from " +
+          brandName +
+          " about OLM Market activity (for example, when an item is listed, reserved, dropped off at church, or ready for pickup).",
         "We do not use SMS for marketing or promotional messages. Message frequency varies based on your marketplace activity. Message and data rates may apply.",
-        "We do not sell, rent, or share your mobile phone number with third parties for their marketing purposes. Your number is used only to deliver OLM Market transactional alerts and related service messages through our messaging provider (Twilio).",
+        "We do not sell, rent, or share your mobile phone number with third parties for their marketing purposes. Your number is used only to deliver " +
+          brandName +
+          " transactional alerts for OLM Market and related service messages through our messaging provider (Twilio).",
         "You can opt out of SMS at any time by replying STOP to a message. Reply HELP for help. You may also remove your phone number from your profile to stop future SMS alerts.",
       ],
     },
@@ -63,24 +77,33 @@ const privacyEn: LegalPage = {
     {
       title: "Children",
       paragraphs: [
-        "OLM Market is intended for parish community members. If you believe a child has provided personal information without appropriate consent, contact us and we will take reasonable steps to delete it.",
+        `${brandName} / OLM Market is intended for parish community members. If you believe a child has provided personal information without appropriate consent, contact us and we will take reasonable steps to delete it.`,
       ],
     },
     {
       title: "Changes and contact",
       paragraphs: [
-        `We may update this policy from time to time. Continued use of the service after changes means you accept the updated policy.`,
-        `Questions about this policy: ${contactEmail}.`,
+        `${brandName} may update this policy from time to time. Continued use of the service after changes means you accept the updated policy.`,
+        `Questions about this policy for ${brandName}: ${contactEmail}.`,
       ],
     },
   ],
 };
+}
 
-const privacyKo: LegalPage = {
+function privacyKo(brandName: string): LegalPage {
+  return {
   title: "개인정보처리방침",
+  brandName,
   updated: "2026년 9월 1일",
-  intro: `${parishName}는 ${siteUrl}에서 OLM Market을 운영합니다. 본 방침은 정보 수집·이용·보호 방법을 설명합니다.`,
+  intro: `본 개인정보처리방침은 ${brandName}(이하 "${brandName}")에 적용됩니다. ${brandName}는 ${parishName}를 위한 OLM Market(${siteUrl})을 운영합니다.`,
   sections: [
+    {
+      title: "사업자 정보",
+      paragraphs: [
+        `${brandName}는 ${siteUrl} OLM Market의 등록 사업자명입니다. OLM Market은 ${parishName} 공동체를 위한 거래 장터입니다.`,
+      ],
+    },
     {
       title: "수집하는 정보",
       paragraphs: [
@@ -101,9 +124,13 @@ const privacyKo: LegalPage = {
     {
       title: "SMS(문자) 알림",
       paragraphs: [
-        "/account/profile에서 휴대폰 번호를 저장하고 프로필 저장을 누르면, OLM Market 거래 알림(등록, 예약, 성당 전달, 픽업 등) SMS 수신에 동의한 것으로 간주됩니다.",
+        "/account/profile에서 휴대폰 번호를 저장하고 프로필 저장을 누르면, " +
+          brandName +
+          "의 OLM Market 거래 알림(등록, 예약, 성당 전달, 픽업 등) SMS 수신에 동의한 것으로 간주됩니다.",
         "마케팅·홍보 문자는 보내지 않습니다. 발송 빈도는 거래 활동에 따라 달라집니다. Message and data rates may apply(요금이 부과될 수 있음).",
-        "휴대폰 번호를 제3자 마케팅 목적으로 판매·임대·공유하지 않습니다. 번호는 OLM Market 거래 알림 및 관련 서비스 메시지 전달(문자 발송 업체 Twilio 이용)에만 사용됩니다.",
+        "휴대폰 번호를 제3자 마케팅 목적으로 판매·임대·공유하지 않습니다. 번호는 " +
+          brandName +
+          "의 OLM Market 거래 알림 및 관련 서비스 메시지 전달(문자 발송 업체 Twilio 이용)에만 사용됩니다.",
         "문자 수신을 원하지 않으면 STOP으로 답장하거나 프로필에서 번호를 삭제하세요. HELP로 도움말을 요청할 수 있습니다.",
       ],
     },
@@ -122,24 +149,33 @@ const privacyKo: LegalPage = {
     {
       title: "아동",
       paragraphs: [
-        "OLM Market은 성당 공동체 회원을 위한 서비스입니다. 아동이 부적절하게 정보를 제공했다고 판단되면 연락 주시면 삭제 등 조치하겠습니다.",
+        `${brandName} / OLM Market은 성당 공동체 회원을 위한 서비스입니다. 아동이 부적절하게 정보를 제공했다고 판단되면 연락 주시면 삭제 등 조치하겠습니다.`,
       ],
     },
     {
       title: "변경 및 문의",
       paragraphs: [
-        "본 방침은 변경될 수 있으며, 변경 후 서비스를 계속 이용하면 변경에 동의한 것으로 봅니다.",
-        `문의: ${contactEmail}`,
+        `${brandName}는 본 방침을 변경할 수 있으며, 변경 후 서비스를 계속 이용하면 변경에 동의한 것으로 봅니다.`,
+        `${brandName} 문의: ${contactEmail}`,
       ],
     },
   ],
 };
+}
 
-const termsEn: LegalPage = {
+function termsEn(brandName: string): LegalPage {
+  return {
   title: "Terms and Conditions",
+  brandName,
   updated: "September 1, 2026",
-  intro: `These Terms govern your use of OLM Market (${siteUrl}), operated by ${parishName} for the parish community garage-sale marketplace.`,
+  intro: `These Terms and Conditions are a binding agreement between you and ${brandName} ("${brandName}", "we", "us", or "our"). ${brandName} operates OLM Market at ${siteUrl} for ${parishName}.`,
   sections: [
+    {
+      title: "About our business",
+      paragraphs: [
+        `${brandName} is the registered business name for OLM Market at ${siteUrl}. By using this website, you agree to these Terms with ${brandName}.`,
+      ],
+    },
     {
       title: "Service description",
       paragraphs: [
@@ -184,18 +220,27 @@ const termsEn: LegalPage = {
     {
       title: "Changes and contact",
       paragraphs: [
-        "We may update these Terms from time to time. Continued use after changes constitutes acceptance.",
-        `Questions: ${contactEmail}. See also our Privacy Policy at ${siteUrl}/privacy.`,
+        `${brandName} may update these Terms from time to time. Continued use after changes constitutes acceptance.`,
+        `Questions for ${brandName}: ${contactEmail}. See also our Privacy Policy at ${siteUrl}/privacy.`,
       ],
     },
   ],
 };
+}
 
-const termsKo: LegalPage = {
+function termsKo(brandName: string): LegalPage {
+  return {
   title: "이용약관",
+  brandName,
   updated: "2026년 9월 1일",
-  intro: `본 약관은 ${parishName}가 운영하는 OLM Market(${siteUrl}) 이용에 적용됩니다.`,
+  intro: `본 약관은 ${brandName}(이하 "${brandName}")와 이용자 간의 계약입니다. ${brandName}는 ${parishName}를 위한 OLM Market(${siteUrl})을 운영합니다.`,
   sections: [
+    {
+      title: "사업자 정보",
+      paragraphs: [
+        `${brandName}는 ${siteUrl} OLM Market의 등록 사업자명입니다. 본 사이트를 이용하면 ${brandName}와의 약관에 동의한 것으로 봅니다.`,
+      ],
+    },
     {
       title: "서비스 개요",
       paragraphs: [
@@ -240,17 +285,20 @@ const termsKo: LegalPage = {
     {
       title: "변경 및 문의",
       paragraphs: [
-        "약관은 변경될 수 있으며, 변경 후 이용은 변경에 동의한 것으로 봅니다.",
-        `문의: ${contactEmail}. 개인정보처리방침: ${siteUrl}/privacy`,
+        `${brandName}는 약관을 변경할 수 있으며, 변경 후 이용은 변경에 동의한 것으로 봅니다.`,
+        `${brandName} 문의: ${contactEmail}. 개인정보처리방침: ${siteUrl}/privacy`,
       ],
     },
   ],
 };
+}
 
 export function getPrivacyPage(locale: Locale): LegalPage {
-  return locale === "ko" ? privacyKo : privacyEn;
+  const brandName = getRegisteredBrandName();
+  return locale === "ko" ? privacyKo(brandName) : privacyEn(brandName);
 }
 
 export function getTermsPage(locale: Locale): LegalPage {
-  return locale === "ko" ? termsKo : termsEn;
+  const brandName = getRegisteredBrandName();
+  return locale === "ko" ? termsKo(brandName) : termsEn(brandName);
 }

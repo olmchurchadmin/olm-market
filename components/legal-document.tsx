@@ -10,12 +10,14 @@ export function LegalDocument({ page, crossLink }: LegalDocumentProps) {
   return (
     <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
       <p className="text-xs font-semibold tracking-wide text-ink-muted uppercase">
-        OLM Market
+        {page.brandName}
       </p>
       <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl text-brand sm:text-4xl">
         {page.title}
       </h1>
-      <p className="mt-2 text-sm text-ink-muted">Last updated · {page.updated}</p>
+      <p className="mt-2 text-sm text-ink-muted">
+        {page.brandName} · Last updated · {page.updated}
+      </p>
       <p className="mt-6 text-base leading-relaxed text-foreground">{page.intro}</p>
 
       <div className="mt-10 space-y-8">
