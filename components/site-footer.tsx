@@ -45,25 +45,19 @@ export async function SiteFooter() {
         </div>
       </div>
       <div className="border-t border-black/6">
-        <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6">
-          <p className="text-xs font-semibold tracking-wide text-ink-muted uppercase">
-            {t.siteFooter.legalLabel}
+        <div className="mx-auto max-w-6xl px-4 py-4 text-center sm:px-6">
+          <p className="text-xs text-ink-muted">
+            <Link href="/privacy" className="hover:text-brand hover:underline">
+              {t.siteFooter.privacy}
+            </Link>
+            <span aria-hidden="true" className="mx-2 text-ink-muted/50">
+              ·
+            </span>
+            <Link href="/terms" className="hover:text-brand hover:underline">
+              {t.siteFooter.terms}
+            </Link>
           </p>
-          <div className="mt-3 flex flex-wrap gap-2.5">
-            <Link
-              href="/privacy"
-              className="inline-flex items-center justify-center rounded-md border border-brand/15 bg-white px-4 py-2 text-sm font-semibold text-brand transition hover:bg-brand/5"
-            >
-              {t.siteFooter.privacyCta}
-            </Link>
-            <Link
-              href="/terms"
-              className="inline-flex items-center justify-center rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-soft"
-            >
-              {t.siteFooter.termsCta}
-            </Link>
-          </div>
-          <p className="mt-4 text-xs text-ink-muted">{copyright}</p>
+          <p className="mt-2 text-xs text-ink-muted/80">{copyright}</p>
         </div>
       </div>
     </footer>

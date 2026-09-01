@@ -37,11 +37,8 @@ const ko = {
     email: "office@edisonkcc.org",
     addressLabel: "주소",
     address: "122 High Street, South Bound Brook, NJ 08880",
-    legalLabel: "법적 고지",
     privacy: "개인정보처리방침",
     terms: "이용약관",
-    privacyCta: "개인정보처리방침 보기",
-    termsCta: "이용약관 보기",
     copyright: "© {year} Our Lady of Mercy Parish. All rights reserved.",
   },
   legal: {
@@ -382,11 +379,8 @@ const en: Dictionary = {
     email: "office@edisonkcc.org",
     addressLabel: "Address",
     address: "122 High Street, South Bound Brook, NJ 08880",
-    legalLabel: "Legal",
     privacy: "Privacy Policy",
     terms: "Terms & Conditions",
-    privacyCta: "View Privacy Policy",
-    termsCta: "View Terms & Conditions",
     copyright: "© {year} Our Lady of Mercy Parish. All rights reserved.",
   },
   legal: {
