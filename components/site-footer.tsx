@@ -3,6 +3,8 @@ import { getI18n } from "@/lib/i18n/server";
 
 export async function SiteFooter() {
   const { t } = await getI18n();
+  const year = new Date().getFullYear();
+  const copyright = t.siteFooter.copyright.replace("{year}", String(year));
 
   return (
     <footer className="mt-auto border-t border-black/6 bg-[color-mix(in_oklab,var(--background)_55%,white)]">
@@ -43,13 +45,25 @@ export async function SiteFooter() {
         </div>
       </div>
       <div className="border-t border-black/6">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-4 text-sm text-ink-muted sm:px-6">
-          <Link href="/privacy" className="hover:text-brand hover:underline">
-            {t.siteFooter.privacy}
-          </Link>
-          <Link href="/terms" className="hover:text-brand hover:underline">
-            {t.siteFooter.terms}
-          </Link>
+        <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6">
+          <p className="text-xs font-semibold tracking-wide text-ink-muted uppercase">
+            {t.siteFooter.legalLabel}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2.5">
+            <Link
+              href="/privacy"
+              className="inline-flex items-center justify-center rounded-md border border-brand/15 bg-white px-4 py-2 text-sm font-semibold text-brand transition hover:bg-brand/5"
+            >
+              {t.siteFooter.privacyCta}
+            </Link>
+            <Link
+              href="/terms"
+              className="inline-flex items-center justify-center rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-soft"
+            >
+              {t.siteFooter.termsCta}
+            </Link>
+          </div>
+          <p className="mt-4 text-xs text-ink-muted">{copyright}</p>
         </div>
       </div>
     </footer>
