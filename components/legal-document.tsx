@@ -18,6 +18,9 @@ export function LegalDocument({ page, crossLink }: LegalDocumentProps) {
       <p className="mt-2 text-sm text-ink-muted">
         {page.brandName} · Last updated · {page.updated}
       </p>
+      <p className="mt-4 rounded-md border border-brand/15 bg-brand/5 px-4 py-3 text-sm text-foreground">
+        <strong>Registered business:</strong> {page.brandName}
+      </p>
       <p className="mt-6 text-base leading-relaxed text-foreground">{page.intro}</p>
 
       <div className="mt-10 space-y-8">
