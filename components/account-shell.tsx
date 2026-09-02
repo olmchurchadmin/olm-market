@@ -7,7 +7,7 @@ import { useI18n } from "@/components/locale-provider";
 export function AccountNav({
   active,
 }: {
-  active: "profile" | "transactions" | "complaints";
+  active: "profile" | "transactions" | "complaints" | "notifications";
 }) {
   const { t } = useI18n();
   const links = [
@@ -21,6 +21,11 @@ export function AccountNav({
       href: "/account/complaints",
       label: t.account.complaint,
       key: "complaints",
+    },
+    {
+      href: "/account/notifications",
+      label: t.account.notifications,
+      key: "notifications",
     },
   ] as const;
 
@@ -54,7 +59,7 @@ export function AccountShell({
 }: {
   title: string;
   subtitle?: string;
-  active: "profile" | "transactions" | "complaints";
+  active: "profile" | "transactions" | "complaints" | "notifications";
   children: ReactNode;
 }) {
   return (

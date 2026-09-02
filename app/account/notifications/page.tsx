@@ -1,0 +1,79 @@
+import { BellIcon } from "@heroicons/react/24/outline";
+import { AccountShell } from "@/components/account-shell";
+import { getCurrentProfile } from "@/lib/auth";
+import { localizeNotification } from "@/lib/i18n/notifications";
+import { getI18n } from "@/lib/i18n/server";
+import { createClient } from "@/lib/supabase/server";
+import { accountDisplayName } from "@/lib/utils";
+
+export const dynamic = "force-dynamic";
+
+export default async function AccountNotificationsPage() {
+  const profile = await getCurrentProfile();
+  const { locale, t } = await getI18n();
+
+  if (!profile) return null;
+
+  const supabase = await createClient();
+  const { data: notifications } = await supabase
+    .from("notifications")
+    .select("*")
+    .eq("user_id", profile.id)
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  return (
+    <AccountShell
+      title={t.account.title}
+      subtitle={`${accountDisplayName(profile)} · ${t.account.notifications}`}
+      active="notifications"
+    >
+      <section>
+        <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-foreground">
+          <BellIcon className="size-6" aria-hidden />
+          {t.account.notifications}
+        </h2>
+        <ul className="mt-4 space-y-3">
+          {(notifications || []).length ? (
+            notifications!.map((n) => {
+              const copy = localizeNotification(
+                {
+                  type: n.type,
+                  title: n.title,
+                  body: n.body,
+                  payload: n.payload as {
+                    listing_title?: string;
+                    price_cents?: number;
+                  } | null,
+                },
+                t,
+                locale,
+              );
+              const unread = !n.read_at;
+              return (
+                <li
+                  key={n.id}
+                  className={`rounded-md border px-4 py-3 ${
+                    unread
+                      ? "border-brand/20 bg-[#f5f8ff]"
+                      : "border-brand/10 bg-white/70"
+                  }`}
+                >
+                  <p className="font-medium">{copy.title}</p>
+                  <p className="mt-1 text-sm text-ink-muted">{copy.body}</p>
+                  <p className="mt-2 text-xs text-ink-muted/80">
+                    {new Date(n.created_at).toLocaleString(
+                      locale === "en" ? "en-US" : "ko-KR",
+                    )}
+                  </p>
+                </li>
+              );
+            })
+          ) : (
+            <li className="text-sm text-ink-muted">{t.account.noNotifications}</li>
+          )}
+        </ul>
+      </section>
+    </AccountShell>
+  );
+}

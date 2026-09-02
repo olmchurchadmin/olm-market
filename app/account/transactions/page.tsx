@@ -1,9 +1,7 @@
-import { BellIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { AccountShell } from "@/components/account-shell";
 import { SellingListingRow } from "@/components/selling-listing-row";
 import { getCurrentProfile } from "@/lib/auth";
-import { localizeNotification } from "@/lib/i18n/notifications";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import type { Listing } from "@/lib/types";
@@ -28,26 +26,19 @@ export default async function AccountTransactionsPage({
 
   if (!profile) return null;
 
-  const [{ data: selling }, { data: buying }, { data: notifications }] =
-    await Promise.all([
-      supabase
-        .from("listings")
-        .select("*")
-        .eq("seller_id", profile.id)
-        .neq("status", "cancelled")
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("orders")
-        .select("*, listings(*)")
-        .eq("buyer_id", profile.id)
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("notifications")
-        .select("*")
-        .eq("user_id", profile.id)
-        .order("created_at", { ascending: false })
-        .limit(20),
-    ]);
+  const [{ data: selling }, { data: buying }] = await Promise.all([
+    supabase
+      .from("listings")
+      .select("*")
+      .eq("seller_id", profile.id)
+      .neq("status", "cancelled")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("orders")
+      .select("*, listings(*)")
+      .eq("buyer_id", profile.id)
+      .order("created_at", { ascending: false }),
+  ]);
 
   return (
     <AccountShell
@@ -67,43 +58,6 @@ export default async function AccountTransactionsPage({
       ) : null}
 
       <section>
-        <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-foreground">
-          <BellIcon className="size-6" aria-hidden />
-          {t.account.notifications}
-        </h2>
-        <ul className="mt-4 space-y-3">
-          {(notifications || []).length ? (
-            notifications!.map((n) => {
-              const copy = localizeNotification(
-                {
-                  type: n.type,
-                  title: n.title,
-                  body: n.body,
-                  payload: n.payload as {
-                    listing_title?: string;
-                    price_cents?: number;
-                  } | null,
-                },
-                t,
-                locale,
-              );
-              return (
-                <li
-                  key={n.id}
-                  className="rounded-md border border-brand/10 bg-white/70 px-4 py-3"
-                >
-                  <p className="font-medium">{copy.title}</p>
-                  <p className="mt-1 text-sm text-ink-muted">{copy.body}</p>
-                </li>
-              );
-            })
-          ) : (
-            <li className="text-sm text-ink-muted">{t.account.noNotifications}</li>
-          )}
-        </ul>
-      </section>
-
-      <section className="mt-10">
         <h2 className="font-[family-name:var(--font-display)] text-2xl text-foreground">
           {t.account.selling}
         </h2>
