@@ -26,3 +26,21 @@ export async function markNotificationsReadAction(ids: string[]) {
   if (error) return { ok: false as const, error: error.message };
   return { ok: true as const };
 }
+
+export async function markAllTradeNotificationsReadAction() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false as const, error: "Unauthorized" };
+
+  const { error } = await supabase
+    .from("notifications")
+    .update({ read_at: new Date().toISOString() })
+    .eq("user_id", user.id)
+    .is("read_at", null)
+    .in("type", ["order_reserved", "order_at_church", "order_completed"]);
+
+  if (error) return { ok: false as const, error: error.message };
+  return { ok: true as const };
+}

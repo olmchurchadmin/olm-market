@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { Inter, Noto_Sans_KR } from "next/font/google";
 import { ConfirmDialogProvider } from "@/components/confirm-dialog";
 import { LocaleProvider } from "@/components/locale-provider";
+import { NotificationsBanner } from "@/components/notifications-banner";
+import { NotificationsProvider } from "@/components/notifications-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
-import { UserAlertsGate } from "@/components/user-alerts-gate";
 import { getCurrentProfile } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
 import "./globals.css";
@@ -46,10 +47,12 @@ export default async function RootLayout({
       <body className="flex min-h-full flex-col antialiased">
         <LocaleProvider locale={locale} dictionary={t}>
           <ConfirmDialogProvider>
-            <SiteHeader profile={profile} />
-            <div className="flex-1">{children}</div>
-            <SiteFooter />
-            <UserAlertsGate />
+            <NotificationsProvider enabled={Boolean(profile)}>
+              <SiteHeader profile={profile} />
+              <NotificationsBanner />
+              <div className="flex-1">{children}</div>
+              <SiteFooter />
+            </NotificationsProvider>
           </ConfirmDialogProvider>
         </LocaleProvider>
       </body>

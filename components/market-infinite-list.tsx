@@ -181,38 +181,39 @@ export function MarketInfiniteList({
       const scrolledIntoList = rect.top < HEADER_OFFSET + 24;
       const stillInList = rect.bottom > HEADER_OFFSET + 80;
       setRingVisible(scrolledIntoList && stillInList);
-      if (!scrolledIntoList || !stillInList) return;
+
+      if (!scrolledIntoList) return;
+
+      // Past the list (footer): keep last known full progress while ring hides.
+      if (!stillInList) {
+        setProgress(1);
+        setSeen(total);
+        return;
+      }
 
       const readingLine = Math.min(viewport * 0.35, HEADER_OFFSET + 64);
-      const nodes = list.querySelectorAll<HTMLElement>("[data-listing-index]");
-      let currentIndex = 0;
-      for (let i = 0; i < nodes.length; i += 1) {
-        const node = nodes[i]!;
-        if (node.getBoundingClientRect().top <= readingLine) {
-          currentIndex = Number(node.dataset.listingIndex ?? i);
-        } else {
-          break;
-        }
-      }
-
-      const active = nodes[currentIndex];
-      let fraction = 0;
-      if (active) {
-        const r = active.getBoundingClientRect();
-        const h = Math.max(r.height, 1);
-        fraction = Math.min(1, Math.max(0, (readingLine - r.top) / h));
-      }
-
-      const continuous = Math.min(
+      const listHeight = Math.max(rect.height, 1);
+      // Grid-friendly: progress by scroll through the whole list, not card index.
+      let continuous = Math.min(
         1,
-        Math.max(0, (currentIndex + fraction) / Math.max(total, 1)),
+        Math.max(0, (readingLine - rect.top) / listHeight),
       );
+
+      const docBottomGap =
+        document.documentElement.scrollHeight - (window.scrollY + viewport);
+      const nearPageBottom = docBottomGap <= 64;
+      const listEndReached = rect.bottom <= readingLine + 24;
+
+      if (nearPageBottom || listEndReached) {
+        continuous = 1;
+      }
+
       const displaySeen = Math.min(
         total,
         Math.max(0, Math.round(continuous * total)),
       );
 
-      setSeen(Math.max(displaySeen, continuous > 0 ? 1 : 0));
+      setSeen(continuous >= 1 ? total : Math.max(displaySeen, continuous > 0 ? 1 : 0));
       setProgress(continuous);
     };
 

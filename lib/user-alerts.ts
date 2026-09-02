@@ -9,10 +9,13 @@ export type AlertNotification = {
   type: string;
   title: string;
   body: string;
+  createdAt: string;
+  readAt: string | null;
 };
 
 export type UserAlertsData = {
   needsEmail: boolean;
+  unreadCount: number;
   notifications: AlertNotification[];
 };
 
@@ -32,7 +35,6 @@ function hasDeliverableEmail(options: {
   if (notify && notify.includes("@")) return true;
   const login = options.email?.trim();
   if (!login || !login.includes("@")) return false;
-  // Kakao sometimes returns a placeholder / missing address.
   if (login.endsWith("@kakao.com") && login.startsWith("kakao_")) return false;
   return true;
 }
@@ -54,14 +56,21 @@ export async function getUserAlertsData(): Promise<UserAlertsData | null> {
     });
 
   const supabase = await createClient();
-  const { data: rows } = await supabase
-    .from("notifications")
-    .select("id, type, title, body, payload, read_at, created_at")
-    .eq("user_id", user.id)
-    .is("read_at", null)
-    .in("type", [...TRADE_TYPES])
-    .order("created_at", { ascending: false })
-    .limit(5);
+  const [{ count: unreadCount }, { data: rows }] = await Promise.all([
+    supabase
+      .from("notifications")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .is("read_at", null)
+      .in("type", [...TRADE_TYPES]),
+    supabase
+      .from("notifications")
+      .select("id, type, title, body, payload, read_at, created_at")
+      .eq("user_id", user.id)
+      .in("type", [...TRADE_TYPES])
+      .order("created_at", { ascending: false })
+      .limit(30),
+  ]);
 
   const { locale, t } = await getI18n();
   const notifications: AlertNotification[] = (rows || []).map((row) => {
@@ -90,8 +99,14 @@ export async function getUserAlertsData(): Promise<UserAlertsData | null> {
       type: n.type,
       title: copy.title,
       body: copy.body,
+      createdAt: n.created_at,
+      readAt: n.read_at,
     };
   });
 
-  return { needsEmail, notifications };
+  return {
+    needsEmail,
+    unreadCount: unreadCount ?? notifications.filter((n) => !n.readAt).length,
+    notifications,
+  };
 }
