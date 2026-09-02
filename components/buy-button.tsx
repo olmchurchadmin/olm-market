@@ -3,6 +3,7 @@
 import { ShoppingBagIcon } from "@heroicons/react/24/outline";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useConfirm } from "@/components/confirm-dialog";
 import { useI18n } from "@/components/locale-provider";
 import { buyListingAction } from "@/lib/actions/orders";
 
@@ -14,6 +15,7 @@ export function BuyButton({
   disabled?: boolean;
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const { t } = useI18n();
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -23,7 +25,15 @@ export function BuyButton({
       <button
         type="button"
         disabled={disabled || pending}
-        onClick={() => {
+        onClick={async () => {
+          const ok = await confirm({
+            title: t.buy.confirmTitle,
+            message: t.buy.confirmMessage,
+            confirmLabel: t.buy.confirmCta,
+            cancelLabel: t.common.cancel,
+          });
+          if (!ok) return;
+
           setError(null);
           startTransition(async () => {
             const result = await buyListingAction(listingId);

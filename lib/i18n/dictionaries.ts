@@ -268,6 +268,10 @@ const ko = {
   buy: {
     cta: "Buy",
     working: "처리 중…",
+    confirmTitle: "구매 확인",
+    confirmMessage:
+      "이 물건을 예약할까요? 확인하면 거래가 성립되며, 다른 회원이 더 이상 구매할 수 없습니다.",
+    confirmCta: "Buy 확인",
   },
   alerts: {
     emailRequiredTitle: "알림 이메일을 추가해 주세요",
@@ -633,6 +637,10 @@ const en: Dictionary = {
   buy: {
     cta: "Buy",
     working: "Working…",
+    confirmTitle: "Confirm purchase",
+    confirmMessage:
+      "Reserve this item? Once confirmed, the trade is locked and other members can no longer buy it.",
+    confirmCta: "Confirm Buy",
   },
   alerts: {
     emailRequiredTitle: "Add a notification email",
