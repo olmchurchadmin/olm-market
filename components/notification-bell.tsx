@@ -3,6 +3,7 @@
 import { BellIcon } from "@heroicons/react/24/outline";
 import { useEffect, useId, useRef } from "react";
 import { useI18n } from "@/components/locale-provider";
+import { NotificationDetailRows } from "@/components/notification-detail-rows";
 import { useNotifications } from "@/components/notifications-provider";
 
 export function NotificationBell() {
@@ -104,6 +105,11 @@ export function NotificationBell() {
                         <p className="text-sm font-semibold text-foreground">
                           {item.title}
                         </p>
+                        <NotificationDetailRows
+                          details={item.details}
+                          t={t}
+                          compact
+                        />
                         <p className="mt-1 text-xs leading-relaxed text-ink-muted">
                           {item.body}
                         </p>

@@ -37,10 +37,10 @@ export function AccountNav({
           <Link
             key={link.href}
             href={link.href}
-            className={`rounded-md px-3 py-1.5 text-sm font-medium ${
+            className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
               isActive
-                ? "bg-brand text-white"
-                : "bg-white/70 text-foreground hover:bg-white"
+                ? "bg-brand text-white shadow-sm"
+                : "bg-white text-foreground ring-1 ring-brand/10 hover:bg-neutral-100"
             }`}
           >
             {link.label}

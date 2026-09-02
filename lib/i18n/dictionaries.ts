@@ -169,11 +169,15 @@ const ko = {
     transactions: "내 거래",
     item: "물품",
     deleted: "물품을 삭제했습니다.",
-    profileBlurb: "장터에 보이는 이름과 연락처를 설정하세요.",
+    profileBlurb: "장터에 보이는 이름과 본명, 연락처를 설정하세요.",
     notificationsBlurb:
       "판매 등록, 거래 성립, 성당 도착, 거래 완료 알림은 저장한 이메일과 사이트 내 알림으로 전달됩니다.",
-    nickname: "닉네임",
-    nicknamePlaceholder: "장터에 표시할 이름",
+    displayName: "이름",
+    displayNamePlaceholder: "장터·거래 알림에 표시할 이름",
+    displayNameHint: "장터 판매자 표시와 거래 알림에 쓰입니다.",
+    legalName: "본명",
+    legalNamePlaceholder: "실명",
+    legalNameHint: "관리자 확인용 본명입니다.",
     phone: "전화번호",
     notificationEmail: "알림 이메일",
     notificationEmailHint:
@@ -289,21 +293,26 @@ const ko = {
   },
   notify: {
     reservedTitle: "거래가 성립되었습니다",
-    reservedBody: "예약이 확정되었습니다. 다음 주 성당에 물건을 가져와 주세요.",
+    reservedBody:
+      "구매자({buyer})와 판매자({seller})의 예약이 확정되었습니다. 다음 주 성당에 물건을 가져와 주세요.",
     reservedSellerChurchTitle: "팔렸습니다",
-    reservedSellerChurchBody: "다음 주 성당으로 물건을 가져와 주세요.",
+    reservedSellerChurchBody:
+      "구매자({buyer})와의 거래입니다. 다음 주 성당으로 물건을 가져와 주세요.",
     reservedSellerHomeTitle: "팔렸습니다",
     reservedSellerHomeBody:
-      "구매자가 판매자 위치에서 픽업합니다. 구매자와 날짜·시간을 정해 주세요.",
+      "구매자({buyer})가 판매자({seller}) 위치에서 픽업합니다. 구매자({buyer})와 날짜·시간을 정해 주세요.",
     reservedBuyerChurchTitle: "거래가 성립되었습니다",
     reservedBuyerChurchBody:
-      "다음 주 성당에서 판매자를 찾아 물건을 전달받으세요.",
+      "다음 주 성당에서 판매자({seller})를 찾아 물건을 전달받으세요.",
     reservedBuyerHomeTitle: "거래가 성립되었습니다",
-    reservedBuyerHomeBody: "판매자와 날짜·시간을 정해 픽업하세요.",
+    reservedBuyerHomeBody:
+      "판매자({seller})와 날짜·시간을 정해 픽업하세요.",
     atChurchTitle: "물건이 성당에 도착했습니다",
-    atChurchBody: "픽업 준비가 되었습니다. 관리자에게 현금으로 결제 후 수령해 주세요.",
+    atChurchBody:
+      "구매자({buyer}) · 판매자({seller}) 거래의 픽업 준비가 되었습니다. 관리자에게 현금으로 결제 후 수령해 주세요.",
     completedTitle: "거래가 완료되었습니다",
-    completedBody: "거래가 완료되었습니다.",
+    completedBody:
+      "구매자({buyer})와 판매자({seller})의 거래가 완료되었습니다.",
     listingCreatedTitle: "물품이 등록되었습니다",
     listingCreatedBody: "장터에 등록되었습니다.",
     detailItem: "물건",
@@ -337,7 +346,8 @@ const ko = {
     invalidCredentials: "이메일 또는 비밀번호가 올바르지 않습니다.",
     emailNotConfirmed: "이메일 인증이 필요합니다. 받은편지함을 확인해 주세요.",
     requestFailed: "요청을 처리하지 못했습니다.",
-    nicknameTooLong: "닉네임은 40자 이하여야 합니다.",
+    displayNameTooLong: "이름은 40자 이하여야 합니다.",
+    fullNameTooLong: "본명은 80자 이하여야 합니다.",
     profileSaveFailed: "프로필을 저장하지 못했습니다.",
     notificationEmailInvalid: "알림 이메일 형식이 올바르지 않습니다.",
     authFailed: "인증에 실패했습니다.",
@@ -537,11 +547,15 @@ const en: Dictionary = {
     transactions: "My activity",
     item: "Item",
     deleted: "Listing deleted.",
-    profileBlurb: "Set the name and contact shown on the market.",
+    profileBlurb: "Set your display name, legal name, and contact details.",
     notificationsBlurb:
       "Listing, trade, drop-off, and completion alerts go to your saved email and in-site notifications.",
-    nickname: "Nickname",
-    nicknamePlaceholder: "Name shown on the market",
+    displayName: "Name",
+    displayNamePlaceholder: "Name shown on the market and in trade alerts",
+    displayNameHint: "Used as the seller name on listings and in notifications.",
+    legalName: "Legal name",
+    legalNamePlaceholder: "Full legal name",
+    legalNameHint: "Your real name for admin verification.",
     phone: "Phone",
     notificationEmail: "Notification email",
     notificationEmailHint:
@@ -658,22 +672,26 @@ const en: Dictionary = {
   },
   notify: {
     reservedTitle: "Purchase reserved",
-    reservedBody: "Reserved. Please drop the item off at church next week.",
+    reservedBody:
+      "Reserved for buyer ({buyer}) and seller ({seller}). Please drop the item off at church next week.",
     reservedSellerChurchTitle: "Sold",
-    reservedSellerChurchBody: "Please bring the item to church next week.",
+    reservedSellerChurchBody:
+      "Sold to buyer ({buyer}). Please bring the item to church next week.",
     reservedSellerHomeTitle: "Sold",
     reservedSellerHomeBody:
-      "The buyer will pick up at your location. Arrange date and time with the buyer.",
+      "Buyer ({buyer}) will pick up at seller ({seller}) location. Arrange date and time with buyer ({buyer}).",
     reservedBuyerChurchTitle: "Purchase confirmed",
     reservedBuyerChurchBody:
-      "Meet the seller at church next week to receive the item.",
+      "Meet seller ({seller}) at church next week to receive the item.",
     reservedBuyerHomeTitle: "Purchase confirmed",
-    reservedBuyerHomeBody: "Arrange date and time with the seller for pickup.",
+    reservedBuyerHomeBody:
+      "Arrange date and time with seller ({seller}) for pickup.",
     atChurchTitle: "Item arrived at church",
     atChurchBody:
-      "Ready for pickup. Pay cash to the admin, then collect it.",
+      "Ready for pickup for buyer ({buyer}) and seller ({seller}). Pay cash to the admin, then collect it.",
     completedTitle: "Trade completed",
-    completedBody: "This trade has been completed.",
+    completedBody:
+      "The trade between buyer ({buyer}) and seller ({seller}) has been completed.",
     listingCreatedTitle: "Listing published",
     listingCreatedBody: "Your listing is now on the marketplace.",
     detailItem: "Item",
@@ -707,7 +725,8 @@ const en: Dictionary = {
     invalidCredentials: "Incorrect email or password.",
     emailNotConfirmed: "Please confirm your email. Check your inbox.",
     requestFailed: "Could not process the request.",
-    nicknameTooLong: "Nickname must be 40 characters or fewer.",
+    displayNameTooLong: "Name must be 40 characters or fewer.",
+    fullNameTooLong: "Legal name must be 80 characters or fewer.",
     profileSaveFailed: "Could not save profile.",
     notificationEmailInvalid: "Notification email format is invalid.",
     authFailed: "Authentication failed.",

@@ -289,15 +289,23 @@ export async function updatePhoneAction(formData: FormData) {
 }
 
 export async function updateProfileAction(formData: FormData) {
-  const nickname = String(formData.get("nickname") || "").trim();
+  const displayName = String(
+    formData.get("display_name") || formData.get("nickname") || "",
+  ).trim();
+  const fullName = String(formData.get("full_name") || "").trim();
   const phone = String(formData.get("phone") || "").trim();
   const notificationEmail = String(formData.get("notification_email") || "").trim();
   const isAnonymous = formData.get("is_anonymous") === "on";
 
   const { t } = await getI18n();
-  if (nickname.length > 40) {
+  if (displayName.length > 40) {
     redirect(
-      `/account/profile?error=${encodeURIComponent(t.errors.nicknameTooLong)}`,
+      `/account/profile?error=${encodeURIComponent(t.errors.displayNameTooLong)}`,
+    );
+  }
+  if (fullName.length > 80) {
+    redirect(
+      `/account/profile?error=${encodeURIComponent(t.errors.fullNameTooLong)}`,
     );
   }
 
@@ -319,7 +327,8 @@ export async function updateProfileAction(formData: FormData) {
   const { error } = await supabase
     .from("profiles")
     .update({
-      nickname: nickname || null,
+      nickname: displayName || null,
+      full_name: fullName || null,
       phone: phone || null,
       notification_email: notificationEmail || null,
       is_anonymous: isAnonymous,

@@ -59,15 +59,34 @@ export default async function AccountProfilePage({
         <form action={updateProfileAction} className="mt-5 space-y-4">
           <label className="block space-y-1.5">
             <span className="text-sm font-medium text-foreground">
-              {t.account.nickname}
+              {t.account.displayName}
             </span>
             <input
-              name="nickname"
+              name="display_name"
               defaultValue={profile.nickname || ""}
               maxLength={40}
-              placeholder={t.account.nicknamePlaceholder}
+              placeholder={t.account.displayNamePlaceholder}
               className="w-full rounded-md border border-brand/15 bg-white px-3 py-2"
             />
+            <span className="text-xs text-ink-muted">
+              {t.account.displayNameHint}
+            </span>
+          </label>
+
+          <label className="block space-y-1.5">
+            <span className="text-sm font-medium text-foreground">
+              {t.account.legalName}
+            </span>
+            <input
+              name="full_name"
+              defaultValue={profile.full_name || ""}
+              maxLength={80}
+              placeholder={t.account.legalNamePlaceholder}
+              className="w-full rounded-md border border-brand/15 bg-white px-3 py-2"
+            />
+            <span className="text-xs text-ink-muted">
+              {t.account.legalNameHint}
+            </span>
           </label>
 
           <label className="block space-y-1.5">

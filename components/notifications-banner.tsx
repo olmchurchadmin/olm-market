@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { useI18n } from "@/components/locale-provider";
+import { NotificationDetailRows } from "@/components/notification-detail-rows";
 import { useNotifications } from "@/components/notifications-provider";
 
 export function NotificationsBanner() {
@@ -71,6 +72,7 @@ export function NotificationsBanner() {
                   <p className="text-sm font-semibold text-foreground">
                     {item.title}
                   </p>
+                  <NotificationDetailRows details={item.details} t={t} />
                   <p className="mt-1 text-sm leading-relaxed text-ink-muted">
                     {item.body}
                   </p>
