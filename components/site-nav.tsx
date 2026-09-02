@@ -13,6 +13,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useI18n } from "@/components/locale-provider";
+import { NotificationBell } from "@/components/notification-bell";
 import { UserMenu } from "@/components/user-menu";
 import { signOutAction } from "@/lib/actions/auth";
 
@@ -169,11 +170,14 @@ export function SiteNav({ profile }: SiteNavProps) {
           </Link>
         ) : null}
         {profile ? (
-          <UserMenu
-            displayName={profile.displayName}
-            email={profile.email}
-            isAdmin={profile.isAdmin}
-          />
+          <>
+            <NotificationBell />
+            <UserMenu
+              displayName={profile.displayName}
+              email={profile.email}
+              isAdmin={profile.isAdmin}
+            />
+          </>
         ) : (
           <Link
             href="/login"
@@ -185,16 +189,19 @@ export function SiteNav({ profile }: SiteNavProps) {
         )}
       </nav>
 
-      <button
-        type="button"
-        className="inline-flex items-center justify-center rounded-md p-2 text-foreground hover:bg-black/5 md:hidden"
-        aria-expanded={open}
-        aria-controls="mobile-nav"
-        onClick={() => setOpen(true)}
-      >
-        <Bars3Icon className="size-6" aria-hidden />
-        <span className="sr-only">{t.nav.openMenu}</span>
-      </button>
+      <div className="flex items-center gap-0.5 md:hidden">
+        {profile ? <NotificationBell /> : null}
+        <button
+          type="button"
+          className="inline-flex items-center justify-center rounded-md p-2 text-foreground hover:bg-black/5"
+          aria-expanded={open}
+          aria-controls="mobile-nav"
+          onClick={() => setOpen(true)}
+        >
+          <Bars3Icon className="size-6" aria-hidden />
+          <span className="sr-only">{t.nav.openMenu}</span>
+        </button>
+      </div>
 
       {drawer}
     </>

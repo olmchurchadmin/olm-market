@@ -1,6 +1,5 @@
 import { BrandLogo } from "@/components/brand-logo";
 import { LocaleSwitcher } from "@/components/locale-switcher";
-import { NotificationBell } from "@/components/notification-bell";
 import { SiteNav } from "@/components/site-nav";
 import type { Profile } from "@/lib/types";
 import { accountDisplayName } from "@/lib/utils";
@@ -11,7 +10,6 @@ export function SiteHeader({ profile }: { profile: Profile | null }) {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-3.5">
         <BrandLogo priority />
         <div className="flex items-center gap-0.5 sm:gap-1">
-          {profile ? <NotificationBell /> : null}
           <SiteNav
             profile={
               profile
