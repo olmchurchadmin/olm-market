@@ -75,6 +75,12 @@ export function listingStatusBadgeClass(status: string) {
   }
 }
 
+/** Short public posting id derived from the listing UUID (first 8 hex chars). */
+export function formatListingPublicId(id: string) {
+  const hex = id.replace(/-/g, "").slice(0, 8).toUpperCase();
+  return hex || id.slice(0, 8).toUpperCase();
+}
+
 export function orderStatusLabel(status: string, dict?: Dictionary["status"]) {
   if (status === "reserved" || status === "awaiting_dropoff") {
     return dict?.awaiting_dropoff || "드롭오프 대기";

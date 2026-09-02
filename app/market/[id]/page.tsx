@@ -8,6 +8,7 @@ import { categoryLabel } from "@/lib/i18n/categories";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import {
+  formatListingPublicId,
   formatPrice,
   listingStatusBadgeClass,
   listingStatusLabel,
@@ -100,8 +101,11 @@ export default async function ListingDetailPage({
             {t.market.donation}:{" "}
             {t.market.donationValue.replace("{percent}", String(donationPercent))}
           </p>
+          <p className="mt-1 font-mono text-sm tracking-wide text-ink-muted" title={listing.id}>
+            {t.market.listingId}: {formatListingPublicId(listing.id)}
+          </p>
           {listing.status === "available" ? (
-            <p className="mt-2 text-sm text-ink-muted">
+            <p className="mt-1 text-sm text-ink-muted">
               {t.market.status}: {statusLabel}
             </p>
           ) : null}
@@ -139,7 +143,7 @@ export default async function ListingDetailPage({
             ) : statusAction ? (
               <>
                 <span
-                  className={`inline-flex rounded-md px-4 py-2 text-sm font-semibold ${listingStatusBadgeClass(listing.status)}`}
+                  className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${listingStatusBadgeClass(listing.status)}`}
                 >
                   {statusAction.label}
                 </span>
