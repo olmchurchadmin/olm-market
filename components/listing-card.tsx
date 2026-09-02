@@ -3,13 +3,26 @@
 import Link from "next/link";
 import { useI18n } from "@/components/locale-provider";
 import { categoryLabel } from "@/lib/i18n/categories";
-import type { Listing } from "@/lib/types";
+import type { Listing, ListingStatus } from "@/lib/types";
 import {
   formatPrice,
   listingImageUrl,
   listingStatusLabel,
   publicSellerLabel,
 } from "@/lib/utils";
+
+function listingStatusBadgeClass(status: ListingStatus) {
+  switch (status) {
+    case "reserved":
+      return "bg-amber-600 text-white";
+    case "at_church":
+      return "bg-teal-700 text-white";
+    case "sold":
+      return "bg-neutral-600 text-white";
+    default:
+      return "bg-brand text-white";
+  }
+}
 
 export function ListingCard({ listing }: { listing: Listing }) {
   const { locale, t } = useI18n();
@@ -38,7 +51,9 @@ export function ListingCard({ listing }: { listing: Listing }) {
           </div>
         )}
         {soldLike ? (
-          <span className="absolute left-2 top-2 z-10 rounded-md bg-brand px-2 py-1 text-[10px] font-semibold text-white shadow-sm sm:left-3 sm:top-3 sm:text-xs">
+          <span
+            className={`absolute left-2 top-2 z-10 rounded-md px-2 py-1 text-[10px] font-semibold shadow-sm sm:left-3 sm:top-3 sm:text-xs ${listingStatusBadgeClass(listing.status)}`}
+          >
             {listingStatusLabel(listing.status, t.status)}
           </span>
         ) : null}
@@ -71,7 +86,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
             : t.market.pickupChurch}
         </p>
         <p className="truncate text-[10px] text-ink-muted sm:text-xs">
-          {t.market.seller} ·{" "}
+          {t.market.seller}:{" "}
           {publicSellerLabel(listing.seller, {
             seller: t.market.seller,
             anonymous: t.market.anonymous,

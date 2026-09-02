@@ -41,6 +41,7 @@ export default async function ListingDetailPage({
   );
   const canBuy =
     listing.status === "available" && user?.id !== listing.seller_id;
+  const isOwnListing = Boolean(user && user.id === listing.seller_id);
   const statusLabel = listingStatusLabel(listing.status, t.status);
   const pickupMethod =
     listing.pickup_method === "seller_location" ? "seller_location" : "church";
@@ -48,8 +49,9 @@ export default async function ListingDetailPage({
     pickupMethod === "seller_location"
       ? t.market.pickupSeller
       : t.market.pickupChurch;
-  const buyHint =
-    pickupMethod === "seller_location"
+  const buyHint = isOwnListing
+    ? t.market.ownListingHint
+    : pickupMethod === "seller_location"
       ? t.market.buyHintSeller
       : t.market.buyHintChurch;
   const donationPercent = Math.min(
@@ -95,7 +97,7 @@ export default async function ListingDetailPage({
             {t.market.pickup}: {pickupLabel}
           </p>
           <p className="mt-1 text-sm text-ink-muted">
-            {t.market.seller} ·{" "}
+            {t.market.seller}:{" "}
             {publicSellerLabel(listing.seller, {
               seller: t.market.seller,
               anonymous: t.market.anonymous,

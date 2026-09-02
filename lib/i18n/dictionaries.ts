@@ -57,6 +57,7 @@ const ko = {
     back: "장터",
     noDescription: "설명이 없습니다.",
     sold: "판매완료",
+    soldTab: "판매완료",
     notAvailable: "이 물건은 현재 {status} 상태입니다.",
     loginToBuy: "로그인 후 Buy",
     buyHint:
@@ -65,6 +66,8 @@ const ko = {
       "Buy 후 판매자는 성당에 물건을 맡기고, 구매자는 관리자에게 현금 결제 후 픽업합니다.",
     buyHintSeller:
       "Buy 후 판매자와 직접 연락해 판매자 위치에서 픽업·결제합니다.",
+    ownListingHint:
+      "내가 올린 물건입니다. 다른 회원이 Buy하면 알림을 받게 됩니다.",
     pickup: "픽업",
     pickupChurch: "성당에서 픽업",
     pickupSeller: "판매자 위치에서 픽업",
@@ -393,6 +396,7 @@ const en: Dictionary = {
     back: "Market",
     noDescription: "No description.",
     sold: "Sold",
+    soldTab: "Sold",
     notAvailable: "This item is currently {status}.",
     loginToBuy: "Log in to Buy",
     buyHint:
@@ -401,6 +405,8 @@ const en: Dictionary = {
       "After Buy, the seller drops the item at church; the buyer pays cash to the admin and picks it up.",
     buyHintSeller:
       "After Buy, arrange pickup and payment directly with the seller at their location.",
+    ownListingHint:
+      "This is your listing. You'll get a notification when someone buys it.",
     pickup: "Pickup",
     pickupChurch: "Pickup at church",
     pickupSeller: "Pickup at seller location",

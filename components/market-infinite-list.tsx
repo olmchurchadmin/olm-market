@@ -86,11 +86,13 @@ function ListProgressRing({
 export function MarketInfiniteList({
   category,
   q,
+  status,
   initialItems,
   total,
 }: {
   category?: string;
   q?: string;
+  status?: "active" | "sold";
   initialItems: Listing[];
   total: number;
 }) {
@@ -124,6 +126,7 @@ export function MarketInfiniteList({
       sp.set("page", String(nextPage));
       if (category) sp.set("category", category);
       if (q) sp.set("q", q);
+      if (status === "sold") sp.set("status", "sold");
       const res = await fetch(`/api/market/listings?${sp.toString()}`, {
         cache: "no-store",
       });
@@ -145,7 +148,7 @@ export function MarketInfiniteList({
       loadingRef.current = false;
       setLoading(false);
     }
-  }, [category, hasMore, page, q]);
+  }, [category, hasMore, page, q, status]);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -238,10 +241,10 @@ export function MarketInfiniteList({
   }
 
   return (
-    <div className="relative overflow-visible lg:pr-12">
-      <div className="pointer-events-none absolute top-0 right-0 z-20 hidden h-full lg:block">
+    <div className="relative overflow-visible pr-10 sm:pr-12">
+      <div className="pointer-events-none absolute top-0 right-0 z-20 h-full">
         <div
-          className={`sticky top-24 flex justify-end pt-2 transition-opacity duration-150 ease-out ${
+          className={`sticky top-20 flex justify-end pt-2 transition-opacity duration-150 ease-out sm:top-24 ${
             ringVisible ? "pointer-events-auto opacity-100" : "opacity-0"
           }`}
         >

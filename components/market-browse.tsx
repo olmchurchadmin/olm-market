@@ -1,6 +1,8 @@
 import { MagnifyingGlassIcon, PlusIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { MarketInfiniteList } from "@/components/market-infinite-list";
+import { getCurrentProfile } from "@/lib/auth";
 import { categoryLabel } from "@/lib/i18n/categories";
 import { getI18n } from "@/lib/i18n/server";
 import {
@@ -9,23 +11,47 @@ import {
 } from "@/lib/market/listings-query";
 import { createClient } from "@/lib/supabase/server";
 
-function hrefFor(params: { category?: string; q?: string }) {
+function hrefFor(params: {
+  category?: string;
+  q?: string;
+  status?: "sold";
+}) {
   const sp = new URLSearchParams();
-  if (params.category) sp.set("category", params.category);
+  if (params.status === "sold") sp.set("status", "sold");
+  else if (params.category) sp.set("category", params.category);
   if (params.q) sp.set("q", params.q);
   const qs = sp.toString();
   return qs ? `/?${qs}` : "/";
 }
 
+function tabClass(active: boolean) {
+  return `shrink-0 rounded-md px-3.5 py-1.5 text-sm whitespace-nowrap transition ${
+    active
+      ? "bg-brand text-white shadow-sm"
+      : "bg-surface/90 text-foreground ring-1 ring-brand/10 hover:bg-neutral-100"
+  }`;
+}
+
 export async function MarketBrowse({
   category,
   q,
+  status: statusParam,
 }: {
   category?: string;
   q?: string;
+  status?: string;
 }) {
   const { locale, t } = await getI18n();
   const queryText = sanitizeMarketSearch(q || "");
+  const profile = await getCurrentProfile();
+  const isAdmin = profile?.role === "admin";
+  const showSold = statusParam === "sold";
+
+  if (showSold && !isAdmin) {
+    redirect(hrefFor({ q: queryText || undefined }));
+  }
+
+  const listStatus = showSold ? ("sold" as const) : ("active" as const);
   const configured = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -46,9 +72,10 @@ export async function MarketBrowse({
   const [{ data: categories }, firstPage] = await Promise.all([
     supabase.from("categories").select("*").order("sort_order"),
     fetchMarketListingsPage({
-      category,
+      category: showSold ? undefined : category,
       q: queryText || undefined,
       page: 1,
+      status: listStatus,
     }),
   ]);
 
@@ -59,7 +86,8 @@ export async function MarketBrowse({
         method="get"
         className="animate-rise flex gap-2 rounded-md border border-brand/10 bg-surface/90 p-2 shadow-[0_10px_30px_rgba(36,59,143,0.06)] backdrop-blur-sm"
       >
-        {category ? (
+        {showSold ? <input type="hidden" name="status" value="sold" /> : null}
+        {!showSold && category ? (
           <input type="hidden" name="category" value={category} />
         ) : null}
         <label className="relative min-w-0 flex-1">
@@ -91,14 +119,10 @@ export async function MarketBrowse({
         </Link>
       </form>
 
-      <div className="animate-rise-delay-1 mt-5 flex gap-2 overflow-x-auto pb-1">
+      <div className="animate-rise-delay-1 mt-5 flex gap-2 overflow-x-auto py-1">
         <Link
           href={hrefFor({ q: queryText || undefined })}
-          className={`shrink-0 rounded-md px-3.5 py-1.5 text-sm whitespace-nowrap transition ${
-            !category
-              ? "bg-brand text-white shadow-sm"
-              : "bg-surface/90 text-foreground ring-1 ring-brand/10 hover:bg-sun"
-          }`}
+          className={tabClass(!showSold && !category)}
         >
           {t.market.all}
         </Link>
@@ -109,22 +133,30 @@ export async function MarketBrowse({
               category: cat.slug,
               q: queryText || undefined,
             })}
-            className={`shrink-0 rounded-md px-3.5 py-1.5 text-sm whitespace-nowrap transition ${
-              category === cat.slug
-                ? "bg-brand text-white shadow-sm"
-                : "bg-surface/90 text-foreground ring-1 ring-brand/10 hover:bg-sun"
-            }`}
+            className={tabClass(!showSold && category === cat.slug)}
           >
             {categoryLabel(cat, locale)}
           </Link>
         ))}
+        {isAdmin ? (
+          <Link
+            href={hrefFor({
+              status: "sold",
+              q: queryText || undefined,
+            })}
+            className={tabClass(showSold)}
+          >
+            {t.market.soldTab}
+          </Link>
+        ) : null}
       </div>
 
       <div className="animate-rise-delay-2 mt-6">
         <MarketInfiniteList
-          key={`${category || "all"}:${queryText}`}
-          category={category}
+          key={`${listStatus}:${category || "all"}:${queryText}`}
+          category={showSold ? undefined : category}
           q={queryText || undefined}
+          status={listStatus}
           initialItems={firstPage.items}
           total={firstPage.total}
         />
