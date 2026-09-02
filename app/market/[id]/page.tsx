@@ -44,10 +44,6 @@ export default async function ListingDetailPage({
     listing.status === "available" && user?.id !== listing.seller_id;
   const isOwnListing = Boolean(user && user.id === listing.seller_id);
   const statusLabel = listingStatusLabel(listing.status, t.status);
-  const showStatusBadge =
-    listing.status === "reserved" ||
-    listing.status === "at_church" ||
-    listing.status === "sold";
   const pickupMethod =
     listing.pickup_method === "seller_location" ? "seller_location" : "church";
   const pickupLabel =
@@ -63,13 +59,15 @@ export default async function ListingDetailPage({
     100,
     Math.max(30, Math.round(listing.donation_percent ?? 100)),
   );
-  const statusBadge = showStatusBadge ? (
-    <span
-      className={`absolute left-3 top-3 z-10 rounded-md px-2.5 py-1 text-xs font-semibold shadow-sm ${listingStatusBadgeClass(listing.status)}`}
-    >
-      {statusLabel}
-    </span>
-  ) : null;
+
+  const statusAction =
+    listing.status === "reserved"
+      ? { label: statusLabel, hint: t.market.reservedHint }
+      : listing.status === "at_church"
+        ? { label: statusLabel, hint: t.market.atChurchHint }
+        : listing.status === "sold"
+          ? { label: statusLabel, hint: t.market.soldHint }
+          : null;
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
@@ -86,7 +84,6 @@ export default async function ListingDetailPage({
           title={listing.title}
           images={images}
           coverPath={listing.cover_image_path}
-          statusBadge={statusBadge}
         />
 
         <div>
@@ -103,7 +100,7 @@ export default async function ListingDetailPage({
             {t.market.donation}:{" "}
             {t.market.donationValue.replace("{percent}", String(donationPercent))}
           </p>
-          {!showStatusBadge ? (
+          {listing.status === "available" ? (
             <p className="mt-2 text-sm text-ink-muted">
               {t.market.status}: {statusLabel}
             </p>
@@ -124,19 +121,32 @@ export default async function ListingDetailPage({
 
           <div className="mt-8 space-y-3 border-t border-brand/10 pt-6">
             {listing.status === "available" ? (
-              !user ? (
-                <Link
-                  href={`/login?next=/market/${listing.id}`}
-                  className="inline-flex rounded-md bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-soft"
+              <>
+                {!user ? (
+                  <Link
+                    href={`/login?next=/market/${listing.id}`}
+                    className="inline-flex rounded-md bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-soft"
+                  >
+                    {t.market.loginToBuy}
+                  </Link>
+                ) : (
+                  <BuyButton listingId={listing.id} disabled={!canBuy} />
+                )}
+                <p className="text-xs leading-relaxed text-ink-muted">
+                  {buyHint}
+                </p>
+              </>
+            ) : statusAction ? (
+              <>
+                <span
+                  className={`inline-flex rounded-md px-4 py-2 text-sm font-semibold ${listingStatusBadgeClass(listing.status)}`}
                 >
-                  {t.market.loginToBuy}
-                </Link>
-              ) : (
-                <BuyButton listingId={listing.id} disabled={!canBuy} />
-              )
-            ) : null}
-            {listing.status === "available" ? (
-              <p className="text-xs leading-relaxed text-ink-muted">{buyHint}</p>
+                  {statusAction.label}
+                </span>
+                <p className="max-w-md text-xs leading-relaxed text-ink-muted">
+                  {statusAction.hint}
+                </p>
+              </>
             ) : null}
           </div>
         </div>

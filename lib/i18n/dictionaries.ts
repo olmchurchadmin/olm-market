@@ -59,6 +59,11 @@ const ko = {
     sold: "판매완료",
     soldTab: "판매완료",
     notAvailable: "이 물건은 현재 {status} 상태입니다.",
+    reservedHint:
+      "현재 예약된 상태입니다. 이후 거래가 성립하지 않으면 다시 구매 가능으로 바뀝니다.",
+    atChurchHint:
+      "성당에 보관 중인 거래입니다. 거래가 완료되지 않으면 다시 구매 가능으로 바뀔 수 있습니다.",
+    soldHint: "거래가 완료되어 판매 종료된 물품입니다.",
     loginToBuy: "로그인 후 Buy",
     buyHint:
       "Buy 후 판매자는 다음 주 성당에 물건을 맡기고, 구매자는 관리자에게 현금 결제 후 픽업합니다.",
@@ -416,6 +421,11 @@ const en: Dictionary = {
     sold: "Sold",
     soldTab: "Sold",
     notAvailable: "This item is currently {status}.",
+    reservedHint:
+      "This item is reserved. If the trade is not completed, it will become available again.",
+    atChurchHint:
+      "This item is held at church. If the trade is not completed, it may become available again.",
+    soldHint: "This trade is complete and the listing is closed.",
     loginToBuy: "Log in to Buy",
     buyHint:
       "After Buy, the seller drops the item at church next week; the buyer pays cash to the admin and picks it up.",
