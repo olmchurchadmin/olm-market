@@ -1,16 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-function needsAuthCheck(path: string) {
-  return (
-    path.startsWith("/sell") ||
-    path.startsWith("/me") ||
-    path.startsWith("/account") ||
-    path.startsWith("/admin") ||
-    path.startsWith("/login")
-  );
-}
-
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
@@ -35,18 +25,13 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  const path = request.nextUrl.pathname;
-
-  // Public browse pages: refresh session from cookies only (no Auth API round-trip).
-  if (!needsAuthCheck(path)) {
-    await supabase.auth.getSession();
-    return supabaseResponse;
-  }
-
+  // Always refresh via getUser() — required for OAuth callback + session cookies.
+  // getSession() alone is not enough with @supabase/ssr.
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const path = request.nextUrl.pathname;
   const needsAuth =
     path.startsWith("/sell") ||
     path.startsWith("/me") ||

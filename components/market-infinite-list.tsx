@@ -6,7 +6,7 @@ import { useI18n } from "@/components/locale-provider";
 import type { Listing } from "@/lib/types";
 
 const RING_SIZE = 40;
-const RING_STROKE = 2;
+const RING_STROKE = 1;
 const HEADER_OFFSET = 80;
 
 function ListProgressRing({
@@ -24,7 +24,8 @@ function ListProgressRing({
 }) {
   const size = RING_SIZE;
   const stroke = RING_STROKE;
-  const radius = (size - stroke) / 2 - 1;
+  // Inset so the thin stroke is never clipped by the SVG box.
+  const radius = (size - stroke) / 2 - 1.5;
   const circumference = 2 * Math.PI * radius;
   const clamped = Math.min(1, Math.max(0, progress));
   const offset = circumference * (1 - clamped);
@@ -61,7 +62,8 @@ function ListProgressRing({
           fill="none"
           stroke="currentColor"
           strokeWidth={stroke}
-          className="text-brand/20"
+          vectorEffect="non-scaling-stroke"
+          className="text-black/15"
         />
         <circle
           cx={size / 2}
@@ -73,6 +75,7 @@ function ListProgressRing({
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
+          vectorEffect="non-scaling-stroke"
           className="text-brand"
         />
       </svg>
@@ -241,8 +244,8 @@ export function MarketInfiniteList({
   }
 
   return (
-    <div className="relative overflow-visible pr-10 sm:pr-12">
-      <div className="pointer-events-none absolute top-0 right-0 z-20 h-full">
+    <div className="relative overflow-visible">
+      <div className="pointer-events-none absolute inset-y-0 right-1 z-20 sm:right-0">
         <div
           className={`sticky top-20 flex justify-end pt-2 transition-opacity duration-150 ease-out sm:top-24 ${
             ringVisible ? "pointer-events-auto opacity-100" : "opacity-0"
