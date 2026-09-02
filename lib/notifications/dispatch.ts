@@ -1,6 +1,5 @@
 import { createServiceClient } from "@/lib/supabase/server";
 import { getAdminEmail, sendEmail } from "@/lib/notifications/email";
-import { sendSms } from "@/lib/notifications/sms";
 import { formatPrice } from "@/lib/utils";
 import type { PickupMethod } from "@/lib/types";
 
@@ -13,7 +12,6 @@ type ProfileRow = {
   id: string;
   email: string | null;
   notification_email: string | null;
-  phone: string | null;
   full_name: string | null;
   nickname: string | null;
 };
@@ -98,7 +96,7 @@ function sharedEventCopy(
 async function recordJob(
   supabase: ReturnType<typeof createServiceClient>,
   row: {
-    channel: "in_app" | "email" | "kakao" | "sms";
+    channel: "in_app" | "email";
     recipient: string;
     subject?: string;
     body: string;
@@ -109,12 +107,7 @@ async function recordJob(
     sent_at?: string | null;
   },
 ) {
-  const { error } = await supabase.from("notification_jobs").insert(row);
-  if (error && row.channel === "sms") {
-    await supabase
-      .from("notification_jobs")
-      .insert({ ...row, channel: "kakao" });
-  }
+  await supabase.from("notification_jobs").insert(row);
 }
 
 async function deliverEmail(
@@ -167,57 +160,6 @@ async function deliverEmail(
   });
 }
 
-async function deliverSms(
-  supabase: ReturnType<typeof createServiceClient>,
-  person: ProfileRow,
-  copy: MessageCopy,
-  payload: Record<string, unknown>,
-  orderId: string | null,
-) {
-  if (!person.phone) {
-    await recordJob(supabase, {
-      channel: "sms",
-      recipient: person.id,
-      body: copy.body,
-      payload,
-      status: "skipped",
-      error: "No phone on profile",
-      related_order_id: orderId,
-    });
-    return;
-  }
-
-  const result = await sendSms({
-    to: person.phone,
-    body: `[OLM] ${copy.title}\n${copy.body}`,
-  });
-
-  if (!result.ok) {
-    console.error("[sms]", {
-      to: person.phone,
-      reason: result.reason,
-      error: "error" in result ? result.error : null,
-    });
-  }
-
-  await recordJob(supabase, {
-    channel: "sms",
-    recipient: person.phone,
-    body: copy.body,
-    payload,
-    status: result.ok
-      ? "sent"
-      : result.reason === "pending_credentials"
-        ? "pending_credentials"
-        : result.reason === "skipped"
-          ? "skipped"
-          : "failed",
-    error: result.ok ? null : "error" in result ? result.error : result.reason,
-    related_order_id: orderId,
-    sent_at: result.ok ? new Date().toISOString() : null,
-  });
-}
-
 async function deliverToPerson(
   supabase: ReturnType<typeof createServiceClient>,
   options: {
@@ -237,14 +179,10 @@ async function deliverToPerson(
     payload,
   });
 
-  await Promise.allSettled([
-    deliverSms(supabase, person, copy, payload, orderId),
-    deliverEmail(supabase, person, copy, payload, orderId),
-  ]);
+  await deliverEmail(supabase, person, copy, payload, orderId);
 }
 
-const profileSelect =
-  "id, email, notification_email, phone, full_name, nickname";
+const profileSelect = "id, email, notification_email, full_name, nickname";
 
 export async function notifyListingCreated(listingId: string) {
   const supabase = createServiceClient();

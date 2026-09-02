@@ -4,7 +4,9 @@ import { ConfirmDialogProvider } from "@/components/confirm-dialog";
 import { LocaleProvider } from "@/components/locale-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { UserAlertsGate } from "@/components/user-alerts-gate";
 import { getI18n } from "@/lib/i18n/server";
+import { getUserAlertsData } from "@/lib/user-alerts";
 import "./globals.css";
 
 const inter = Inter({
@@ -31,7 +33,10 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { locale, t } = await getI18n();
+  const [{ locale, t }, alerts] = await Promise.all([
+    getI18n(),
+    getUserAlertsData(),
+  ]);
 
   return (
     <html
@@ -44,6 +49,7 @@ export default async function RootLayout({
             <SiteHeader />
             <div className="flex-1">{children}</div>
             <SiteFooter />
+            <UserAlertsGate data={alerts} />
           </ConfirmDialogProvider>
         </LocaleProvider>
       </body>

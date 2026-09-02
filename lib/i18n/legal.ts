@@ -46,26 +46,24 @@ function privacyEn(brandName: string): LegalPage {
       bullets: [
         "In-app notifications about listings and trades",
         "Email alerts for listing and trade events (if you provide an email)",
-        "SMS alerts for listing and trade events (only if you save a mobile number on your profile)",
       ],
     },
     {
-      title: "SMS / text messaging",
+      title: "Email alerts",
       paragraphs: [
-        "If you save a mobile phone number on your profile at /account/profile and click Save Profile, you consent to receive transactional SMS from " +
+        "If you save a notification email on your profile at /account/profile (or use a login email), you consent to receive transactional emails from " +
           brandName +
           " about OLM Market activity (for example, when an item is listed, reserved, dropped off at church, or ready for pickup).",
-        "We do not use SMS for marketing or promotional messages. Message frequency varies based on your marketplace activity. Message and data rates may apply.",
-        "We do not sell, rent, or share your mobile phone number with third parties for their marketing purposes. Your number is used only to deliver " +
+        "We do not use email for marketing or promotional messages. Message frequency varies based on your marketplace activity.",
+        "Your email is used only to deliver " +
           brandName +
-          " transactional alerts for OLM Market and related service messages through our messaging provider (Twilio).",
-        "You can opt out of SMS at any time by replying STOP to a message. Reply HELP for help. You may also remove your phone number from your profile to stop future SMS alerts.",
+          " transactional alerts for OLM Market through our email provider (Resend).",
       ],
     },
     {
       title: "Sharing of information",
       paragraphs: [
-        "We share limited information only as needed to operate the service—for example, buyer and seller names shown in trade notifications, or data processed by service providers such as hosting, email, database, and SMS delivery partners. We do not sell personal information.",
+        "We share limited information only as needed to operate the service—for example, buyer and seller names shown in trade notifications, or data processed by service providers such as hosting, email, and database partners. We do not sell personal information.",
       ],
     },
     {
@@ -118,26 +116,24 @@ function privacyKo(brandName: string): LegalPage {
       bullets: [
         "물품·거래 관련 앱 내 알림",
         "물품·거래 이메일 알림(이메일 제공 시)",
-        "물품·거래 SMS 알림(프로필에 휴대폰 번호 저장 시에만)",
       ],
     },
     {
-      title: "SMS(문자) 알림",
+      title: "이메일 알림",
       paragraphs: [
-        "/account/profile에서 휴대폰 번호를 저장하고 프로필 저장을 누르면, " +
+        "/account/profile에서 알림 이메일을 저장하면(또는 로그인 이메일이 있으면), " +
           brandName +
-          "의 OLM Market 거래 알림(등록, 예약, 성당 전달, 픽업 등) SMS 수신에 동의한 것으로 간주됩니다.",
-        "마케팅·홍보 문자는 보내지 않습니다. 발송 빈도는 거래 활동에 따라 달라집니다. Message and data rates may apply(요금이 부과될 수 있음).",
-        "휴대폰 번호를 제3자 마케팅 목적으로 판매·임대·공유하지 않습니다. 번호는 " +
+          "의 OLM Market 거래 알림(등록, 예약, 성당 전달, 픽업 등) 이메일 수신에 동의한 것으로 간주됩니다.",
+        "마케팅·홍보 메일은 보내지 않습니다. 발송 빈도는 거래 활동에 따라 달라집니다.",
+        "이메일은 " +
           brandName +
-          "의 OLM Market 거래 알림 및 관련 서비스 메시지 전달(문자 발송 업체 Twilio 이용)에만 사용됩니다.",
-        "문자 수신을 원하지 않으면 STOP으로 답장하거나 프로필에서 번호를 삭제하세요. HELP로 도움말을 요청할 수 있습니다.",
+          "의 OLM Market 거래 알림 전달(이메일 발송 업체 Resend 이용)에만 사용됩니다.",
       ],
     },
     {
       title: "정보 공유",
       paragraphs: [
-        "서비스 운영에 필요한 범위에서만 정보를 공유합니다(예: 거래 알림에 표시되는 구매자·판매자 이름, 호스팅·이메일·DB·SMS 발송 등 처리 업체). 개인정보를 판매하지 않습니다.",
+        "서비스 운영에 필요한 범위에서만 정보를 공유합니다(예: 거래 알림에 표시되는 구매자·판매자 이름, 호스팅·이메일·DB 등 처리 업체). 개인정보를 판매하지 않습니다.",
       ],
     },
     {
@@ -202,7 +198,7 @@ function termsEn(brandName: string): LegalPage {
     {
       title: "Notifications",
       paragraphs: [
-        "By saving contact details on your profile, you agree to receive transactional notifications by email and/or SMS as described in our Privacy Policy. Marketing messages are not sent through this service.",
+        "By saving a notification email on your profile, you agree to receive transactional notifications by email as described in our Privacy Policy. Marketing messages are not sent through this service.",
       ],
     },
     {
@@ -267,7 +263,7 @@ function termsKo(brandName: string): LegalPage {
     {
       title: "알림",
       paragraphs: [
-        "프로필에 연락처를 저장하면 개인정보처리방침에 따라 거래 알림 이메일·SMS를 받을 수 있습니다. 마케팅 메시지는 발송하지 않습니다.",
+        "프로필에 알림 이메일을 저장하면 개인정보처리방침에 따라 거래 알림 이메일을 받을 수 있습니다. 마케팅 메시지는 발송하지 않습니다.",
       ],
     },
     {

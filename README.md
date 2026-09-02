@@ -16,7 +16,7 @@
 - Google / Kakao / 이메일+비밀번호 로그인 (회원가입, 비밀번호 찾기 포함)
 - 물품 사진·카테고리·설명·가격 등록
 - 카테고리별 장터 + Buy 거래
-- 인앱 + 이메일 + Twilio SMS 알림
+- 인앱 + 이메일 알림 (거래 성립 시 로그인 팝업)
 - 관리자 드롭오프/픽업 + 일·주·월·년·전체 통계
 - 현장 현금 결제
 
@@ -60,19 +60,14 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<publishable key>
 SUPABASE_SERVICE_ROLE_KEY=<secret key>
 NEXT_PUBLIC_SITE_URL=https://YOUR-VERCEL-URL
 ADMIN_EMAIL=olmchurchadmin@gmail.com
-TWILIO_ACCOUNT_SID=<from Twilio Console>
-TWILIO_AUTH_TOKEN=<from Twilio Console>
-TWILIO_PHONE_NUMBER=<E.164 e.g. +17325551234>
+RESEND_API_KEY=<from Resend>
+RESEND_FROM_EMAIL=OLM Market <noreply@your-verified-domain.com>
 ```
 
-### 3b. Twilio SMS
-1. [Twilio Console](https://console.twilio.com) 가입 (트라이얼 가능)
-2. Account SID / Auth Token 복사
-3. Phone Numbers에서 미국 번호 발급 (또는 트라이얼 번호)
-4. Vercel Environment Variables에 위 `TWILIO_*` 3개 추가 후 Redeploy
-5. (DB) SQL Editor에서 `supabase/migrations/20260815170000_notification_channel_sms.sql` Run
-6. 프로필에 휴대폰 저장 후 구매 테스트
-   - 트라이얼: Twilio에서 수신 번호 Verify 필요 (최대 수개)
+### 3b. Resend email
+1. [Resend](https://resend.com) 가입 후 API key 발급
+2. 도메인 인증 후 `RESEND_FROM_EMAIL`을 인증 도메인으로 설정
+3. Vercel Environment Variables에 추가 후 Redeploy
 
 3. Deploy
 

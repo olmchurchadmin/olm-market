@@ -6,7 +6,6 @@ import {
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { AdminOrderActions } from "@/components/admin-order-actions";
-import { AdminSmsTest } from "@/components/admin-sms-test";
 import { ResolveComplaintButton } from "@/components/resolve-complaint-button";
 import { requireAdmin } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
@@ -41,7 +40,7 @@ export default async function AdminPage({
 }: {
   searchParams: Promise<{ error?: string; resolved?: string }>;
 }) {
-  const adminProfile = await requireAdmin();
+  await requireAdmin();
   const { locale, t } = await getI18n();
   const { error, resolved } = await searchParams;
   const supabase = await createClient();
@@ -53,7 +52,6 @@ export default async function AdminPage({
     { data: members },
     { data: complaints },
     { data: orders },
-    { data: smsJobs },
   ] = await Promise.all([
     supabase.rpc("admin_stats", { p_range: "week" }),
     supabase.rpc("admin_stats", { p_range: "month" }),
@@ -78,12 +76,6 @@ export default async function AdminPage({
       .in("status", ["awaiting_dropoff", "ready_for_pickup", "completed"])
       .order("created_at", { ascending: false })
       .limit(50),
-    supabase
-      .from("notification_jobs")
-      .select("id, channel, status, error, recipient, created_at")
-      .in("channel", ["sms", "kakao"])
-      .order("created_at", { ascending: false })
-      .limit(20),
   ]);
 
   const week = (weekStats || {}) as AdminStats;
@@ -169,53 +161,6 @@ export default async function AdminPage({
             label={t.admin.pipeline}
             value={`${all.orders_awaiting_dropoff ?? 0} / ${all.orders_ready_for_pickup ?? 0}`}
           />
-        </div>
-      </section>
-
-      <section className="mt-12 space-y-4">
-        <h2 className="font-[family-name:var(--font-display)] text-2xl text-foreground">
-          {t.admin.smsJobs}
-        </h2>
-        <AdminSmsTest
-          hasPhone={Boolean(adminProfile.phone)}
-          labels={{
-            title: t.admin.smsTitle,
-            blurb: t.admin.smsBlurb,
-            cta: t.admin.smsCta,
-            noPhone: t.admin.smsNoPhone,
-            working: t.common.loading,
-          }}
-        />
-        <div className="overflow-x-auto rounded-lg border border-brand/10 bg-white/70">
-          <table className="min-w-full text-left text-sm">
-            <thead className="border-b border-brand/10 text-ink-muted">
-              <tr>
-                <th className="px-4 py-3 font-medium">{t.admin.smsTime}</th>
-                <th className="px-4 py-3 font-medium">{t.admin.smsRecipient}</th>
-                <th className="px-4 py-3 font-medium">{t.admin.smsStatus}</th>
-                <th className="px-4 py-3 font-medium">{t.admin.smsError}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(smsJobs || []).map((job) => (
-                <tr key={job.id} className="border-t border-brand/5 align-top">
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    {new Date(job.created_at).toLocaleString(
-                      locale === "en" ? "en-US" : "ko-KR",
-                    )}
-                  </td>
-                  <td className="px-4 py-3">{job.recipient}</td>
-                  <td className="px-4 py-3 font-medium">{job.status}</td>
-                  <td className="px-4 py-3 break-all text-xs text-ink-muted">
-                    {job.error || "—"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {!smsJobs?.length ? (
-            <p className="px-4 py-6 text-sm text-ink-muted">{t.admin.smsNoJobs}</p>
-          ) : null}
         </div>
       </section>
 
