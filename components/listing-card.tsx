@@ -24,7 +24,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
       href={`/market/${listing.id}`}
       className="group block overflow-hidden rounded-md border border-black/6 bg-white shadow-[0_8px_24px_rgba(26,28,31,0.04)] transition duration-300 hover:-translate-y-0.5 hover:border-black/12 hover:shadow-[0_14px_36px_rgba(26,28,31,0.08)]"
     >
-      <div className="relative aspect-square overflow-hidden bg-[color-mix(in_oklab,var(--sun)_70%,white)]">
+      <div className="relative aspect-square overflow-hidden bg-neutral-100">
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
