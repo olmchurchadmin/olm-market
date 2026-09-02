@@ -5,8 +5,8 @@ import { LocaleProvider } from "@/components/locale-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { UserAlertsGate } from "@/components/user-alerts-gate";
+import { getCurrentProfile } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
-import { getUserAlertsData } from "@/lib/user-alerts";
 import "./globals.css";
 
 const inter = Inter({
@@ -33,9 +33,9 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [{ locale, t }, alerts] = await Promise.all([
+  const [{ locale, t }, profile] = await Promise.all([
     getI18n(),
-    getUserAlertsData(),
+    getCurrentProfile(),
   ]);
 
   return (
@@ -46,10 +46,10 @@ export default async function RootLayout({
       <body className="flex min-h-full flex-col antialiased">
         <LocaleProvider locale={locale} dictionary={t}>
           <ConfirmDialogProvider>
-            <SiteHeader />
+            <SiteHeader profile={profile} />
             <div className="flex-1">{children}</div>
             <SiteFooter />
-            <UserAlertsGate data={alerts} />
+            <UserAlertsGate />
           </ConfirmDialogProvider>
         </LocaleProvider>
       </body>

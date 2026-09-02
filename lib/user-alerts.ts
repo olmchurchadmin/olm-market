@@ -1,6 +1,7 @@
-import { createClient } from "@/lib/supabase/server";
+import { getSessionUser, getCurrentProfile } from "@/lib/auth";
 import { localizeNotification } from "@/lib/i18n/notifications";
 import { getI18n } from "@/lib/i18n/server";
+import { createClient } from "@/lib/supabase/server";
 import type { Notification } from "@/lib/types";
 
 export type AlertNotification = {
@@ -39,18 +40,10 @@ function hasDeliverableEmail(options: {
 const TRADE_TYPES = ["order_reserved", "order_at_church", "order_completed"] as const;
 
 export async function getUserAlertsData(): Promise<UserAlertsData | null> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return null;
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("email, notification_email")
-    .eq("id", user.id)
-    .maybeSingle();
-
+  const profile = await getCurrentProfile();
   if (!profile) return null;
 
   const needsEmail =
@@ -60,6 +53,7 @@ export async function getUserAlertsData(): Promise<UserAlertsData | null> {
       notificationEmail: profile.notification_email,
     });
 
+  const supabase = await createClient();
   const { data: rows } = await supabase
     .from("notifications")
     .select("id, type, title, body, payload, read_at, created_at")

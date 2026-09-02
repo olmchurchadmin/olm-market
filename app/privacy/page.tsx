@@ -9,7 +9,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const brandName = getRegisteredBrandName();
   return {
     title: `Privacy Policy | ${brandName}`,
-    description: `Privacy policy for ${brandName}, operator of OLM Market. SMS opt-in, message frequency, and mobile number use.`,
+    description: `Privacy policy for ${brandName}, operator of OLM Market.`,
   };
 }
 
@@ -18,18 +18,10 @@ export default async function PrivacyPage({
 }: {
   searchParams: Promise<{ lang?: string }>;
 }) {
-  const { locale: cookieLocale, t } = await getI18n();
+  const { locale: cookieLocale } = await getI18n();
   const { lang } = await searchParams;
   const locale: Locale = isLocale(lang) ? lang : cookieLocale;
   const page = getPrivacyPage(locale);
 
-  return (
-    <LegalDocument
-      page={page}
-      crossLink={{
-        href: `/terms${locale === "en" ? "" : `?lang=${locale}`}`,
-        label: t.legal.termsLink,
-      }}
-    />
-  );
+  return <LegalDocument page={page} />;
 }

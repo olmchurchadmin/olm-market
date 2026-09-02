@@ -1,24 +1,23 @@
+import { cache } from "react";
 import { isSupabaseConfigured } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/types";
 
-export async function getSessionUser() {
+export const getSessionUser = cache(async () => {
   if (!isSupabaseConfigured()) return null;
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   return user;
-}
+});
 
-export async function getCurrentProfile(): Promise<Profile | null> {
+export const getCurrentProfile = cache(async (): Promise<Profile | null> => {
   if (!isSupabaseConfigured()) return null;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return null;
 
+  const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")
     .select("*")
@@ -32,7 +31,7 @@ export async function getCurrentProfile(): Promise<Profile | null> {
     nickname: data.nickname ?? null,
     is_anonymous: Boolean(data.is_anonymous),
   } as Profile;
-}
+});
 
 export async function requireAdmin() {
   const { redirect } = await import("next/navigation");

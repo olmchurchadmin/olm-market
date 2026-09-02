@@ -1,5 +1,6 @@
 "use server";
 
+import { after } from "next/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getI18n } from "@/lib/i18n/server";
@@ -120,11 +121,13 @@ export async function createListingAction(formData: FormData) {
       .eq("id", listing.id);
   }
 
-  try {
-    await notifyListingCreated(listing.id);
-  } catch (error) {
-    console.error("[notifyListingCreated]", error);
-  }
+  after(async () => {
+    try {
+      await notifyListingCreated(listing.id);
+    } catch (error) {
+      console.error("[notifyListingCreated]", error);
+    }
+  });
 
   revalidatePath("/");
   revalidatePath("/market");

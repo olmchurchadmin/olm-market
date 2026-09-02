@@ -1,8 +1,10 @@
-import Link from "next/link";
-import { getI18n } from "@/lib/i18n/server";
+"use client";
 
-export async function SiteFooter() {
-  const { t } = await getI18n();
+import Link from "next/link";
+import { useI18n } from "@/components/locale-provider";
+
+export function SiteFooter() {
+  const { t } = useI18n();
   const year = new Date().getFullYear();
   const copyright = t.siteFooter.copyright.replace("{year}", String(year));
 

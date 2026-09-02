@@ -1,50 +1,31 @@
 import { MagnifyingGlassIcon, PlusIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import { ListingCard } from "@/components/listing-card";
-import { MarketPagination } from "@/components/market-pagination";
+import { MarketInfiniteList } from "@/components/market-infinite-list";
 import { categoryLabel } from "@/lib/i18n/categories";
 import { getI18n } from "@/lib/i18n/server";
+import {
+  fetchMarketListingsPage,
+  sanitizeMarketSearch,
+} from "@/lib/market/listings-query";
 import { createClient } from "@/lib/supabase/server";
-import type { Listing } from "@/lib/types";
 
-/** 3 rows × 4 columns on large screens */
-const PAGE_SIZE = 12;
-
-function sanitizeSearch(value: string) {
-  return value.trim().replace(/[%_,]/g, " ").replace(/\s+/g, " ").slice(0, 80);
-}
-
-function hrefFor(params: {
-  category?: string;
-  q?: string;
-  page?: number;
-}) {
+function hrefFor(params: { category?: string; q?: string }) {
   const sp = new URLSearchParams();
   if (params.category) sp.set("category", params.category);
   if (params.q) sp.set("q", params.q);
-  if (params.page && params.page > 1) sp.set("page", String(params.page));
   const qs = sp.toString();
   return qs ? `/?${qs}` : "/";
-}
-
-function parsePage(value?: string) {
-  const n = Number(value || "1");
-  if (!Number.isFinite(n) || n < 1) return 1;
-  return Math.floor(n);
 }
 
 export async function MarketBrowse({
   category,
   q,
-  page: pageParam,
 }: {
   category?: string;
   q?: string;
-  page?: string;
 }) {
   const { locale, t } = await getI18n();
-  const queryText = sanitizeSearch(q || "");
-  const page = parsePage(pageParam);
+  const queryText = sanitizeMarketSearch(q || "");
   const configured = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -62,38 +43,14 @@ export async function MarketBrowse({
   }
 
   const supabase = await createClient();
-  const { data: categories } = await supabase
-    .from("categories")
-    .select("*")
-    .order("sort_order");
-
-  let query = supabase
-    .from("listings")
-    .select(
-      "*, categories(*), listing_images(*), seller:profiles!listings_seller_id_fkey(nickname, full_name, email, is_anonymous)",
-      { count: "exact" },
-    )
-    .neq("status", "cancelled")
-    .order("created_at", { ascending: false });
-
-  if (category) {
-    const match = categories?.find((c) => c.slug === category);
-    if (match) query = query.eq("category_id", match.id);
-  }
-
-  if (queryText) {
-    query = query.or(
-      `title.ilike.%${queryText}%,description.ilike.%${queryText}%`,
-    );
-  }
-
-  const from = (page - 1) * PAGE_SIZE;
-  const to = from + PAGE_SIZE - 1;
-  const { data: listings, count } = await query.range(from, to);
-  const rows = (listings as Listing[] | null) || [];
-  const total = count ?? rows.length;
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages);
+  const [{ data: categories }, firstPage] = await Promise.all([
+    supabase.from("categories").select("*").order("sort_order"),
+    fetchMarketListingsPage({
+      category,
+      q: queryText || undefined,
+      page: 1,
+    }),
+  ]);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
@@ -163,34 +120,15 @@ export async function MarketBrowse({
         ))}
       </div>
 
-      <div className="animate-rise-delay-2 mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
-        {rows.length ? (
-          rows.map((listing) => (
-            <ListingCard key={listing.id} listing={listing} />
-          ))
-        ) : (
-          <p className="col-span-full rounded-md border border-dashed border-black/10 bg-white/50 px-4 py-10 text-center text-ink-muted">
-            {queryText ? t.market.noResults : t.market.empty}
-          </p>
-        )}
+      <div className="animate-rise-delay-2 mt-6">
+        <MarketInfiniteList
+          key={`${category || "all"}:${queryText}`}
+          category={category}
+          q={queryText || undefined}
+          initialItems={firstPage.items}
+          total={firstPage.total}
+        />
       </div>
-
-      <MarketPagination
-        page={safePage}
-        totalPages={totalPages}
-        hrefForPage={(p) =>
-          hrefFor({
-            category,
-            q: queryText || undefined,
-            page: p,
-          })
-        }
-        labels={{
-          prev: t.market.prevPage,
-          next: t.market.nextPage,
-          pageOf: t.market.pageOf,
-        }}
-      />
     </main>
   );
 }

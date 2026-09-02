@@ -18,18 +18,10 @@ export default async function TermsPage({
 }: {
   searchParams: Promise<{ lang?: string }>;
 }) {
-  const { locale: cookieLocale, t } = await getI18n();
+  const { locale: cookieLocale } = await getI18n();
   const { lang } = await searchParams;
   const locale: Locale = isLocale(lang) ? lang : cookieLocale;
   const page = getTermsPage(locale);
 
-  return (
-    <LegalDocument
-      page={page}
-      crossLink={{
-        href: `/privacy${locale === "en" ? "" : `?lang=${locale}`}`,
-        label: t.legal.privacyLink,
-      }}
-    />
-  );
+  return <LegalDocument page={page} />;
 }

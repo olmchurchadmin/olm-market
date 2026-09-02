@@ -1,9 +1,23 @@
 "use server";
 
+import { after } from "next/server";
 import { revalidatePath } from "next/cache";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import { notifyOrderEvent } from "@/lib/notifications/dispatch";
+
+function scheduleOrderNotify(
+  orderId: string,
+  event: "buy" | "dropoff" | "completed",
+) {
+  after(async () => {
+    try {
+      await notifyOrderEvent({ orderId, event });
+    } catch (error) {
+      console.error(`[notifyOrderEvent:${event}]`, error);
+    }
+  });
+}
 
 export async function buyListingAction(listingId: string) {
   const { t } = await getI18n();
@@ -27,11 +41,7 @@ export async function buyListingAction(listingId: string) {
     };
   }
 
-  try {
-    await notifyOrderEvent({ orderId: data.id, event: "buy" });
-  } catch (error) {
-    console.error("[notifyOrderEvent:buy]", error);
-  }
+  scheduleOrderNotify(data.id, "buy");
 
   revalidatePath("/");
   revalidatePath("/market");
@@ -51,11 +61,7 @@ export async function adminMarkDropoffAction(orderId: string) {
   if (error || !data) {
     return { ok: false as const, error: error?.message || t.errors.actionFailed };
   }
-  try {
-    await notifyOrderEvent({ orderId, event: "dropoff" });
-  } catch {
-    // ignore
-  }
+  scheduleOrderNotify(orderId, "dropoff");
   revalidatePath("/admin");
   revalidatePath("/me");
   revalidatePath("/account/transactions");
@@ -73,11 +79,7 @@ export async function adminMarkPickupAction(orderId: string) {
   if (error || !data) {
     return { ok: false as const, error: error?.message || t.errors.actionFailed };
   }
-  try {
-    await notifyOrderEvent({ orderId, event: "completed" });
-  } catch {
-    // ignore
-  }
+  scheduleOrderNotify(orderId, "completed");
   revalidatePath("/admin");
   revalidatePath("/me");
   revalidatePath("/account/transactions");

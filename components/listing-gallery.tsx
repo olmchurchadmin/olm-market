@@ -139,7 +139,7 @@ export function ListingGallery({
 
   if (!current) {
     return (
-      <div className="flex aspect-[4/3] items-center justify-center rounded-lg border border-brand/10 bg-white text-ink-muted">
+      <div className="flex aspect-square items-center justify-center rounded-lg border border-brand/10 bg-white text-ink-muted">
         {t.market.noImage}
       </div>
     );
@@ -276,13 +276,13 @@ export function ListingGallery({
         type="button"
         onClick={() => openLightbox(active)}
         aria-label={t.market.openFullscreen}
-        className="flex aspect-[4/3] w-full cursor-zoom-in items-center justify-center overflow-hidden rounded-lg border border-brand/10 bg-white"
+        className="relative aspect-square w-full cursor-zoom-in overflow-hidden rounded-lg border border-brand/10 bg-white"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={current}
           alt={title}
-          className="h-full w-full object-cover object-center"
+          className="absolute inset-0 h-full w-full object-cover object-center"
         />
       </button>
       {urls.length > 1 ? (
@@ -297,7 +297,7 @@ export function ListingGallery({
                 onDoubleClick={() => openLightbox(index)}
                 aria-label={t.sell.photoN.replace("{n}", String(index + 1))}
                 aria-pressed={selected}
-                className={`flex aspect-square items-center justify-center overflow-hidden rounded-md border-2 bg-white transition ${
+                className={`relative aspect-square overflow-hidden rounded-md border-2 bg-white transition ${
                   selected
                     ? "border-brand"
                     : "border-brand/10 opacity-80 hover:opacity-100"
@@ -307,7 +307,7 @@ export function ListingGallery({
                 <img
                   src={url}
                   alt=""
-                  className="h-full w-full object-cover object-center"
+                  className="absolute inset-0 h-full w-full object-cover object-center"
                 />
               </button>
             );

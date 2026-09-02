@@ -41,7 +41,6 @@ export function BuyButton({
               return;
             }
             router.push("/account/transactions");
-            router.refresh();
           });
         }}
         className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-brand px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-soft disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"

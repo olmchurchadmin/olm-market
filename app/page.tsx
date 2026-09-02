@@ -5,8 +5,8 @@ export const dynamic = "force-dynamic";
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string; q?: string; page?: string }>;
+  searchParams: Promise<{ category?: string; q?: string }>;
 }) {
-  const { category, q, page } = await searchParams;
-  return <MarketBrowse category={category} q={q} page={page} />;
+  const { category, q } = await searchParams;
+  return <MarketBrowse category={category} q={q} />;
 }

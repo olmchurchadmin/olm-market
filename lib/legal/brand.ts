@@ -1,6 +1,6 @@
-/** Must match the exact A2P Brand name in Twilio Trust Hub (case-sensitive). */
+/** Display name used on privacy / terms pages. */
 export function getRegisteredBrandName(): string {
-  const fromEnv = process.env.NEXT_PUBLIC_A2P_BRAND_NAME?.trim();
+  const fromEnv = process.env.NEXT_PUBLIC_LEGAL_BRAND_NAME?.trim();
   if (fromEnv) return fromEnv;
-  return "SKYFACE, LLC.";
+  return "Our Lady of Mercy Parish";
 }

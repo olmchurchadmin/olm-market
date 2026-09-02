@@ -1,6 +1,11 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { getUserAlertsData } from "@/lib/user-alerts";
+
+export async function loadUserAlertsAction() {
+  return getUserAlertsData();
+}
 
 export async function markNotificationsReadAction(ids: string[]) {
   if (!ids.length) return { ok: true as const };

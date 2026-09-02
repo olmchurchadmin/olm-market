@@ -1,12 +1,10 @@
-import Link from "next/link";
 import type { LegalPage } from "@/lib/i18n/legal";
 
 type LegalDocumentProps = {
   page: LegalPage;
-  crossLink: { href: string; label: string };
 };
 
-export function LegalDocument({ page, crossLink }: LegalDocumentProps) {
+export function LegalDocument({ page }: LegalDocumentProps) {
   return (
     <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
       <p className="text-xs font-semibold tracking-wide text-ink-muted uppercase">
@@ -19,7 +17,7 @@ export function LegalDocument({ page, crossLink }: LegalDocumentProps) {
         {page.brandName} · Last updated · {page.updated}
       </p>
       <p className="mt-4 rounded-md border border-brand/15 bg-brand/5 px-4 py-3 text-sm text-foreground">
-        <strong>Registered business:</strong> {page.brandName}
+        <strong>{page.operatorLabel}:</strong> {page.brandName}
       </p>
       <p className="mt-6 text-base leading-relaxed text-foreground">{page.intro}</p>
 
@@ -42,12 +40,6 @@ export function LegalDocument({ page, crossLink }: LegalDocumentProps) {
           </section>
         ))}
       </div>
-
-      <p className="mt-12 text-sm text-ink-muted">
-        <Link href={crossLink.href} className="text-brand hover:underline">
-          {crossLink.label}
-        </Link>
-      </p>
     </main>
   );
 }

@@ -1,34 +1,64 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, useState, useTransition } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { useI18n } from "@/components/locale-provider";
-import { markNotificationsReadAction } from "@/lib/actions/notifications";
+import {
+  loadUserAlertsAction,
+  markNotificationsReadAction,
+} from "@/lib/actions/notifications";
 import type { AlertNotification, UserAlertsData } from "@/lib/user-alerts";
 
 const EMAIL_DISMISS_KEY = "cm_email_alert_dismissed";
 
-export function UserAlertsGate({ data }: { data: UserAlertsData | null }) {
+export function UserAlertsGate() {
   const { t } = useI18n();
+  const pathname = usePathname();
   const titleId = useId();
   const descId = useId();
+  const [data, setData] = useState<UserAlertsData | null>(null);
   const [emailOpen, setEmailOpen] = useState(false);
   const [queue, setQueue] = useState<AlertNotification[]>([]);
   const [pending, startTransition] = useTransition();
+  const appliedKey = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!data) return;
+    let cancelled = false;
+    loadUserAlertsAction()
+      .then((next) => {
+        if (cancelled) return;
+        setData(next);
+      })
+      .catch(() => {
+        if (!cancelled) setData(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!data) {
+      setEmailOpen(false);
+      setQueue([]);
+      return;
+    }
+
+    const key = `${data.needsEmail}:${data.notifications.map((n) => n.id).join(",")}`;
+    if (appliedKey.current === key) return;
+    appliedKey.current = key;
 
     if (data.needsEmail) {
-      const dismissed =
-        typeof window !== "undefined" &&
-        sessionStorage.getItem(EMAIL_DISMISS_KEY) === "1";
+      const dismissed = sessionStorage.getItem(EMAIL_DISMISS_KEY) === "1";
       if (!dismissed) {
         setEmailOpen(true);
+        setQueue([]);
         return;
       }
     }
 
+    setEmailOpen(false);
     setQueue(data.notifications);
   }, [data]);
 
