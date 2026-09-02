@@ -202,6 +202,14 @@ const ko = {
     noBuying: "구매 내역이 없습니다.",
     edit: "수정",
     delete: "삭제",
+    activeTrades: "진행 중 거래",
+    completedTrades: "완료된 거래",
+    completeTradeCta: "거래완료",
+    completeTradeTitle: "거래 완료 확인",
+    completeTradeMessage:
+      "구매자와 판매자 양측 거래가 모두 끝났나요? 확인하면 진행 목록에서 사라지고 완료 목록으로 이동합니다.",
+    noActiveTrades: "진행 중인 거래가 없습니다.",
+    noCompletedTrades: "완료된 거래가 없습니다.",
   },
   admin: {
     title: "Admin",
@@ -269,27 +277,29 @@ const ko = {
   },
   notify: {
     reservedTitle: "거래가 성립되었습니다",
-    reservedBody:
-      "「{title}」({price}) 예약이 확정되었습니다. 판매자는 다음 주 성당에 물건을 가져와 주세요.",
+    reservedBody: "예약이 확정되었습니다. 다음 주 성당에 물건을 가져와 주세요.",
     reservedSellerChurchTitle: "팔렸습니다",
-    reservedSellerChurchBody:
-      "「{title}」({price})이 팔렸습니다. 구매자는 {buyer}입니다. 다음 주 성당으로 가져와 주세요.",
+    reservedSellerChurchBody: "다음 주 성당으로 물건을 가져와 주세요.",
     reservedSellerHomeTitle: "팔렸습니다",
     reservedSellerHomeBody:
-      "「{title}」({price})이 팔렸습니다. 구매자는 {buyer}입니다. 집으로 픽업하러 옵니다. 구매자와 상의하여 날짜와 시간을 정하세요.",
+      "구매자가 판매자 위치에서 픽업합니다. 구매자와 날짜·시간을 정해 주세요.",
     reservedBuyerChurchTitle: "거래가 성립되었습니다",
     reservedBuyerChurchBody:
-      "「{title}」({price}) 거래가 성립되었습니다. 다음 주 성당에서 판매자({seller})를 찾아 물건을 전달받으세요.",
+      "다음 주 성당에서 판매자를 찾아 물건을 전달받으세요.",
     reservedBuyerHomeTitle: "거래가 성립되었습니다",
-    reservedBuyerHomeBody:
-      "「{title}」({price}) 거래가 성립되었습니다. 판매자({seller})와 상의하여 날짜와 시간을 정하세요.",
+    reservedBuyerHomeBody: "판매자와 날짜·시간을 정해 픽업하세요.",
     atChurchTitle: "물건이 성당에 도착했습니다",
-    atChurchBody:
-      "「{title}」({price}) 픽업 준비가 되었습니다. 관리자에게 현금으로 결제 후 수령해 주세요.",
+    atChurchBody: "픽업 준비가 되었습니다. 관리자에게 현금으로 결제 후 수령해 주세요.",
     completedTitle: "거래가 완료되었습니다",
-    completedBody: "「{title}」({price}) 거래가 완료되었습니다.",
+    completedBody: "거래가 완료되었습니다.",
     listingCreatedTitle: "물품이 등록되었습니다",
-    listingCreatedBody: "「{title}」({price})이 장터에 등록되었습니다.",
+    listingCreatedBody: "장터에 등록되었습니다.",
+    detailItem: "물건",
+    detailSeller: "판매자",
+    detailBuyer: "구매자",
+    detailPickup: "거래방법",
+    sellerLabel: "판매자",
+    buyerLabel: "구매자",
   },
   errors: {
     loginRequired: "로그인이 필요합니다.",
@@ -548,6 +558,14 @@ const en: Dictionary = {
     noBuying: "No purchases yet.",
     edit: "Edit",
     delete: "Delete",
+    activeTrades: "Active trades",
+    completedTrades: "Completed trades",
+    completeTradeCta: "Complete trade",
+    completeTradeTitle: "Confirm trade complete",
+    completeTradeMessage:
+      "Have both buyer and seller finished this trade? It will leave the active list and move to completed.",
+    noActiveTrades: "No active trades.",
+    noCompletedTrades: "No completed trades yet.",
   },
   admin: {
     title: "Admin",
@@ -615,27 +633,30 @@ const en: Dictionary = {
   },
   notify: {
     reservedTitle: "Purchase reserved",
-    reservedBody:
-      '"{title}" ({price}) is reserved. Please drop the item off at church next week.',
+    reservedBody: "Reserved. Please drop the item off at church next week.",
     reservedSellerChurchTitle: "Sold",
-    reservedSellerChurchBody:
-      '"{title}" ({price}) sold. Buyer: {buyer}. Please bring it to church next week.',
+    reservedSellerChurchBody: "Please bring the item to church next week.",
     reservedSellerHomeTitle: "Sold",
     reservedSellerHomeBody:
-      '"{title}" ({price}) sold. Buyer: {buyer}. They will pick up at your place — arrange date and time with the buyer.',
+      "The buyer will pick up at your location. Arrange date and time with the buyer.",
     reservedBuyerChurchTitle: "Purchase confirmed",
     reservedBuyerChurchBody:
-      '"{title}" ({price}) is confirmed. Meet the seller ({seller}) at church next week to receive the item.',
+      "Meet the seller at church next week to receive the item.",
     reservedBuyerHomeTitle: "Purchase confirmed",
-    reservedBuyerHomeBody:
-      '"{title}" ({price}) is confirmed. Arrange date and time with the seller ({seller}).',
+    reservedBuyerHomeBody: "Arrange date and time with the seller for pickup.",
     atChurchTitle: "Item arrived at church",
     atChurchBody:
-      '"{title}" ({price}) is ready for pickup. Pay cash to the admin, then collect it.',
+      "Ready for pickup. Pay cash to the admin, then collect it.",
     completedTitle: "Trade completed",
-    completedBody: '"{title}" ({price}) has been completed.',
+    completedBody: "This trade has been completed.",
     listingCreatedTitle: "Listing published",
-    listingCreatedBody: '"{title}" ({price}) is now on the marketplace.',
+    listingCreatedBody: "Your listing is now on the marketplace.",
+    detailItem: "Item",
+    detailSeller: "Seller",
+    detailBuyer: "Buyer",
+    detailPickup: "Pickup method",
+    sellerLabel: "Seller",
+    buyerLabel: "Buyer",
   },
   errors: {
     loginRequired: "Please log in.",

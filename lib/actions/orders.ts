@@ -83,6 +83,27 @@ export async function adminMarkPickupAction(orderId: string) {
   revalidatePath("/admin");
   revalidatePath("/me");
   revalidatePath("/account/transactions");
+  revalidatePath("/account/notifications");
+  revalidatePath("/");
+  revalidatePath("/market");
+  return { ok: true as const };
+}
+
+/** Confirm both sides finished — works from awaiting_dropoff or ready_for_pickup. */
+export async function adminCompleteTradeAction(orderId: string) {
+  const { t } = await getI18n();
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("admin_mark_trade_complete", {
+    p_order_id: orderId,
+  });
+  if (error || !data) {
+    return { ok: false as const, error: error?.message || t.errors.actionFailed };
+  }
+  scheduleOrderNotify(orderId, "completed");
+  revalidatePath("/admin");
+  revalidatePath("/me");
+  revalidatePath("/account/transactions");
+  revalidatePath("/account/notifications");
   revalidatePath("/");
   revalidatePath("/market");
   return { ok: true as const };

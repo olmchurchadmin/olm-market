@@ -343,14 +343,21 @@ export async function notifyOrderEvent(input: OrderNotifyInput) {
     listing_title: title,
     price_cents: order.price_cents,
     pickup_method: pickupMethod,
+    buyer_name: buyerName,
+    seller_name: sellerName,
   };
 
   const recipients = [buyer, seller].filter(Boolean) as ProfileRow[];
   for (const person of recipients) {
+    const role = person.id === order.buyer_id ? "buyer" : "seller";
     await deliverToPerson(supabase, {
       person,
-      copy,
-      payload,
+      copy: { ...copy, role },
+      payload: {
+        ...payload,
+        role,
+        counterparty_name: role === "buyer" ? sellerName : buyerName,
+      },
       orderId: order.id,
     });
   }

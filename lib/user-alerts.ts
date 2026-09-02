@@ -9,6 +9,13 @@ export type AlertNotification = {
   type: string;
   title: string;
   body: string;
+  details: {
+    item: string | null;
+    price: string | null;
+    seller: string | null;
+    buyer: string | null;
+    pickup: string | null;
+  };
   createdAt: string;
   readAt: string | null;
 };
@@ -99,6 +106,7 @@ export async function getUserAlertsData(): Promise<UserAlertsData | null> {
       type: n.type,
       title: copy.title,
       body: copy.body,
+      details: copy.details,
       createdAt: n.created_at,
       readAt: n.read_at,
     };
