@@ -28,7 +28,7 @@ function tabClass(active: boolean) {
   return `shrink-0 rounded-md px-3.5 py-1.5 text-sm whitespace-nowrap transition ${
     active
       ? "bg-brand text-white shadow-sm"
-      : "bg-surface/90 text-foreground ring-1 ring-brand/10 hover:bg-neutral-100"
+      : "bg-white text-foreground ring-1 ring-brand/10 hover:bg-neutral-100"
   }`;
 }
 
@@ -112,7 +112,7 @@ export async function MarketBrowse({
         </button>
         <Link
           href="/sell"
-          className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md border border-brand/15 bg-surface px-3 py-2.5 text-sm font-semibold text-foreground transition hover:bg-sun sm:px-4"
+          className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md border border-brand/15 bg-white px-3 py-2.5 text-sm font-semibold text-foreground transition hover:bg-neutral-100 sm:px-4"
         >
           <PlusIcon className="size-4" aria-hidden />
           <span className="hidden sm:inline">{t.market.sellCta}</span>
