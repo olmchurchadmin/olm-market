@@ -4,7 +4,11 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { useI18n } from "@/components/locale-provider";
 
-export function AccountNav({ active }: { active: "profile" | "transactions" }) {
+export function AccountNav({
+  active,
+}: {
+  active: "profile" | "transactions" | "complaints";
+}) {
   const { t } = useI18n();
   const links = [
     { href: "/account/profile", label: t.account.myProfile, key: "profile" },
@@ -12,6 +16,11 @@ export function AccountNav({ active }: { active: "profile" | "transactions" }) {
       href: "/account/transactions",
       label: t.account.transactions,
       key: "transactions",
+    },
+    {
+      href: "/account/complaints",
+      label: t.account.complaint,
+      key: "complaints",
     },
   ] as const;
 
@@ -45,7 +54,7 @@ export function AccountShell({
 }: {
   title: string;
   subtitle?: string;
-  active: "profile" | "transactions";
+  active: "profile" | "transactions" | "complaints";
   children: ReactNode;
 }) {
   return (

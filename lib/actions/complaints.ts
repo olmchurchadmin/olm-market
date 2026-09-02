@@ -12,7 +12,7 @@ export async function createComplaintAction(formData: FormData) {
 
   if (!subject || !body) {
     redirect(
-      `/account/profile?error=${encodeURIComponent(t.errors.complaintRequired)}`,
+      `/account/complaints?error=${encodeURIComponent(t.errors.complaintRequired)}`,
     );
   }
 
@@ -20,7 +20,7 @@ export async function createComplaintAction(formData: FormData) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login?next=/account/profile");
+  if (!user) redirect("/login?next=/account/complaints");
 
   const { error } = await supabase.from("complaints").insert({
     user_id: user.id,
@@ -31,13 +31,13 @@ export async function createComplaintAction(formData: FormData) {
 
   if (error) {
     redirect(
-      `/account/profile?error=${encodeURIComponent(error.message || t.errors.complaintFailed)}`,
+      `/account/complaints?error=${encodeURIComponent(error.message || t.errors.complaintFailed)}`,
     );
   }
 
-  revalidatePath("/account/profile");
+  revalidatePath("/account/complaints");
   revalidatePath("/admin");
-  redirect("/account/profile?saved=complaint");
+  redirect("/account/complaints?saved=complaint");
 }
 
 export async function resolveComplaintAction(formData: FormData) {
