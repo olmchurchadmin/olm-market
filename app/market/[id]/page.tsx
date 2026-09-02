@@ -9,6 +9,7 @@ import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import {
   formatPrice,
+  listingStatusBadgeClass,
   listingStatusLabel,
   publicSellerLabel,
 } from "@/lib/utils";
@@ -43,6 +44,10 @@ export default async function ListingDetailPage({
     listing.status === "available" && user?.id !== listing.seller_id;
   const isOwnListing = Boolean(user && user.id === listing.seller_id);
   const statusLabel = listingStatusLabel(listing.status, t.status);
+  const showStatusBadge =
+    listing.status === "reserved" ||
+    listing.status === "at_church" ||
+    listing.status === "sold";
   const pickupMethod =
     listing.pickup_method === "seller_location" ? "seller_location" : "church";
   const pickupLabel =
@@ -58,6 +63,13 @@ export default async function ListingDetailPage({
     100,
     Math.max(30, Math.round(listing.donation_percent ?? 100)),
   );
+  const statusBadge = showStatusBadge ? (
+    <span
+      className={`absolute left-3 top-3 z-10 rounded-md px-2.5 py-1 text-xs font-semibold shadow-sm ${listingStatusBadgeClass(listing.status)}`}
+    >
+      {statusLabel}
+    </span>
+  ) : null;
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
@@ -74,6 +86,7 @@ export default async function ListingDetailPage({
           title={listing.title}
           images={images}
           coverPath={listing.cover_image_path}
+          statusBadge={statusBadge}
         />
 
         <div>
@@ -90,9 +103,11 @@ export default async function ListingDetailPage({
             {t.market.donation}:{" "}
             {t.market.donationValue.replace("{percent}", String(donationPercent))}
           </p>
-          <p className="mt-2 text-sm text-ink-muted">
-            {t.market.status}: {statusLabel}
-          </p>
+          {!showStatusBadge ? (
+            <p className="mt-2 text-sm text-ink-muted">
+              {t.market.status}: {statusLabel}
+            </p>
+          ) : null}
           <p className="mt-1 text-sm text-ink-muted">
             {t.market.pickup}: {pickupLabel}
           </p>
@@ -108,25 +123,21 @@ export default async function ListingDetailPage({
           </p>
 
           <div className="mt-8 space-y-3 border-t border-brand/10 pt-6">
-            {listing.status === "sold" ? (
-              <p className="inline-flex rounded-md bg-brand px-3 py-2 text-sm font-semibold text-white">
-                {t.market.sold}
-              </p>
-            ) : listing.status !== "available" ? (
-              <p className="text-sm font-medium text-foreground">
-                {t.market.notAvailable.replace("{status}", statusLabel)}
-              </p>
-            ) : !user ? (
-              <Link
-                href={`/login?next=/market/${listing.id}`}
-                className="inline-flex rounded-md bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-soft"
-              >
-                {t.market.loginToBuy}
-              </Link>
-            ) : (
-              <BuyButton listingId={listing.id} disabled={!canBuy} />
-            )}
-            <p className="text-xs leading-relaxed text-ink-muted">{buyHint}</p>
+            {listing.status === "available" ? (
+              !user ? (
+                <Link
+                  href={`/login?next=/market/${listing.id}`}
+                  className="inline-flex rounded-md bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-soft"
+                >
+                  {t.market.loginToBuy}
+                </Link>
+              ) : (
+                <BuyButton listingId={listing.id} disabled={!canBuy} />
+              )
+            ) : null}
+            {listing.status === "available" ? (
+              <p className="text-xs leading-relaxed text-ink-muted">{buyHint}</p>
+            ) : null}
           </div>
         </div>
       </div>

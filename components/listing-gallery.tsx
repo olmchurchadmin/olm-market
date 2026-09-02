@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useI18n } from "@/components/locale-provider";
 import { listingImageUrl } from "@/lib/utils";
+import type { ReactNode } from "react";
 
 type GalleryImage = {
   id: string;
@@ -25,10 +26,12 @@ export function ListingGallery({
   title,
   images,
   coverPath,
+  statusBadge,
 }: {
   title: string;
   images: GalleryImage[];
   coverPath?: string | null;
+  statusBadge?: ReactNode;
 }) {
   const { t } = useI18n();
   const urls = (
@@ -139,7 +142,8 @@ export function ListingGallery({
 
   if (!current) {
     return (
-      <div className="flex aspect-square items-center justify-center rounded-lg border border-brand/10 bg-white text-ink-muted">
+      <div className="relative flex aspect-square items-center justify-center rounded-lg border border-brand/10 bg-neutral-100 text-ink-muted">
+        {statusBadge}
         {t.market.noImage}
       </div>
     );
@@ -284,6 +288,7 @@ export function ListingGallery({
           alt={title}
           className="absolute inset-0 h-full w-full object-cover object-center"
         />
+        {statusBadge}
       </button>
       {urls.length > 1 ? (
         <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">

@@ -62,6 +62,19 @@ export function listingStatusLabel(
   }
 }
 
+export function listingStatusBadgeClass(status: string) {
+  switch (status) {
+    case "reserved":
+      return "bg-amber-600 text-white";
+    case "at_church":
+      return "bg-teal-700 text-white";
+    case "sold":
+      return "bg-neutral-600 text-white";
+    default:
+      return "bg-brand text-white";
+  }
+}
+
 export function orderStatusLabel(status: string, dict?: Dictionary["status"]) {
   if (status === "reserved" || status === "awaiting_dropoff") {
     return dict?.awaiting_dropoff || "드롭오프 대기";

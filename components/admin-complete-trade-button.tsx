@@ -19,9 +19,9 @@ export function AdminCompleteTradeButton({ orderId }: { orderId: string }) {
       disabled={pending}
       onClick={async () => {
         const ok = await confirm({
-          title: t.account.completeTradeTitle,
-          message: t.account.completeTradeMessage,
-          confirmLabel: t.account.completeTradeCta,
+          title: t.admin.completeTradeTitle,
+          message: t.admin.completeTradeMessage,
+          confirmLabel: t.admin.completeTradeCta,
           cancelLabel: t.common.cancel,
         });
         if (!ok) return;
@@ -36,7 +36,7 @@ export function AdminCompleteTradeButton({ orderId }: { orderId: string }) {
       className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-brand px-3 py-2 text-xs font-semibold text-white hover:bg-brand-soft disabled:opacity-50"
     >
       <CheckIcon className="size-4" aria-hidden />
-      {pending ? t.common.loading : t.account.completeTradeCta}
+      {pending ? t.common.loading : t.admin.completeTradeCta}
     </button>
   );
 }

@@ -3,26 +3,14 @@
 import Link from "next/link";
 import { useI18n } from "@/components/locale-provider";
 import { categoryLabel } from "@/lib/i18n/categories";
-import type { Listing, ListingStatus } from "@/lib/types";
+import type { Listing } from "@/lib/types";
 import {
   formatPrice,
   listingImageUrl,
+  listingStatusBadgeClass,
   listingStatusLabel,
   publicSellerLabel,
 } from "@/lib/utils";
-
-function listingStatusBadgeClass(status: ListingStatus) {
-  switch (status) {
-    case "reserved":
-      return "bg-amber-600 text-white";
-    case "at_church":
-      return "bg-teal-700 text-white";
-    case "sold":
-      return "bg-neutral-600 text-white";
-    default:
-      return "bg-brand text-white";
-  }
-}
 
 export function ListingCard({ listing }: { listing: Listing }) {
   const { locale, t } = useI18n();

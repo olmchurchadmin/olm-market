@@ -6,7 +6,7 @@ import { useI18n } from "@/components/locale-provider";
 import type { Listing } from "@/lib/types";
 
 const RING_SIZE = 40;
-const RING_STROKE = 1;
+const RING_STROKE = 2;
 const HEADER_OFFSET = 80;
 
 function ListProgressRing({
