@@ -162,6 +162,13 @@ const ko = {
     updatePasswordCta: "비밀번호 저장",
     noResetSession:
       "재설정 세션이 없습니다. 이메일의 링크를 다시 열어 주세요.",
+    confirmEmailTitle: "이메일 확인",
+    confirmEmailBlurb:
+      "아래 버튼을 눌러 이메일 인증을 완료하세요. 메일 미리보기로 링크가 만료되지 않도록 버튼 방식입니다.",
+    confirmEmailCta: "이메일 인증하기",
+    confirmRecoveryTitle: "비밀번호 재설정",
+    confirmRecoveryBlurb: "아래 버튼을 눌러 새 비밀번호 설정 화면으로 이동하세요.",
+    confirmRecoveryCta: "비밀번호 재설정 계속",
   },
   account: {
     title: "내 계정",
@@ -358,6 +365,8 @@ const ko = {
     profileSaveFailed: "프로필을 저장하지 못했습니다.",
     notificationEmailInvalid: "알림 이메일 형식이 올바르지 않습니다.",
     authFailed: "인증에 실패했습니다.",
+    emailLinkInvalid:
+      "이메일 링크가 만료되었거나 이미 사용되었습니다. 회원가입/비밀번호 찾기를 다시 요청해 주세요.",
     deleteAccountFailed: "회원 탈퇴를 완료하지 못했습니다.",
     deleteAccountActiveTrades:
       "진행 중인 거래가 있어 탈퇴할 수 없습니다. 거래를 마친 뒤 다시 시도해 주세요.",
@@ -550,6 +559,13 @@ const en: Dictionary = {
     updatePasswordCta: "Save password",
     noResetSession:
       "No reset session. Open the link from your email again.",
+    confirmEmailTitle: "Confirm email",
+    confirmEmailBlurb:
+      "Click the button below to finish verifying your email. Using a button avoids mail scanners expiring the link.",
+    confirmEmailCta: "Confirm email",
+    confirmRecoveryTitle: "Reset password",
+    confirmRecoveryBlurb: "Click the button below to continue resetting your password.",
+    confirmRecoveryCta: "Continue password reset",
   },
   account: {
     title: "My Account",
@@ -748,6 +764,8 @@ const en: Dictionary = {
     profileSaveFailed: "Could not save profile.",
     notificationEmailInvalid: "Notification email format is invalid.",
     authFailed: "Authentication failed.",
+    emailLinkInvalid:
+      "This email link is invalid or has expired. Please request a new signup or password-reset email.",
     deleteAccountFailed: "Could not delete your account.",
     deleteAccountActiveTrades:
       "You have an active trade. Finish it before deleting your account.",

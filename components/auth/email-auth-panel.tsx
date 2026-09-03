@@ -133,25 +133,57 @@ export function EmailAuthPanel({
           </label>
           <label className="block text-sm font-medium">
             {t.auth.password}
-            <input
-              type="password"
-              name="password"
-              required
-              minLength={6}
-              autoComplete="new-password"
-              className="mt-1 w-full rounded-md border border-brand/15 bg-white px-3 py-2 outline-none focus:border-brand"
-            />
+            <span className="relative mt-1 block">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                required
+                minLength={6}
+                autoComplete="new-password"
+                className="w-full rounded-md border border-brand/15 bg-white px-3 py-2 pr-10 outline-none focus:border-brand"
+              />
+              <button
+                type="button"
+                className="absolute top-1/2 right-2 -translate-y-1/2 rounded p-1 text-ink-muted hover:text-brand"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={
+                  showPassword ? t.auth.hidePassword : t.auth.showPassword
+                }
+              >
+                {showPassword ? (
+                  <EyeSlashIcon className="size-5" />
+                ) : (
+                  <EyeIcon className="size-5" />
+                )}
+              </button>
+            </span>
           </label>
           <label className="block text-sm font-medium">
             {t.auth.confirmPassword}
-            <input
-              type="password"
-              name="confirm"
-              required
-              minLength={6}
-              autoComplete="new-password"
-              className="mt-1 w-full rounded-md border border-brand/15 bg-white px-3 py-2 outline-none focus:border-brand"
-            />
+            <span className="relative mt-1 block">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="confirm"
+                required
+                minLength={6}
+                autoComplete="new-password"
+                className="w-full rounded-md border border-brand/15 bg-white px-3 py-2 pr-10 outline-none focus:border-brand"
+              />
+              <button
+                type="button"
+                className="absolute top-1/2 right-2 -translate-y-1/2 rounded p-1 text-ink-muted hover:text-brand"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={
+                  showPassword ? t.auth.hidePassword : t.auth.showPassword
+                }
+              >
+                {showPassword ? (
+                  <EyeSlashIcon className="size-5" />
+                ) : (
+                  <EyeIcon className="size-5" />
+                )}
+              </button>
+            </span>
           </label>
           <button
             type="submit"

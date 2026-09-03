@@ -2,10 +2,16 @@
 
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
+import type { EmailOtpType } from "@supabase/supabase-js";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { getI18n } from "@/lib/i18n/server";
+import { buildEmailConfirmUrl } from "@/lib/auth-links";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/notifications/email";
+import {
+  confirmEmailHtml,
+  passwordResetEmailHtml,
+} from "@/lib/notifications/auth-emails";
 
 function siteUrl(path = "") {
   const base = process.env.NEXT_PUBLIC_SITE_URL
@@ -94,22 +100,95 @@ export async function signUpWithPasswordAction(formData: FormData) {
     );
   }
 
-  const supabase = await createClient();
   const origin = await originBase();
   const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(next)}`;
+  const safeNext = next.startsWith("/") ? next : "/";
+
+  // Prefer admin generateLink + branded Resend mail so users never get the
+  // default Supabase "Confirm your email address" template.
+  try {
+    const admin = createServiceClient();
+    const { data, error } = await admin.auth.admin.generateLink({
+      type: "signup",
+      email,
+      password,
+      options: { redirectTo },
+    });
+
+    if (error) {
+      const already =
+        /already registered|already exists|user already/i.test(error.message);
+      if (already) {
+        const signedIn = await confirmAndSignIn(email, password);
+        if (signedIn) redirect(next);
+        redirect(
+          `/login?mode=signin&error=${encodeURIComponent(t.errors.alreadyRegistered)}&next=${encodeURIComponent(next)}`,
+        );
+      }
+      redirect(
+        `/login?mode=signup&error=${encodeURIComponent(mapAuthError(error.message, t))}&next=${encodeURIComponent(next)}`,
+      );
+    }
+
+    const props = data?.properties;
+    const confirmUrl =
+      props?.hashed_token
+        ? buildEmailConfirmUrl({
+            tokenHash: props.hashed_token,
+            verificationType: props.verification_type || "signup",
+            next: safeNext,
+          })
+        : props?.action_link;
+
+    if (confirmUrl) {
+      const result = await sendEmail({
+        to: email,
+        subject: "[OLM Market] Confirm your email address",
+        html: confirmEmailHtml(confirmUrl),
+      });
+      if (result.ok) {
+        redirect(
+          `/login?mode=signin&sent=signup&next=${encodeURIComponent(next)}`,
+        );
+      }
+      console.error(
+        "[signup] Resend confirm email failed:",
+        "reason" in result ? result.reason : "unknown",
+        "error" in result ? result.error : "",
+      );
+    }
+
+    // Resend unavailable: auto-confirm so signup still works.
+    if (data?.user?.id) {
+      await admin.auth.admin.updateUserById(data.user.id, {
+        email_confirm: true,
+      });
+    }
+    const supabase = await createClient();
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (!signInError) redirect(next);
+    redirect(
+      `/login?mode=signin&error=${encodeURIComponent(mapAuthError(signInError.message, t))}&next=${encodeURIComponent(next)}`,
+    );
+  } catch (err) {
+    console.error("[signup] branded confirm path error:", err);
+  }
+
+  // Last resort: public signUp (may send Supabase default mail if confirm is on).
+  const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: {
-      emailRedirectTo: redirectTo,
-    },
+    options: { emailRedirectTo: redirectTo },
   });
 
   if (error) {
     const already =
       /already registered|already exists|user already/i.test(error.message);
     if (already) {
-      // Previous unconfirmed attempt: confirm + sign in, or fall back to login.
       const signedIn = await confirmAndSignIn(email, password);
       if (signedIn) redirect(next);
       redirect(
@@ -121,12 +200,8 @@ export async function signUpWithPasswordAction(formData: FormData) {
     );
   }
 
-  if (data.session) {
-    redirect(next);
-  }
+  if (data.session) redirect(next);
 
-  // No session (Confirm email still on, or prior unconfirmed user):
-  // auto-confirm via service role so signup works without Resend domain.
   if (data.user?.id) {
     try {
       const admin = createServiceClient();
@@ -134,7 +209,7 @@ export async function signUpWithPasswordAction(formData: FormData) {
         email_confirm: true,
       });
     } catch {
-      // continue to sign-in attempt
+      // continue
     }
   }
 
@@ -142,13 +217,40 @@ export async function signUpWithPasswordAction(formData: FormData) {
     email,
     password,
   });
-  if (!signInError) {
-    redirect(next);
-  }
+  if (!signInError) redirect(next);
 
   redirect(
     `/login?mode=signin&error=${encodeURIComponent(mapAuthError(signInError.message, t))}&next=${encodeURIComponent(next)}`,
   );
+}
+
+export async function confirmEmailAction(formData: FormData) {
+  const { t } = await getI18n();
+  const tokenHash = String(formData.get("token_hash") || "").trim();
+  const type = String(formData.get("type") || "signup").trim() as EmailOtpType;
+  let next = String(formData.get("next") || "/");
+  if (!next.startsWith("/")) next = "/";
+
+  if (!tokenHash) {
+    redirect(
+      `/auth/confirm?error=${encodeURIComponent(t.errors.emailLinkInvalid)}`,
+    );
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.verifyOtp({
+    token_hash: tokenHash,
+    type,
+  });
+
+  if (error) {
+    console.error("[auth/confirm] verifyOtp:", error.message);
+    redirect(
+      `/login?error=${encodeURIComponent(mapAuthError(error.message, t))}&next=${encodeURIComponent(next)}`,
+    );
+  }
+
+  redirect(next);
 }
 
 async function confirmAndSignIn(email: string, password: string) {
@@ -197,11 +299,31 @@ export async function requestPasswordResetAction(formData: FormData) {
         options: { redirectTo },
       });
 
-      if (!error && data?.properties?.action_link) {
+      if (!error && data?.properties?.hashed_token) {
+        const confirmUrl = buildEmailConfirmUrl({
+          tokenHash: data.properties.hashed_token,
+          verificationType: data.properties.verification_type || "recovery",
+          next: "/login/update-password",
+        });
         const result = await sendEmail({
           to: email,
-          subject: "[Church Market] 비밀번호 재설정",
-          html: passwordResetHtml(data.properties.action_link),
+          subject: "[OLM Market] Reset your password",
+          html: passwordResetEmailHtml(confirmUrl),
+        });
+        if (result.ok) {
+          delivered = true;
+        } else {
+          console.error(
+            "[password-reset] Resend failed:",
+            "reason" in result ? result.reason : "unknown",
+            "error" in result ? result.error : "",
+          );
+        }
+      } else if (!error && data?.properties?.action_link) {
+        const result = await sendEmail({
+          to: email,
+          subject: "[OLM Market] Reset your password",
+          html: passwordResetEmailHtml(data.properties.action_link),
         });
         if (result.ok) {
           delivered = true;
@@ -464,34 +586,13 @@ function mapAuthError(message: string, t: Dictionary) {
   if (lower.includes("email not confirmed")) {
     return t.errors.emailNotConfirmed;
   }
+  if (
+    lower.includes("otp_expired") ||
+    lower.includes("invalid or has expired") ||
+    lower.includes("token has expired") ||
+    lower.includes("email link is invalid")
+  ) {
+    return t.errors.emailLinkInvalid;
+  }
   return message || t.errors.requestFailed;
-}
-
-function brandedAuthHtml(options: {
-  title: string;
-  body: string;
-  buttonLabel: string;
-  actionLink: string;
-}) {
-  return `
-  <div style="font-family:Inter,'Noto Sans KR',Helvetica,Arial,sans-serif;background:#fdfcf9;padding:32px 16px;color:#111111;">
-    <div style="max-width:480px;margin:0 auto;background:#fbfaf7;border-radius:8px;padding:28px;border:1px solid rgba(17,17,17,0.12);">
-      <p style="margin:0 0 8px;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;color:#243b8f;">OLM Market</p>
-      <h1 style="margin:0 0 12px;font-size:24px;color:#111111;">${options.title}</h1>
-      <p style="margin:0 0 20px;line-height:1.6;color:#5c5c5c;">${options.body}</p>
-      <p style="margin:0 0 24px;">
-        <a href="${options.actionLink}" style="display:inline-block;background:#243b8f;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:600;">${options.buttonLabel}</a>
-      </p>
-      <p style="margin:0;font-size:12px;line-height:1.5;color:#5c5c5c;word-break:break-all;">버튼이 작동하지 않으면 이 링크를 복사하세요:<br/>${options.actionLink}</p>
-    </div>
-  </div>`;
-}
-
-function passwordResetHtml(actionLink: string) {
-  return brandedAuthHtml({
-    title: "비밀번호 재설정",
-    body: "아래 버튼을 눌러 새 비밀번호를 설정하세요. 요청하지 않았다면 이 메일을 무시해도 됩니다.",
-    buttonLabel: "새 비밀번호 설정",
-    actionLink,
-  });
 }
