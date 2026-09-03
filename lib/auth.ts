@@ -12,6 +12,56 @@ export const getSessionUser = cache(async () => {
   return user;
 });
 
+/**
+ * Initial signup used to put the captured name in full_name (본명).
+ * Prefer nickname (이름); leave 본명 empty until the user fills it in.
+ */
+async function normalizeInitialDisplayName(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  profile: Profile,
+): Promise<Profile> {
+  const nickname = profile.nickname?.trim() || "";
+  const fullName = profile.full_name?.trim() || "";
+
+  // Legacy: only 본명 filled → move to 이름
+  if (!nickname && fullName) {
+    const { data } = await supabase
+      .from("profiles")
+      .update({ nickname: fullName, full_name: null })
+      .eq("id", profile.id)
+      .select("*")
+      .maybeSingle();
+    if (data) {
+      return {
+        ...data,
+        nickname: data.nickname ?? null,
+        is_anonymous: Boolean(data.is_anonymous),
+      } as Profile;
+    }
+    return { ...profile, nickname: fullName, full_name: null };
+  }
+
+  // Older trigger set the same value into both columns → keep 이름 only
+  if (nickname && fullName && nickname === fullName) {
+    const { data } = await supabase
+      .from("profiles")
+      .update({ full_name: null })
+      .eq("id", profile.id)
+      .select("*")
+      .maybeSingle();
+    if (data) {
+      return {
+        ...data,
+        nickname: data.nickname ?? null,
+        is_anonymous: Boolean(data.is_anonymous),
+      } as Profile;
+    }
+    return { ...profile, full_name: null };
+  }
+
+  return profile;
+}
+
 export const getCurrentProfile = cache(async (): Promise<Profile | null> => {
   if (!isSupabaseConfigured()) return null;
   const user = await getSessionUser();
@@ -26,11 +76,13 @@ export const getCurrentProfile = cache(async (): Promise<Profile | null> => {
 
   if (!data) return null;
 
-  return {
+  const profile = {
     ...data,
     nickname: data.nickname ?? null,
     is_anonymous: Boolean(data.is_anonymous),
   } as Profile;
+
+  return normalizeInitialDisplayName(supabase, profile);
 });
 
 export async function requireAdmin() {
