@@ -2,7 +2,7 @@
 
 import { BellIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useI18n } from "@/components/locale-provider";
 import { NotificationDetailRows } from "@/components/notification-detail-rows";
 import { useNotifications } from "@/components/notifications-provider";
@@ -13,8 +13,6 @@ export function NotificationBell() {
     enabled,
     unreadCount,
     recentNotifications,
-    panelOpen,
-    setPanelOpen,
     markRead,
     markAllRead,
     pending,
@@ -22,6 +20,11 @@ export function NotificationBell() {
   } = useNotifications();
   const panelId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
+  // Per instance, not shared: the nav renders one bell for desktop and one for
+  // mobile. Sharing this state left both panels open, so each one treated
+  // clicks inside the other as an outside click and closed the panel before
+  // the click could reach the button or link under the cursor.
+  const [panelOpen, setPanelOpen] = useState(false);
 
   useEffect(() => {
     if (!panelOpen) return;

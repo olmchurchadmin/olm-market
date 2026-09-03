@@ -31,11 +31,9 @@ type NotificationsContextValue = {
   unreadCount: number;
   unreadNotifications: AlertNotification[];
   recentNotifications: AlertNotification[];
-  panelOpen: boolean;
   pending: boolean;
   markFailed: boolean;
   toast: AlertNotification | null;
-  setPanelOpen: (open: boolean) => void;
   dismissEmailBanner: () => void;
   dismissToast: () => void;
   markRead: (ids: string[]) => void;
@@ -76,7 +74,6 @@ export function NotificationsProvider({
   const [data, setData] = useState<UserAlertsData | null>(null);
   const [loading, setLoading] = useState(enabled);
   const [emailBannerOpen, setEmailBannerOpen] = useState(false);
-  const [panelOpen, setPanelOpen] = useState(false);
   const [markFailed, setMarkFailed] = useState(false);
   const [toast, setToast] = useState<AlertNotification | null>(null);
   const [pending, startTransition] = useTransition();
@@ -215,11 +212,9 @@ export function NotificationsProvider({
     unreadCount,
     unreadNotifications,
     recentNotifications,
-    panelOpen,
     pending,
     markFailed,
     toast: enabled ? toast : null,
-    setPanelOpen,
     dismissEmailBanner,
     dismissToast,
     markRead,
