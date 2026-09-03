@@ -97,12 +97,12 @@ export default async function ListingDetailPage({
           <p className="mt-3 text-2xl font-semibold">
             {formatPrice(listing.price_cents, locale)}
           </p>
-          <p className="mt-2 text-sm text-ink-muted">
+          <p className="mt-2 font-mono text-sm tracking-wide text-ink-muted" title={listing.id}>
+            {t.market.listingId}: {formatListingPublicId(listing.id)}
+          </p>
+          <p className="mt-1 text-sm text-ink-muted">
             {t.market.donation}:{" "}
             {t.market.donationValue.replace("{percent}", String(donationPercent))}
-          </p>
-          <p className="mt-1 font-mono text-sm tracking-wide text-ink-muted" title={listing.id}>
-            {t.market.listingId}: {formatListingPublicId(listing.id)}
           </p>
           {listing.status === "available" ? (
             <p className="mt-1 text-sm text-ink-muted">

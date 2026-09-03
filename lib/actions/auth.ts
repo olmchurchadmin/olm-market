@@ -276,6 +276,104 @@ export async function signOutAction() {
   redirect("/");
 }
 
+export async function deleteAccountAction() {
+  const { t } = await getI18n();
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  let admin;
+  try {
+    admin = createServiceClient();
+  } catch {
+    redirect(
+      `/account/profile?error=${encodeURIComponent(t.errors.deleteAccountFailed)}`,
+    );
+  }
+
+  const uid = user.id;
+
+  const { count: activeCount, error: activeError } = await admin
+    .from("orders")
+    .select("id", { count: "exact", head: true })
+    .or(`buyer_id.eq.${uid},seller_id.eq.${uid}`)
+    .in("status", ["reserved", "awaiting_dropoff", "ready_for_pickup"]);
+
+  if (activeError) {
+    redirect(
+      `/account/profile?error=${encodeURIComponent(activeError.message || t.errors.deleteAccountFailed)}`,
+    );
+  }
+  if ((activeCount || 0) > 0) {
+    redirect(
+      `/account/profile?error=${encodeURIComponent(t.errors.deleteAccountActiveTrades)}`,
+    );
+  }
+
+  const { data: listings, error: listingsError } = await admin
+    .from("listings")
+    .select("id")
+    .eq("seller_id", uid);
+
+  if (listingsError) {
+    redirect(
+      `/account/profile?error=${encodeURIComponent(listingsError.message || t.errors.deleteAccountFailed)}`,
+    );
+  }
+
+  const listingIds = (listings || []).map((row) => row.id);
+
+  if (listingIds.length) {
+    const { data: images } = await admin
+      .from("listing_images")
+      .select("storage_path")
+      .in("listing_id", listingIds);
+    const paths = (images || [])
+      .map((row) => row.storage_path)
+      .filter(Boolean);
+    if (paths.length) {
+      await admin.storage.from("listing-images").remove(paths);
+    }
+  }
+
+  const { error: ordersError } = await admin
+    .from("orders")
+    .delete()
+    .or(`buyer_id.eq.${uid},seller_id.eq.${uid}`);
+
+  if (ordersError) {
+    redirect(
+      `/account/profile?error=${encodeURIComponent(ordersError.message || t.errors.deleteAccountFailed)}`,
+    );
+  }
+
+  if (listingIds.length) {
+    await admin.from("listing_images").delete().in("listing_id", listingIds);
+    const { error: deleteListingsError } = await admin
+      .from("listings")
+      .delete()
+      .eq("seller_id", uid);
+    if (deleteListingsError) {
+      redirect(
+        `/account/profile?error=${encodeURIComponent(deleteListingsError.message || t.errors.deleteAccountFailed)}`,
+      );
+    }
+  }
+
+  await supabase.auth.signOut();
+
+  const { error: deleteUserError } = await admin.auth.admin.deleteUser(uid);
+  if (deleteUserError) {
+    redirect(
+      `/login?error=${encodeURIComponent(deleteUserError.message || t.errors.deleteAccountFailed)}`,
+    );
+  }
+
+  redirect("/");
+}
+
 export async function updatePhoneAction(formData: FormData) {
   const phone = String(formData.get("phone") || "").trim();
   const supabase = await createClient();

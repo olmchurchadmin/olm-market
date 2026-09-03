@@ -52,7 +52,7 @@ const ko = {
     noResults: "검색 결과가 없습니다.",
     noConfig: "Supabase 환경변수가 아직 연결되지 않았습니다.",
     seller: "판매자",
-    listingId: "글 ID",
+    listingId: "등록 ID",
     anonymous: "익명",
     status: "상태",
     back: "장터",
@@ -212,6 +212,13 @@ const ko = {
     noBuying: "구매 내역이 없습니다.",
     edit: "수정",
     delete: "삭제",
+    deleteAccount: "회원 탈퇴",
+    deleteAccountTitle: "회원 탈퇴",
+    deleteAccountBlurb:
+      "계정을 삭제하면 로그인할 수 없으며, 올린 물품과 관련 데이터가 함께 삭제됩니다.",
+    deleteAccountWarning:
+      "탈퇴하면 내가 올린 모든 리스팅(물품)이 삭제되며 복구할 수 없습니다. 정말 탈퇴하시겠습니까?",
+    deleteAccountConfirm: "탈퇴하기",
   },
   admin: {
     title: "Admin",
@@ -351,6 +358,9 @@ const ko = {
     profileSaveFailed: "프로필을 저장하지 못했습니다.",
     notificationEmailInvalid: "알림 이메일 형식이 올바르지 않습니다.",
     authFailed: "인증에 실패했습니다.",
+    deleteAccountFailed: "회원 탈퇴를 완료하지 못했습니다.",
+    deleteAccountActiveTrades:
+      "진행 중인 거래가 있어 탈퇴할 수 없습니다. 거래를 마친 뒤 다시 시도해 주세요.",
   },
   status: {
     available: "판매중",
@@ -591,6 +601,13 @@ const en: Dictionary = {
     noBuying: "No purchases yet.",
     edit: "Edit",
     delete: "Delete",
+    deleteAccount: "Delete account",
+    deleteAccountTitle: "Delete account",
+    deleteAccountBlurb:
+      "Deleting your account signs you out permanently and removes your listings and related data.",
+    deleteAccountWarning:
+      "Deleting your account permanently removes every listing you posted. This cannot be undone. Continue?",
+    deleteAccountConfirm: "Delete account",
   },
   admin: {
     title: "Admin",
@@ -731,6 +748,9 @@ const en: Dictionary = {
     profileSaveFailed: "Could not save profile.",
     notificationEmailInvalid: "Notification email format is invalid.",
     authFailed: "Authentication failed.",
+    deleteAccountFailed: "Could not delete your account.",
+    deleteAccountActiveTrades:
+      "You have an active trade. Finish it before deleting your account.",
   },
   status: {
     available: "Available",

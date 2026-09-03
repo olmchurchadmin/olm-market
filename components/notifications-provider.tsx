@@ -135,6 +135,7 @@ export function NotificationsProvider({
 
   function markRead(ids: string[]) {
     if (!ids.length) return;
+    const snapshot = data;
     setData((prev) => {
       if (!prev) return prev;
       const now = new Date().toISOString();
@@ -149,12 +150,17 @@ export function NotificationsProvider({
       };
     });
     startTransition(async () => {
-      await markNotificationsReadAction(ids);
+      const result = await markNotificationsReadAction(ids);
+      if (!result.ok) {
+        setData(snapshot);
+        return;
+      }
       refresh();
     });
   }
 
   function markAllRead() {
+    const snapshot = data;
     setTradeBannerOpen(false);
     sessionStorage.removeItem(BANNER_DISMISS_KEY);
     setData((prev) => {
@@ -170,7 +176,21 @@ export function NotificationsProvider({
       };
     });
     startTransition(async () => {
-      await markAllTradeNotificationsReadAction();
+      const result = await markAllTradeNotificationsReadAction();
+      if (!result.ok) {
+        setData(snapshot);
+        if (snapshot) {
+          const unreadIds = snapshot.notifications
+            .filter((n) => !n.readAt)
+            .map((n) => n.id);
+          if (unreadIds.length) {
+            const fp = bannerFingerprint(unreadIds);
+            const dismissed = sessionStorage.getItem(BANNER_DISMISS_KEY) === fp;
+            setTradeBannerOpen(!dismissed);
+          }
+        }
+        return;
+      }
       refresh();
     });
   }
