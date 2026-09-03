@@ -21,13 +21,13 @@ export function AdminTabs({
 }) {
   const { t } = useI18n();
   const tabs: { key: AdminTab; label: string; badge?: number }[] = [
+    { key: "stats", label: t.admin.stats },
     {
       key: "orders",
       label: t.admin.orders,
       badge: activeTrades > 0 ? activeTrades : undefined,
     },
     { key: "listings", label: t.admin.listingsTab },
-    { key: "stats", label: t.admin.stats },
     { key: "members", label: t.admin.members },
     {
       key: "complaints",

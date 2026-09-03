@@ -26,7 +26,7 @@ import {
 
 export const dynamic = "force-dynamic";
 
-type StatsRange = "all" | "week" | "month" | "year";
+type StatsRange = "all" | "week" | "month";
 
 function StatCard({
   label,
@@ -58,11 +58,11 @@ function parseTab(raw: string | undefined): AdminTab {
   ) {
     return raw;
   }
-  return "orders";
+  return "stats";
 }
 
 function parseRange(raw: string | undefined): StatsRange {
-  if (raw === "week" || raw === "month" || raw === "year" || raw === "all") {
+  if (raw === "week" || raw === "month" || raw === "all") {
     return raw;
   }
   return "all";
@@ -79,10 +79,7 @@ function startOfRange(range: StatsRange): Date | null {
     d.setDate(d.getDate() - diff);
     return d;
   }
-  if (range === "month") {
-    return new Date(now.getFullYear(), now.getMonth(), 1);
-  }
-  return new Date(now.getFullYear(), 0, 1);
+  return new Date(now.getFullYear(), now.getMonth(), 1);
 }
 
 export default async function AdminPage({
@@ -112,7 +109,6 @@ export default async function AdminPage({
   const [
     { data: weekStats },
     { data: monthStats },
-    { data: yearStats },
     { data: allStats },
     { data: members },
     { data: complaints },
@@ -122,7 +118,6 @@ export default async function AdminPage({
   ] = await Promise.all([
     supabase.rpc("admin_stats", { p_range: "week" }),
     supabase.rpc("admin_stats", { p_range: "month" }),
-    supabase.rpc("admin_stats", { p_range: "year" }),
     supabase.rpc("admin_stats", { p_range: "all" }),
     supabase
       .from("profiles")
@@ -162,7 +157,6 @@ export default async function AdminPage({
 
   const week = (weekStats || {}) as AdminStats;
   const month = (monthStats || {}) as AdminStats;
-  const year = (yearStats || {}) as AdminStats;
   const all = (allStats || {}) as AdminStats;
 
   function donationFallback(target: StatsRange): number {
@@ -191,7 +185,6 @@ export default async function AdminPage({
     all: withDonation(all, "all"),
     week: withDonation(week, "week"),
     month: withDonation(month, "month"),
-    year: withDonation(year, "year"),
   };
   const stats = statsByRange[range];
 
@@ -223,7 +216,6 @@ export default async function AdminPage({
     { key: "all", label: t.admin.rangeAll },
     { key: "week", label: t.admin.rangeWeek },
     { key: "month", label: t.admin.rangeMonth },
-    { key: "year", label: t.admin.rangeYear },
   ];
 
   return (
@@ -394,8 +386,12 @@ export default async function AdminPage({
               value={formatPrice(stats.donation_cents ?? 0, locale)}
             />
             <StatCard
-              label={t.admin.pipeline}
-              value={`${stats.orders_awaiting_dropoff ?? 0} / ${stats.orders_ready_for_pickup ?? 0}`}
+              label={t.admin.awaitingDropoff}
+              value={stats.orders_awaiting_dropoff ?? 0}
+            />
+            <StatCard
+              label={t.admin.readyForPickup}
+              value={stats.orders_ready_for_pickup ?? 0}
             />
           </div>
         </section>
