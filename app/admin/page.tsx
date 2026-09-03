@@ -11,7 +11,7 @@ import { requireAdmin } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import type { AdminStats } from "@/lib/types";
-import { accountDisplayName, formatPrice, orderStatusLabel } from "@/lib/utils";
+import { accountDisplayName, formatPersonName, formatPrice, orderStatusLabel } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -71,7 +71,7 @@ export default async function AdminPage({
     supabase
       .from("orders")
       .select(
-        "*, listings(title), buyer:profiles!orders_buyer_id_fkey(email, full_name), seller:profiles!orders_seller_id_fkey(email, full_name)",
+        "*, listings(title), buyer:profiles!orders_buyer_id_fkey(email, full_name, nickname), seller:profiles!orders_seller_id_fkey(email, full_name, nickname)",
       )
       .in("status", ["awaiting_dropoff", "ready_for_pickup", "completed"])
       .order("created_at", { ascending: false })
@@ -316,10 +316,10 @@ export default async function AdminPage({
                   <tr key={order.id} className="border-t border-brand/5">
                     <td className="px-4 py-3">{listing?.title || "—"}</td>
                     <td className="px-4 py-3">
-                      {buyer?.full_name || buyer?.email || "—"}
+                      {formatPersonName(buyer, "—")}
                     </td>
                     <td className="px-4 py-3">
-                      {seller?.full_name || seller?.email || "—"}
+                      {formatPersonName(seller, "—")}
                     </td>
                     <td className="px-4 py-3">
                       {formatPrice(order.price_cents, locale)}

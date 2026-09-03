@@ -10,12 +10,27 @@ export function formatPrice(cents: number, _locale = "ko") {
   }).format(cents / 100);
 }
 
+/** Combine 이름(nickname) + 본명(full_name), e.g. "이호용 프란치스코". */
+export function formatPersonName(
+  profile: {
+    nickname?: string | null;
+    full_name?: string | null;
+    email?: string | null;
+  } | null | undefined,
+  fallback = "Member",
+) {
+  const display = profile?.nickname?.trim() || "";
+  const church = profile?.full_name?.trim() || "";
+  if (display && church && display !== church) return `${display} ${church}`;
+  return display || church || profile?.email?.trim() || fallback;
+}
+
 /** Label shown in the signed-in user's own menu (never anonymized). */
 export function accountDisplayName(
   profile: Pick<Profile, "nickname" | "full_name" | "email">,
   fallback = "Member",
 ) {
-  return profile.nickname || profile.full_name || profile.email || fallback;
+  return formatPersonName(profile, fallback);
 }
 
 /** Public seller label on market cards/detail. Honors is_anonymous. */
@@ -28,7 +43,7 @@ export function publicSellerLabel(
   const anonymousLabel = labels?.anonymous || "Anonymous";
   if (!row) return sellerLabel;
   if (row.is_anonymous) return anonymousLabel;
-  return row.nickname || row.full_name || sellerLabel;
+  return formatPersonName(row, sellerLabel);
 }
 
 export function listingImageUrl(path: string | null | undefined) {

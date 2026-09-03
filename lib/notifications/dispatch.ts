@@ -1,6 +1,6 @@
 import { createServiceClient } from "@/lib/supabase/server";
 import { getAdminEmail, sendEmail } from "@/lib/notifications/email";
-import { formatPrice } from "@/lib/utils";
+import { formatPersonName, formatPrice } from "@/lib/utils";
 import type { PickupMethod } from "@/lib/types";
 
 type OrderNotifyInput = {
@@ -27,12 +27,7 @@ function displayName(
   profile: Pick<ProfileRow, "nickname" | "full_name" | "email"> | null | undefined,
   fallback: string,
 ) {
-  return (
-    profile?.nickname?.trim() ||
-    profile?.full_name?.trim() ||
-    profile?.email?.trim() ||
-    fallback
-  );
+  return formatPersonName(profile, fallback);
 }
 
 function notifyEmailFor(person: ProfileRow): string | null {

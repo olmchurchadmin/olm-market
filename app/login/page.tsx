@@ -63,7 +63,7 @@ export default async function LoginPage({
               >
                 <button
                   type="submit"
-                  className="inline-flex w-full items-center justify-center gap-2.5 rounded-md border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-foreground shadow-sm transition hover:border-black/20 hover:bg-[#fafafa]"
+                  className="inline-flex w-full items-center justify-center gap-2.5 rounded-md border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-foreground transition hover:border-black/20 hover:bg-[#fafafa]"
                 >
                   <GoogleIcon />
                   {t.auth.continueGoogle}
