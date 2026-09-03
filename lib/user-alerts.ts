@@ -12,6 +12,7 @@ export type AlertNotification = {
   type: string;
   title: string;
   body: string;
+  payload: NotificationPayload;
   details: {
     item: string | null;
     price: string | null;
@@ -106,6 +107,7 @@ export async function getUserAlertsData(): Promise<UserAlertsData | null> {
       type: n.type,
       title: copy.title,
       body: copy.body,
+      payload: n.payload as NotificationPayload,
       details: copy.details,
       createdAt: n.created_at,
       readAt: n.read_at,

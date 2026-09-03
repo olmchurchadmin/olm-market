@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { useI18n } from "@/components/locale-provider";
 import { NotificationDetailRows } from "@/components/notification-detail-rows";
+import { SharePickupDetails } from "@/components/share-pickup-details";
 import { useNotifications } from "@/components/notifications-provider";
 
 export function NotificationBell() {
@@ -48,6 +49,21 @@ export function NotificationBell() {
 
   const badge =
     unreadCount > 99 ? "99+" : unreadCount > 0 ? String(unreadCount) : null;
+  const pickupDetailOrderIds = new Set(
+    recentNotifications
+      .filter((item) => item.type === "order_pickup_details")
+      .map((item) => item.payload?.order_id)
+      .filter(Boolean) as string[],
+  );
+
+  function canSharePickupDetails(item: (typeof recentNotifications)[number]) {
+    return (
+      item.type === "order_reserved" &&
+      item.payload?.role === "seller" &&
+      item.payload?.pickup_method === "seller_location" &&
+      typeof item.payload?.order_id === "string"
+    );
+  }
 
   return (
     <div ref={rootRef} className="relative">
@@ -129,6 +145,16 @@ export function NotificationBell() {
                             locale === "en" ? "en-US" : "ko-KR",
                           )}
                         </p>
+                        {canSharePickupDetails(item) ? (
+                          <SharePickupDetails
+                            orderId={item.payload!.order_id!}
+                            defaultContact=""
+                            alreadySent={pickupDetailOrderIds.has(
+                              item.payload!.order_id!,
+                            )}
+                            compact
+                          />
+                        ) : null}
                       </div>
                       {unread ? (
                         <button

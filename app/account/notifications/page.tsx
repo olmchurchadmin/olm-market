@@ -2,6 +2,7 @@ import { BellIcon } from "@heroicons/react/24/outline";
 import { AccountShell } from "@/components/account-shell";
 import { MarkAllReadButton } from "@/components/mark-all-read-button";
 import { NotificationDetailRows } from "@/components/notification-detail-rows";
+import { SharePickupDetails } from "@/components/share-pickup-details";
 import { getCurrentProfile } from "@/lib/auth";
 import {
   localizeNotification,
@@ -26,6 +27,13 @@ export default async function AccountNotificationsPage() {
     .eq("user_id", profile.id)
     .order("created_at", { ascending: false })
     .limit(50);
+
+  const pickupDetailOrderIds = new Set(
+    (notifications || [])
+      .filter((n) => n.type === "order_pickup_details")
+      .map((n) => (n.payload as NotificationPayload)?.order_id)
+      .filter(Boolean) as string[],
+  );
 
   return (
     <AccountShell
@@ -55,6 +63,12 @@ export default async function AccountNotificationsPage() {
                 locale,
               );
               const unread = !n.read_at;
+              const payload = n.payload as NotificationPayload;
+              const showPickupForm =
+                n.type === "order_reserved" &&
+                payload?.role === "seller" &&
+                payload?.pickup_method === "seller_location" &&
+                typeof payload?.order_id === "string";
               return (
                 <li
                   key={n.id}
@@ -74,6 +88,16 @@ export default async function AccountNotificationsPage() {
                       locale === "en" ? "en-US" : "ko-KR",
                     )}
                   </p>
+                  {showPickupForm ? (
+                    <SharePickupDetails
+                      orderId={payload!.order_id!}
+                      defaultContact={profile.phone || ""}
+                      alreadySent={Boolean(
+                        payload?.order_id &&
+                          pickupDetailOrderIds.has(payload.order_id),
+                      )}
+                    />
+                  ) : null}
                 </li>
               );
             })

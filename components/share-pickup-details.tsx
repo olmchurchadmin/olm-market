@@ -10,10 +10,12 @@ export function SharePickupDetails({
   orderId,
   defaultContact,
   alreadySent,
+  compact = false,
 }: {
   orderId: string;
   defaultContact: string;
   alreadySent: boolean;
+  compact?: boolean;
 }) {
   const router = useRouter();
   const { t } = useI18n();
@@ -38,7 +40,9 @@ export function SharePickupDetails({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="inline-flex items-center gap-1.5 rounded-md bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-soft"
+          className={`inline-flex items-center gap-1.5 rounded-md bg-brand font-semibold text-white hover:bg-brand-soft ${
+            compact ? "px-2 py-1 text-[11px]" : "px-3 py-1.5 text-xs"
+          }`}
         >
           <MapPinIcon className="size-4" aria-hidden />
           {alreadySent
@@ -54,7 +58,9 @@ export function SharePickupDetails({
 
   return (
     <form
-      className="mt-3 space-y-2 rounded-md border border-brand/15 bg-white p-3"
+      className={`mt-3 space-y-2 rounded-md border border-brand/15 bg-white ${
+        compact ? "p-2.5" : "p-3"
+      }`}
       onSubmit={async (event) => {
         event.preventDefault();
         setPending(true);
@@ -84,7 +90,9 @@ export function SharePickupDetails({
           rows={3}
           required
           placeholder={t.account.pickupAddressPlaceholder}
-          className="mt-1 w-full rounded-md border border-black/10 px-2.5 py-2 text-sm"
+          className={`mt-1 w-full rounded-md border border-black/10 px-2.5 py-2 ${
+            compact ? "text-xs" : "text-sm"
+          }`}
         />
       </label>
       <label className="block text-xs font-medium text-foreground">
@@ -93,7 +101,9 @@ export function SharePickupDetails({
           value={contact}
           onChange={(e) => setContact(e.target.value)}
           placeholder={t.account.pickupContactPlaceholder}
-          className="mt-1 w-full rounded-md border border-black/10 px-2.5 py-2 text-sm"
+          className={`mt-1 w-full rounded-md border border-black/10 px-2.5 py-2 ${
+            compact ? "text-xs" : "text-sm"
+          }`}
         />
       </label>
       {error ? <p className="text-xs text-red-700">{error}</p> : null}
@@ -101,7 +111,9 @@ export function SharePickupDetails({
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex items-center gap-1.5 rounded-md bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-soft disabled:opacity-50"
+          className={`inline-flex items-center gap-1.5 rounded-md bg-brand font-semibold text-white hover:bg-brand-soft disabled:opacity-50 ${
+            compact ? "px-2 py-1 text-[11px]" : "px-3 py-1.5 text-xs"
+          }`}
         >
           <PaperAirplaneIcon className="size-4" aria-hidden />
           {pending ? t.common.loading : t.account.pickupShareSubmit}
@@ -109,7 +121,9 @@ export function SharePickupDetails({
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="rounded-md border border-brand/15 bg-white px-3 py-1.5 text-xs font-medium text-foreground hover:bg-neutral-100"
+          className={`rounded-md border border-brand/15 bg-white font-medium text-foreground hover:bg-neutral-100 ${
+            compact ? "px-2 py-1 text-[11px]" : "px-3 py-1.5 text-xs"
+          }`}
         >
           {t.common.cancel}
         </button>
