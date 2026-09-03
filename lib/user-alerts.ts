@@ -1,5 +1,8 @@
 import { getSessionUser, getCurrentProfile } from "@/lib/auth";
-import { localizeNotification } from "@/lib/i18n/notifications";
+import {
+  localizeNotification,
+  type NotificationPayload,
+} from "@/lib/i18n/notifications";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import type { Notification } from "@/lib/types";
@@ -46,7 +49,13 @@ function hasDeliverableEmail(options: {
   return true;
 }
 
-const TRADE_TYPES = ["order_reserved", "order_at_church", "order_completed"] as const;
+/** Personal trade alerts — what the bell and the toast surface. */
+export const TRADE_TYPES = [
+  "order_reserved",
+  "order_at_church",
+  "order_pickup_details",
+  "order_completed",
+] as const;
 
 export async function getUserAlertsData(): Promise<UserAlertsData | null> {
   const user = await getSessionUser();
@@ -87,16 +96,7 @@ export async function getUserAlertsData(): Promise<UserAlertsData | null> {
         type: n.type,
         title: n.title,
         body: n.body,
-        payload: n.payload as {
-          listing_title?: string;
-          price_cents?: number;
-          event?: string;
-          role?: string;
-          pickup_method?: string;
-          buyer_name?: string;
-          seller_name?: string;
-          counterparty_name?: string;
-        } | null,
+        payload: n.payload as NotificationPayload,
       },
       t,
       locale,

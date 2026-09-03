@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AccountShell } from "@/components/account-shell";
 import { SellingListingRow } from "@/components/selling-listing-row";
+import { SharePickupDetails } from "@/components/share-pickup-details";
 import { getCurrentProfile } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
@@ -26,19 +27,37 @@ export default async function AccountTransactionsPage({
 
   if (!profile) return null;
 
-  const [{ data: selling }, { data: buying }] = await Promise.all([
-    supabase
-      .from("listings")
-      .select("*")
-      .eq("seller_id", profile.id)
-      .neq("status", "cancelled")
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("orders")
-      .select("*, listings(*)")
-      .eq("buyer_id", profile.id)
-      .order("created_at", { ascending: false }),
-  ]);
+  const [{ data: selling }, { data: buying }, { data: sellingOrders }, { data: sharedRows }] =
+    await Promise.all([
+      supabase
+        .from("listings")
+        .select("*")
+        .eq("seller_id", profile.id)
+        .neq("status", "cancelled")
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("orders")
+        .select("*, listings(*)")
+        .eq("buyer_id", profile.id)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("orders")
+        .select("*, listings(*)")
+        .eq("seller_id", profile.id)
+        .in("status", ["awaiting_dropoff", "ready_for_pickup"])
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("notifications")
+        .select("payload")
+        .eq("user_id", profile.id)
+        .eq("type", "order_pickup_details"),
+    ]);
+
+  const sharedOrderIds = new Set(
+    (sharedRows || [])
+      .map((row) => (row.payload as { order_id?: string } | null)?.order_id)
+      .filter(Boolean) as string[],
+  );
 
   return (
     <AccountShell
@@ -68,6 +87,57 @@ export default async function AccountTransactionsPage({
             ))
           ) : (
             <li className="text-sm text-ink-muted">{t.account.noSelling}</li>
+          )}
+        </ul>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-[family-name:var(--font-display)] text-2xl text-foreground">
+          {t.account.sellingOrders}
+        </h2>
+        <ul className="mt-4 space-y-3">
+          {(sellingOrders || []).length ? (
+            sellingOrders!.map((order) => {
+              const listing = Array.isArray(order.listings)
+                ? order.listings[0]
+                : order.listings;
+              const homePickup = listing?.pickup_method === "seller_location";
+              return (
+                <li
+                  key={order.id}
+                  className="rounded-md border border-brand/10 bg-white/70 p-3"
+                >
+                  {listing?.id ? (
+                    <Link
+                      href={`/market/${listing.id}`}
+                      className="font-medium text-foreground hover:underline"
+                    >
+                      {listing.title || t.account.item}
+                    </Link>
+                  ) : (
+                    <p className="font-medium">
+                      {listing?.title || t.account.item}
+                    </p>
+                  )}
+                  <p className="text-sm text-ink-muted">
+                    {formatPrice(order.price_cents, locale)} ·{" "}
+                    {orderStatusLabel(order.status, t.status)} ·{" "}
+                    {homePickup ? t.market.pickupSeller : t.market.pickupChurch}
+                  </p>
+                  {homePickup ? (
+                    <SharePickupDetails
+                      orderId={order.id}
+                      defaultContact={profile.phone || ""}
+                      alreadySent={sharedOrderIds.has(order.id)}
+                    />
+                  ) : null}
+                </li>
+              );
+            })
+          ) : (
+            <li className="text-sm text-ink-muted">
+              {t.account.noSellingOrders}
+            </li>
           )}
         </ul>
       </section>

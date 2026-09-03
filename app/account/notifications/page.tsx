@@ -1,8 +1,12 @@
 import { BellIcon } from "@heroicons/react/24/outline";
 import { AccountShell } from "@/components/account-shell";
+import { MarkAllReadButton } from "@/components/mark-all-read-button";
 import { NotificationDetailRows } from "@/components/notification-detail-rows";
 import { getCurrentProfile } from "@/lib/auth";
-import { localizeNotification } from "@/lib/i18n/notifications";
+import {
+  localizeNotification,
+  type NotificationPayload,
+} from "@/lib/i18n/notifications";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import { accountDisplayName } from "@/lib/utils";
@@ -30,10 +34,13 @@ export default async function AccountNotificationsPage() {
       active="notifications"
     >
       <section>
-        <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-foreground">
-          <BellIcon className="size-6" aria-hidden />
-          {t.account.notifications}
-        </h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-foreground">
+            <BellIcon className="size-6" aria-hidden />
+            {t.account.notifications}
+          </h2>
+          <MarkAllReadButton />
+        </div>
         <ul className="mt-4 space-y-3">
           {(notifications || []).length ? (
             notifications!.map((n) => {
@@ -42,16 +49,7 @@ export default async function AccountNotificationsPage() {
                   type: n.type,
                   title: n.title,
                   body: n.body,
-                  payload: n.payload as {
-                    listing_title?: string;
-                    price_cents?: number;
-                    event?: string;
-                    role?: string;
-                    pickup_method?: string;
-                    buyer_name?: string;
-                    seller_name?: string;
-                    counterparty_name?: string;
-                  } | null,
+                  payload: n.payload as NotificationPayload,
                 },
                 t,
                 locale,
@@ -68,7 +66,9 @@ export default async function AccountNotificationsPage() {
                 >
                   <p className="font-medium">{copy.title}</p>
                   <NotificationDetailRows details={copy.details} t={t} />
-                  <p className="mt-2 text-sm text-ink-muted">{copy.body}</p>
+                  <p className="mt-2 text-sm whitespace-pre-line text-ink-muted">
+                    {copy.body}
+                  </p>
                   <p className="mt-2 text-xs text-ink-muted/80">
                     {new Date(n.created_at).toLocaleString(
                       locale === "en" ? "en-US" : "ko-KR",

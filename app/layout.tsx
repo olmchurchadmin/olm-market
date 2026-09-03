@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Noto_Sans_KR } from "next/font/google";
 import { ConfirmDialogProvider } from "@/components/confirm-dialog";
 import { LocaleProvider } from "@/components/locale-provider";
+import { NotificationToast } from "@/components/notification-toast";
 import { NotificationsBanner } from "@/components/notifications-banner";
 import { NotificationsProvider } from "@/components/notifications-provider";
 import { SiteFooter } from "@/components/site-footer";
@@ -52,6 +53,7 @@ export default async function RootLayout({
               <NotificationsBanner />
               <div className="flex-1">{children}</div>
               <SiteFooter />
+              <NotificationToast />
             </NotificationsProvider>
           </ConfirmDialogProvider>
         </LocaleProvider>

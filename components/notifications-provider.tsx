@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   useTransition,
   type ReactNode,
@@ -19,22 +20,24 @@ import {
 import type { AlertNotification, UserAlertsData } from "@/lib/user-alerts";
 
 const EMAIL_DISMISS_KEY = "cm_email_alert_dismissed";
-const BANNER_DISMISS_KEY = "cm_trade_banner_dismissed";
+const TOASTED_KEY = "cm_toasted_alert_ids";
+const TOAST_MS = 8000;
 
 type NotificationsContextValue = {
   enabled: boolean;
   loading: boolean;
   needsEmail: boolean;
   emailBannerOpen: boolean;
-  tradeBannerOpen: boolean;
   unreadCount: number;
   unreadNotifications: AlertNotification[];
   recentNotifications: AlertNotification[];
   panelOpen: boolean;
   pending: boolean;
+  markFailed: boolean;
+  toast: AlertNotification | null;
   setPanelOpen: (open: boolean) => void;
   dismissEmailBanner: () => void;
-  dismissTradeBanner: () => void;
+  dismissToast: () => void;
   markRead: (ids: string[]) => void;
   markAllRead: () => void;
   refresh: () => void;
@@ -44,8 +47,22 @@ const NotificationsContext = createContext<NotificationsContextValue | null>(
   null,
 );
 
-function bannerFingerprint(ids: string[]) {
-  return ids.slice().sort().join(",");
+function readToasted(): Set<string> {
+  try {
+    const raw = sessionStorage.getItem(TOASTED_KEY);
+    return new Set(raw ? (JSON.parse(raw) as string[]) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function writeToasted(ids: Set<string>) {
+  try {
+    // Keep the tail only; the set exists to avoid re-toasting, not as history.
+    sessionStorage.setItem(TOASTED_KEY, JSON.stringify([...ids].slice(-100)));
+  } catch {
+    // Private mode / storage disabled — worst case a toast repeats.
+  }
 }
 
 export function NotificationsProvider({
@@ -59,67 +76,81 @@ export function NotificationsProvider({
   const [data, setData] = useState<UserAlertsData | null>(null);
   const [loading, setLoading] = useState(enabled);
   const [emailBannerOpen, setEmailBannerOpen] = useState(false);
-  const [tradeBannerOpen, setTradeBannerOpen] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
+  const [markFailed, setMarkFailed] = useState(false);
+  const [toast, setToast] = useState<AlertNotification | null>(null);
   const [pending, startTransition] = useTransition();
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const dismissToast = useCallback(() => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = null;
+    setToast(null);
+  }, []);
+
+  /** Toast only alerts this tab has never shown, newest first. */
+  const queueToast = useCallback((next: UserAlertsData | null) => {
+    if (!next) return;
+    const unread = next.notifications.filter((n) => !n.readAt);
+    if (!unread.length) return;
+
+    const toasted = readToasted();
+    const fresh = unread.filter((n) => !toasted.has(n.id));
+    if (!fresh.length) return;
+
+    for (const n of unread) toasted.add(n.id);
+    writeToasted(toasted);
+
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToast(fresh[0]);
+    toastTimer.current = setTimeout(() => setToast(null), TOAST_MS);
+  }, []);
+
+  const applyData = useCallback((next: UserAlertsData | null) => {
+    setData(next);
+    if (!next?.needsEmail) {
+      setEmailBannerOpen(false);
+      return;
+    }
+    setEmailBannerOpen(sessionStorage.getItem(EMAIL_DISMISS_KEY) !== "1");
+  }, []);
 
   const refresh = useCallback(() => {
     if (!enabled) {
       setData(null);
       setLoading(false);
       setEmailBannerOpen(false);
-      setTradeBannerOpen(false);
       return;
     }
     setLoading(true);
     loadUserAlertsAction()
       .then((next) => {
-        setData(next);
-        if (!next) {
-          setEmailBannerOpen(false);
-          setTradeBannerOpen(false);
-          return;
-        }
-
-        if (next.needsEmail) {
-          const emailDismissed =
-            sessionStorage.getItem(EMAIL_DISMISS_KEY) === "1";
-          setEmailBannerOpen(!emailDismissed);
-        } else {
-          setEmailBannerOpen(false);
-        }
-
-        const unreadIds = next.notifications
-          .filter((n) => !n.readAt)
-          .map((n) => n.id);
-        if (unreadIds.length) {
-          const fp = bannerFingerprint(unreadIds);
-          const dismissed = sessionStorage.getItem(BANNER_DISMISS_KEY) === fp;
-          setTradeBannerOpen(!dismissed);
-        } else {
-          setTradeBannerOpen(false);
-        }
+        applyData(next);
+        queueToast(next);
       })
       .catch(() => {
         setData(null);
         setEmailBannerOpen(false);
-        setTradeBannerOpen(false);
       })
       .finally(() => setLoading(false));
-  }, [enabled]);
+  }, [enabled, applyData, queueToast]);
 
   useEffect(() => {
     refresh();
   }, [refresh, pathname]);
 
+  useEffect(
+    () => () => {
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+    },
+    [],
+  );
+
   const unreadNotifications = useMemo(
     () => (data?.notifications || []).filter((n) => !n.readAt),
     [data],
   );
-  const recentNotifications = useMemo(
-    () => data?.notifications || [],
-    [data],
-  );
+  const recentNotifications = useMemo(() => data?.notifications || [], [data]);
   const unreadCount = data?.unreadCount ?? unreadNotifications.length;
 
   function dismissEmailBanner() {
@@ -127,72 +158,53 @@ export function NotificationsProvider({
     setEmailBannerOpen(false);
   }
 
-  function dismissTradeBanner() {
-    const fp = bannerFingerprint(unreadNotifications.map((n) => n.id));
-    if (fp) sessionStorage.setItem(BANNER_DISMISS_KEY, fp);
-    setTradeBannerOpen(false);
-  }
-
-  function markRead(ids: string[]) {
-    if (!ids.length) return;
+  /**
+   * Marks optimistically, then replaces state with what the server actually
+   * persisted. No follow-up refresh, so a re-fetch can never resurrect a
+   * notification the user just confirmed.
+   */
+  function runMark(
+    ids: string[] | null,
+    action: () => Promise<
+      | { ok: true; updated: number; data: UserAlertsData | null }
+      | { ok: false; error: string }
+    >,
+  ) {
     const snapshot = data;
+    setMarkFailed(false);
     setData((prev) => {
       if (!prev) return prev;
       const now = new Date().toISOString();
       const notifications = prev.notifications.map((n) =>
-        ids.includes(n.id) ? { ...n, readAt: n.readAt || now } : n,
+        !ids || ids.includes(n.id) ? { ...n, readAt: n.readAt || now } : n,
       );
-      const nextUnread = notifications.filter((n) => !n.readAt).length;
       return {
         ...prev,
         notifications,
-        unreadCount: nextUnread,
+        unreadCount: notifications.filter((n) => !n.readAt).length,
       };
     });
+    if (ids && toast && ids.includes(toast.id)) dismissToast();
+    if (!ids) dismissToast();
+
     startTransition(async () => {
-      const result = await markNotificationsReadAction(ids);
+      const result = await action();
       if (!result.ok) {
         setData(snapshot);
+        setMarkFailed(true);
         return;
       }
-      refresh();
+      if (result.data) applyData(result.data);
     });
   }
 
+  function markRead(ids: string[]) {
+    if (!ids.length) return;
+    runMark(ids, () => markNotificationsReadAction(ids));
+  }
+
   function markAllRead() {
-    const snapshot = data;
-    setTradeBannerOpen(false);
-    sessionStorage.removeItem(BANNER_DISMISS_KEY);
-    setData((prev) => {
-      if (!prev) return prev;
-      const now = new Date().toISOString();
-      return {
-        ...prev,
-        unreadCount: 0,
-        notifications: prev.notifications.map((n) => ({
-          ...n,
-          readAt: n.readAt || now,
-        })),
-      };
-    });
-    startTransition(async () => {
-      const result = await markAllTradeNotificationsReadAction();
-      if (!result.ok) {
-        setData(snapshot);
-        if (snapshot) {
-          const unreadIds = snapshot.notifications
-            .filter((n) => !n.readAt)
-            .map((n) => n.id);
-          if (unreadIds.length) {
-            const fp = bannerFingerprint(unreadIds);
-            const dismissed = sessionStorage.getItem(BANNER_DISMISS_KEY) === fp;
-            setTradeBannerOpen(!dismissed);
-          }
-        }
-        return;
-      }
-      refresh();
-    });
+    runMark(null, () => markAllTradeNotificationsReadAction());
   }
 
   const value: NotificationsContextValue = {
@@ -200,15 +212,16 @@ export function NotificationsProvider({
     loading,
     needsEmail: Boolean(data?.needsEmail),
     emailBannerOpen: enabled && emailBannerOpen,
-    tradeBannerOpen: enabled && tradeBannerOpen && unreadNotifications.length > 0,
     unreadCount,
     unreadNotifications,
     recentNotifications,
     panelOpen,
     pending,
+    markFailed,
+    toast: enabled ? toast : null,
     setPanelOpen,
     dismissEmailBanner,
-    dismissTradeBanner,
+    dismissToast,
     markRead,
     markAllRead,
     refresh,

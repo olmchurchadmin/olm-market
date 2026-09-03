@@ -1,6 +1,7 @@
 "use client";
 
 import { BellIcon } from "@heroicons/react/24/outline";
+import Link from "next/link";
 import { useEffect, useId, useRef } from "react";
 import { useI18n } from "@/components/locale-provider";
 import { NotificationDetailRows } from "@/components/notification-detail-rows";
@@ -17,6 +18,7 @@ export function NotificationBell() {
     markRead,
     markAllRead,
     pending,
+    markFailed,
   } = useNotifications();
   const panelId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -89,6 +91,12 @@ export function NotificationBell() {
             ) : null}
           </div>
 
+          {markFailed ? (
+            <p className="border-b border-red-100 bg-red-50 px-3 py-2 text-xs text-red-800">
+              {t.alerts.markFailed}
+            </p>
+          ) : null}
+
           <ul className="max-h-[min(24rem,60vh)] overflow-y-auto">
             {recentNotifications.length ? (
               recentNotifications.map((item) => {
@@ -110,7 +118,7 @@ export function NotificationBell() {
                           t={t}
                           compact
                         />
-                        <p className="mt-1 text-xs leading-relaxed text-ink-muted">
+                        <p className="mt-1 text-xs leading-relaxed whitespace-pre-line text-ink-muted">
                           {item.body}
                         </p>
                         <p className="mt-1.5 text-[11px] text-ink-muted/80">
@@ -139,6 +147,16 @@ export function NotificationBell() {
               </li>
             )}
           </ul>
+
+          <div className="border-t border-black/6 px-3 py-2 text-center">
+            <Link
+              href="/account/notifications"
+              onClick={() => setPanelOpen(false)}
+              className="text-xs font-medium text-brand hover:underline"
+            >
+              {t.alerts.viewAll}
+            </Link>
+          </div>
         </div>
       ) : null}
     </div>

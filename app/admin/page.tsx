@@ -71,7 +71,7 @@ export default async function AdminPage({
     supabase
       .from("orders")
       .select(
-        "*, listings(title), buyer:profiles!orders_buyer_id_fkey(email, full_name, nickname), seller:profiles!orders_seller_id_fkey(email, full_name, nickname)",
+        "*, listings(title, pickup_method), buyer:profiles!orders_buyer_id_fkey(email, phone, full_name, nickname), seller:profiles!orders_seller_id_fkey(email, phone, full_name, nickname)",
       )
       .in("status", ["awaiting_dropoff", "ready_for_pickup", "completed"])
       .order("created_at", { ascending: false })
@@ -85,6 +85,23 @@ export default async function AdminPage({
   const resolvedComplaints = (complaints || []).filter(
     (c) => c.status === "resolved",
   );
+
+  const tradeRows = (orders || []).map((order) => {
+    const listing = Array.isArray(order.listings)
+      ? order.listings[0]
+      : order.listings;
+    const buyer = Array.isArray(order.buyer) ? order.buyer[0] : order.buyer;
+    const seller = Array.isArray(order.seller) ? order.seller[0] : order.seller;
+    return {
+      order,
+      title: listing?.title || "—",
+      homePickup: listing?.pickup_method === "seller_location",
+      buyer,
+      seller,
+    };
+  });
+  const activeTrades = tradeRows.filter((r) => r.order.status !== "completed");
+  const completedTrades = tradeRows.filter((r) => r.order.status === "completed");
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
@@ -289,57 +306,109 @@ export default async function AdminPage({
           <ShoppingBagIcon className="size-6" aria-hidden />
           {t.admin.orders}
         </h2>
-        <div className="mt-4 overflow-x-auto rounded-lg border border-brand/10 bg-white/70">
+
+        <h3 className="mt-6 text-sm font-semibold text-brand">
+          {t.admin.activeTrades} ({activeTrades.length})
+        </h3>
+        <div className="mt-3 space-y-3">
+          {activeTrades.length ? (
+            activeTrades.map(({ order, title, homePickup, buyer, seller }) => (
+              <div
+                key={order.id}
+                className="rounded-lg border border-brand/15 bg-white/70 p-4"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-medium text-foreground">{title}</p>
+                      <span className="rounded bg-brand/10 px-2 py-0.5 text-[11px] font-semibold text-brand">
+                        {homePickup
+                          ? t.market.pickupSeller
+                          : t.market.pickupChurch}
+                      </span>
+                      <span className="rounded bg-sun px-2 py-0.5 text-[11px] font-semibold text-brand">
+                        {orderStatusLabel(order.status, t.status)}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm text-ink-muted">
+                      {formatPrice(order.price_cents, locale)} ·{" "}
+                      {new Date(order.created_at).toLocaleString(
+                        locale === "en" ? "en-US" : "ko-KR",
+                      )}
+                    </p>
+                  </div>
+                  <AdminOrderActions
+                    orderId={order.id}
+                    status={order.status}
+                    homePickup={homePickup}
+                  />
+                </div>
+
+                <dl className="mt-3 grid gap-2 border-t border-brand/10 pt-3 text-sm sm:grid-cols-2">
+                  <div>
+                    <dt className="text-xs text-ink-muted">{t.admin.seller}</dt>
+                    <dd className="text-foreground">
+                      {formatPersonName(seller, "—")}
+                      {seller?.phone ? ` · ${seller.phone}` : ""}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-ink-muted">{t.admin.buyer}</dt>
+                    <dd className="text-foreground">
+                      {formatPersonName(buyer, "—")}
+                      {buyer?.phone ? ` · ${buyer.phone}` : ""}
+                    </dd>
+                  </div>
+                </dl>
+
+                <p className="mt-2 text-xs leading-relaxed text-ink-muted">
+                  {homePickup
+                    ? t.admin.homePickupHint
+                    : order.status === "awaiting_dropoff"
+                      ? t.admin.churchDropoffHint
+                      : t.admin.churchPickupHint}
+                </p>
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-ink-muted">{t.admin.noActiveTrades}</p>
+          )}
+        </div>
+
+        <h3 className="mt-8 text-sm font-semibold text-brand">
+          {t.admin.completedTrades} ({completedTrades.length})
+        </h3>
+        <div className="mt-3 overflow-x-auto rounded-lg border border-brand/10 bg-white/70">
           <table className="min-w-full text-left text-sm">
             <thead className="border-b border-brand/10 text-ink-muted">
               <tr>
                 <th className="px-4 py-3 font-medium">{t.admin.item}</th>
-                <th className="px-4 py-3 font-medium">{t.admin.buyer}</th>
                 <th className="px-4 py-3 font-medium">{t.admin.seller}</th>
+                <th className="px-4 py-3 font-medium">{t.admin.buyer}</th>
+                <th className="px-4 py-3 font-medium">{t.admin.pickup}</th>
                 <th className="px-4 py-3 font-medium">{t.admin.amount}</th>
-                <th className="px-4 py-3 font-medium">{t.admin.status}</th>
-                <th className="px-4 py-3 font-medium">{t.admin.action}</th>
               </tr>
             </thead>
             <tbody>
-              {(orders || []).map((order) => {
-                const listing = Array.isArray(order.listings)
-                  ? order.listings[0]
-                  : order.listings;
-                const buyer = Array.isArray(order.buyer)
-                  ? order.buyer[0]
-                  : order.buyer;
-                const seller = Array.isArray(order.seller)
-                  ? order.seller[0]
-                  : order.seller;
-                return (
-                  <tr key={order.id} className="border-t border-brand/5">
-                    <td className="px-4 py-3">{listing?.title || "—"}</td>
-                    <td className="px-4 py-3">
-                      {formatPersonName(buyer, "—")}
-                    </td>
-                    <td className="px-4 py-3">
-                      {formatPersonName(seller, "—")}
-                    </td>
-                    <td className="px-4 py-3">
-                      {formatPrice(order.price_cents, locale)}
-                    </td>
-                    <td className="px-4 py-3">
-                      {orderStatusLabel(order.status, t.status)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <AdminOrderActions
-                        orderId={order.id}
-                        status={order.status}
-                      />
-                    </td>
-                  </tr>
-                );
-              })}
+              {completedTrades.map(({ order, title, homePickup, buyer, seller }) => (
+                <tr key={order.id} className="border-t border-brand/5">
+                  <td className="px-4 py-3">{title}</td>
+                  <td className="px-4 py-3">{formatPersonName(seller, "—")}</td>
+                  <td className="px-4 py-3">{formatPersonName(buyer, "—")}</td>
+                  <td className="px-4 py-3">
+                    {homePickup ? t.market.pickupSeller : t.market.pickupChurch}
+                  </td>
+                  <td className="px-4 py-3">
+                    {formatPrice(order.price_cents, locale)}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
-          {!orders?.length ? (
-            <p className="px-4 py-6 text-sm text-ink-muted">{t.admin.noOrders}</p>
+          {!completedTrades.length ? (
+            <p className="px-4 py-6 text-sm text-ink-muted">
+              {t.admin.noCompletedTrades}
+            </p>
           ) : null}
         </div>
       </section>

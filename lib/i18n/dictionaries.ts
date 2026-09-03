@@ -217,6 +217,20 @@ const ko = {
     noSelling: "등록한 물건이 없습니다.",
     buying: "내가 산 물건",
     noBuying: "구매 내역이 없습니다.",
+    sellingOrders: "판매 진행 중인 거래",
+    noSellingOrders: "진행 중인 판매 거래가 없습니다.",
+    markAllReadCta: "알림 모두 확인",
+    pickupShareCta: "픽업 주소 보내기",
+    pickupShareAgainCta: "픽업 주소 다시 보내기",
+    pickupShareHint:
+      "집에서 픽업하는 거래입니다. 주소와 연락처를 보내면 구매자에게 알림과 메일로 전달됩니다.",
+    pickupAddressLabel: "픽업 주소·안내",
+    pickupAddressPlaceholder:
+      "예) 123 Main St, Edison NJ · 벨 누르지 말고 문 앞에서 전화 주세요",
+    pickupContactLabel: "연락처",
+    pickupContactPlaceholder: "예) 201-555-0100",
+    pickupShareSubmit: "구매자에게 보내기",
+    pickupShareSent: "픽업 정보를 구매자에게 보냈습니다.",
     edit: "수정",
     delete: "삭제",
     deleteAccount: "회원 탈퇴",
@@ -282,6 +296,13 @@ const ko = {
     confirmPickupCta: "픽업·현금수령 완료",
     complete: "완료",
     noOrders: "주문이 없습니다.",
+    pickup: "픽업방법",
+    homePickupHint:
+      "집 픽업 거래입니다. 판매자가 구매자에게 주소를 보내고 직접 전달합니다. 양측 확인 후 「거래 완료 확인」을 눌러 주세요.",
+    churchDropoffHint:
+      "판매자가 성당에 물건을 맡기면 「드롭오프 확인」을 눌러 주세요. 그러면 구매자에게 수령 안내가 갑니다.",
+    churchPickupHint:
+      "물건이 성당에 있습니다. 구매자가 현금 결제 후 수령하면 「픽업·현금수령 완료」를 눌러 주세요.",
   },
   buy: {
     cta: "Buy",
@@ -304,6 +325,9 @@ const ko = {
     empty: "알림이 없습니다.",
     bellAria: "알림",
     bellAriaUnread: "읽지 않은 알림 {count}개",
+    markFailed: "확인 처리에 실패했습니다. 다시 시도해 주세요.",
+    viewAll: "알림 전체 보기",
+    newAlert: "새 알림",
   },
   notify: {
     reservedTitle: "거래가 성립되었습니다",
@@ -312,21 +336,37 @@ const ko = {
     reservedSellerChurchTitle: "팔렸습니다",
     reservedSellerChurchBody:
       "구매자({buyer})와의 거래입니다. 다음 주 성당으로 물건을 가져와 주세요.",
-    reservedSellerHomeTitle: "팔렸습니다",
+    reservedSellerHomeTitle: "팔렸습니다 · 집에서 픽업",
     reservedSellerHomeBody:
-      "구매자({buyer})가 판매자({seller}) 위치에서 픽업합니다. 구매자({buyer})와 날짜·시간을 정해 주세요.",
+      "구매자({buyer})가 집으로 픽업하러 옵니다. 내 계정 › 거래 내역에서 픽업 주소와 연락처를 구매자에게 보내 주세요.",
     reservedBuyerChurchTitle: "거래가 성립되었습니다",
     reservedBuyerChurchBody:
-      "다음 주 성당에서 판매자({seller})를 찾아 물건을 전달받으세요.",
-    reservedBuyerHomeTitle: "거래가 성립되었습니다",
+      "판매자({seller})가 물건을 성당에 맡기면 다시 알려드립니다. 그때 성당에서 현금으로 결제하고 수령하세요.",
+    reservedBuyerHomeTitle: "거래가 성립되었습니다 · 집에서 픽업",
     reservedBuyerHomeBody:
-      "판매자({seller})와 날짜·시간을 정해 픽업하세요.",
+      "판매자({seller}) 집에서 픽업하는 거래입니다. 판매자가 픽업 주소와 연락처를 보내드리면 알림으로 확인하실 수 있습니다.",
     atChurchTitle: "물건이 성당에 도착했습니다",
     atChurchBody:
-      "구매자({buyer}) · 판매자({seller}) 거래의 픽업 준비가 되었습니다. 관리자에게 현금으로 결제 후 수령해 주세요.",
+      "판매자({seller})가 맡긴 물건이 성당에 도착했습니다. 관리자에게 현금으로 결제한 뒤 수령해 주세요.",
+    atChurchSellerTitle: "성당 접수가 확인되었습니다",
+    atChurchSellerBody:
+      "관리자가 물건 접수를 확인했습니다. 구매자({buyer})가 성당에서 수령하면 거래가 완료됩니다.",
+    pickupDetailsSellerTitle: "픽업 정보를 보냈습니다",
+    pickupDetailsSellerBody:
+      "구매자({buyer})에게 픽업 주소와 연락처를 전달했습니다. 구매자가 연락하면 날짜와 시간을 정해 주세요.",
+    pickupDetailsBuyerTitle: "판매자가 픽업 정보를 보냈습니다",
+    pickupDetailsBuyerBody:
+      "판매자({seller})가 픽업 주소와 연락처를 보냈습니다. 연락해서 날짜와 시간을 정하고, 물건을 받을 때 현금으로 결제해 주세요.",
+    pickupContactLabel: "연락처",
     completedTitle: "거래가 완료되었습니다",
     completedBody:
       "구매자({buyer})와 판매자({seller})의 거래가 완료되었습니다.",
+    completedSellerChurchBody:
+      "구매자({buyer})가 성당에서 물건을 수령했습니다. 판매 대금은 관리자를 통해 정산됩니다.",
+    completedSellerHomeBody:
+      "구매자({buyer})가 집에서 물건을 픽업했고 관리자가 거래를 완료 처리했습니다.",
+    completedBuyerBody:
+      "판매자({seller})와의 거래가 완료되었습니다. 이용해 주셔서 감사합니다.",
     listingCreatedTitle: "물품이 등록되었습니다",
     listingCreatedBody: "장터에 등록되었습니다.",
     detailItem: "물건",
@@ -352,6 +392,9 @@ const ko = {
     complaintRequired: "제목과 내용을 입력해 주세요.",
     complaintFailed: "접수에 실패했습니다.",
     resolveFailed: "처리에 실패했습니다.",
+    pickupNoteRequired: "픽업 주소나 안내 내용을 입력해 주세요.",
+    pickupNotAllowed: "이 거래에는 픽업 정보를 보낼 수 없습니다.",
+    pickupShareFailed: "픽업 정보를 보내지 못했습니다.",
     emailPasswordRequired: "이메일과 비밀번호를 입력해 주세요.",
     passwordMin: "비밀번호는 6자 이상이어야 합니다.",
     passwordMismatch: "비밀번호가 일치하지 않습니다.",
@@ -615,6 +658,20 @@ const en: Dictionary = {
     noSelling: "No listings yet.",
     buying: "Items I bought",
     noBuying: "No purchases yet.",
+    sellingOrders: "Sales in progress",
+    noSellingOrders: "No sales in progress.",
+    markAllReadCta: "Mark all read",
+    pickupShareCta: "Send pickup address",
+    pickupShareAgainCta: "Send pickup address again",
+    pickupShareHint:
+      "This is a home pickup trade. Sending your address and contact delivers them to the buyer by notification and email.",
+    pickupAddressLabel: "Pickup address / instructions",
+    pickupAddressPlaceholder:
+      "e.g. 123 Main St, Edison NJ · Please call from the door instead of ringing",
+    pickupContactLabel: "Contact",
+    pickupContactPlaceholder: "e.g. 201-555-0100",
+    pickupShareSubmit: "Send to buyer",
+    pickupShareSent: "Pickup details were sent to the buyer.",
     edit: "Edit",
     delete: "Delete",
     deleteAccount: "Delete account",
@@ -681,6 +738,13 @@ const en: Dictionary = {
     confirmPickupCta: "Pickup & cash received",
     complete: "Complete",
     noOrders: "No orders yet.",
+    pickup: "Pickup",
+    homePickupHint:
+      "Home pickup trade. The seller sends their address and hands the item over directly. Press “Confirm trade complete” once both sides are done.",
+    churchDropoffHint:
+      "Press “Confirm drop-off” once the seller leaves the item at church. The buyer is then told to collect it.",
+    churchPickupHint:
+      "The item is at church. Press “Pickup & cash received” once the buyer pays cash and collects it.",
   },
   buy: {
     cta: "Buy",
@@ -703,6 +767,9 @@ const en: Dictionary = {
     empty: "No notifications yet.",
     bellAria: "Notifications",
     bellAriaUnread: "{count} unread notifications",
+    markFailed: "Could not mark as read. Please try again.",
+    viewAll: "View all notifications",
+    newAlert: "New notification",
   },
   notify: {
     reservedTitle: "Purchase reserved",
@@ -711,21 +778,37 @@ const en: Dictionary = {
     reservedSellerChurchTitle: "Sold",
     reservedSellerChurchBody:
       "Sold to buyer ({buyer}). Please bring the item to church next week.",
-    reservedSellerHomeTitle: "Sold",
+    reservedSellerHomeTitle: "Sold · home pickup",
     reservedSellerHomeBody:
-      "Buyer ({buyer}) will pick up at seller ({seller}) location. Arrange date and time with buyer ({buyer}).",
+      "Buyer ({buyer}) will come to your place. Send your pickup address and contact from My account › Transactions.",
     reservedBuyerChurchTitle: "Purchase confirmed",
     reservedBuyerChurchBody:
-      "Meet seller ({seller}) at church next week to receive the item.",
-    reservedBuyerHomeTitle: "Purchase confirmed",
+      "We will notify you once seller ({seller}) drops the item off at church. Pay cash there and collect it.",
+    reservedBuyerHomeTitle: "Purchase confirmed · home pickup",
     reservedBuyerHomeBody:
-      "Arrange date and time with seller ({seller}) for pickup.",
+      "You will pick this up at seller ({seller}) place. The seller will send the pickup address and contact, and you will get a notification.",
     atChurchTitle: "Item arrived at church",
     atChurchBody:
-      "Ready for pickup for buyer ({buyer}) and seller ({seller}). Pay cash to the admin, then collect it.",
+      "The item from seller ({seller}) is now at church. Pay cash to the admin, then collect it.",
+    atChurchSellerTitle: "Drop-off confirmed",
+    atChurchSellerBody:
+      "The admin confirmed your drop-off. The trade completes once buyer ({buyer}) collects it at church.",
+    pickupDetailsSellerTitle: "Pickup details sent",
+    pickupDetailsSellerBody:
+      "Your pickup address and contact were sent to buyer ({buyer}). Agree on a date and time when they reach out.",
+    pickupDetailsBuyerTitle: "Seller sent pickup details",
+    pickupDetailsBuyerBody:
+      "Seller ({seller}) sent their pickup address and contact. Reach out to agree on a date and time, and pay cash on pickup.",
+    pickupContactLabel: "Contact",
     completedTitle: "Trade completed",
     completedBody:
       "The trade between buyer ({buyer}) and seller ({seller}) has been completed.",
+    completedSellerChurchBody:
+      "Buyer ({buyer}) collected the item at church. The admin will settle your proceeds.",
+    completedSellerHomeBody:
+      "Buyer ({buyer}) picked the item up at your place and the admin marked the trade complete.",
+    completedBuyerBody:
+      "Your trade with seller ({seller}) is complete. Thank you for using the market.",
     listingCreatedTitle: "Listing published",
     listingCreatedBody: "Your listing is now on the marketplace.",
     detailItem: "Item",
@@ -751,6 +834,9 @@ const en: Dictionary = {
     complaintRequired: "Please enter a subject and details.",
     complaintFailed: "Could not submit the request.",
     resolveFailed: "Could not update the complaint.",
+    pickupNoteRequired: "Enter the pickup address or instructions.",
+    pickupNotAllowed: "Pickup details cannot be sent for this trade.",
+    pickupShareFailed: "Could not send the pickup details.",
     emailPasswordRequired: "Please enter email and password.",
     passwordMin: "Password must be at least 6 characters.",
     passwordMismatch: "Passwords do not match.",

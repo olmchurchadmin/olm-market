@@ -51,41 +51,76 @@ function buyCopies(options: {
   return {
     seller: {
       type: "order_reserved",
-      title: "팔렸습니다",
+      title: church ? "팔렸습니다" : "팔렸습니다 · 집에서 픽업",
       body: church
         ? `${item}이 팔렸습니다. 구매자는 ${options.buyerName}입니다. 다음 주 성당으로 가져와 주세요.`
-        : `${item}이 팔렸습니다. 구매자는 ${options.buyerName}입니다. 집으로 픽업하러 옵니다. 구매자와 상의하여 날짜와 시간을 정하세요.`,
+        : `${item}이 팔렸습니다. 구매자(${options.buyerName})가 집으로 픽업하러 옵니다. 내 계정 › 거래 내역에서 픽업 주소와 연락처를 구매자에게 보내 주세요.`,
       role: "seller" as const,
     },
     buyer: {
       type: "order_reserved",
-      title: "거래가 성립되었습니다",
+      title: church
+        ? "거래가 성립되었습니다"
+        : "거래가 성립되었습니다 · 집에서 픽업",
       body: church
-        ? `${item} 거래가 성립되었습니다. 다음 주 성당에서 판매자(${options.sellerName})를 찾아 물건을 전달받으세요.`
-        : `${item} 거래가 성립되었습니다. 판매자(${options.sellerName})와 상의하여 날짜와 시간을 정하세요.`,
+        ? `${item} 거래가 성립되었습니다. 판매자(${options.sellerName})가 물건을 성당에 맡기면 다시 알려드립니다. 그때 성당에서 현금으로 결제하고 수령하세요.`
+        : `${item} 거래가 성립되었습니다. 판매자(${options.sellerName}) 집에서 픽업하는 거래입니다. 판매자가 픽업 주소와 연락처를 보내드리면 알림으로 확인하실 수 있습니다.`,
       role: "buyer" as const,
     },
   };
 }
 
-function sharedEventCopy(
-  event: "dropoff" | "completed",
-  title: string,
-  priceCents: number,
-): MessageCopy {
-  const priceLabel = formatPrice(priceCents);
-  if (event === "dropoff") {
+/** Drop-off and completion read differently for each side, and church pickup
+ *  and home pickup are different journeys, so copy is split four ways. */
+function eventCopies(options: {
+  event: "dropoff" | "completed";
+  title: string;
+  priceCents: number;
+  pickupMethod: PickupMethod;
+  buyerName: string;
+  sellerName: string;
+}) {
+  const priceLabel = formatPrice(options.priceCents);
+  const item = `「${options.title}」(${priceLabel})`;
+  const church = options.pickupMethod !== "seller_location";
+
+  if (options.event === "dropoff") {
     return {
-      type: "order_at_church",
-      title: "물건이 성당에 도착했습니다",
-      body: `「${title}」(${priceLabel}) 픽업 준비가 되었습니다. 관리자에게 현금으로 결제 후 수령해 주세요.`,
+      seller: {
+        type: "order_at_church",
+        title: "성당 접수가 확인되었습니다",
+        body: `관리자가 ${item} 접수를 확인했습니다. 구매자(${options.buyerName})가 성당에서 수령하면 거래가 완료됩니다.`,
+        role: "seller" as const,
+      },
+      buyer: {
+        type: "order_at_church",
+        title: "물건이 성당에 도착했습니다",
+        body: `판매자(${options.sellerName})가 맡긴 ${item}이 성당에 도착했습니다. 관리자에게 현금으로 결제한 뒤 수령해 주세요.`,
+        role: "buyer" as const,
+      },
     };
   }
+
   return {
-    type: "order_completed",
-    title: "거래가 완료되었습니다",
-    body: `「${title}」(${priceLabel}) 거래가 완료되었습니다.`,
+    seller: {
+      type: "order_completed",
+      title: "거래가 완료되었습니다",
+      body: church
+        ? `구매자(${options.buyerName})가 ${item}을 성당에서 수령했습니다. 판매 대금은 관리자를 통해 정산됩니다.`
+        : `구매자(${options.buyerName})가 ${item}을 집에서 픽업했고 관리자가 거래를 완료 처리했습니다.`,
+      role: "seller" as const,
+    },
+    buyer: {
+      type: "order_completed",
+      title: "거래가 완료되었습니다",
+      body: `판매자(${options.sellerName})와의 ${item} 거래가 완료되었습니다. 이용해 주셔서 감사합니다.`,
+      role: "buyer" as const,
+    },
   };
+}
+
+function pickupLabelKo(method: PickupMethod) {
+  return method === "seller_location" ? "판매자 집 픽업" : "성당 픽업";
 }
 
 async function recordJob(
@@ -175,6 +210,49 @@ async function deliverToPerson(
   });
 
   await deliverEmail(supabase, person, copy, payload, orderId);
+}
+
+/**
+ * The admin is not a party to the trade, so they get one digest covering both
+ * sides by email rather than in-app rows. Their working view is /admin.
+ */
+async function notifyAdmin(
+  supabase: ReturnType<typeof createServiceClient>,
+  options: {
+    subject: string;
+    lines: string[];
+    payload: Record<string, unknown>;
+    orderId: string | null;
+  },
+) {
+  const adminEmail = getAdminEmail();
+  const body = options.lines.join("\n\n");
+  const html = [
+    ...options.lines.map((line) => `<p>${line}</p>`),
+    options.orderId ? `<p>주문번호: ${options.orderId}</p>` : "",
+  ].join("");
+
+  const result = await sendEmail({
+    to: adminEmail,
+    subject: `[OLM Market] ${options.subject}`,
+    html,
+  });
+
+  await recordJob(supabase, {
+    channel: "email",
+    recipient: adminEmail,
+    subject: options.subject,
+    body,
+    payload: options.payload,
+    status: result.ok
+      ? "sent"
+      : result.reason === "pending_credentials"
+        ? "pending_credentials"
+        : "failed",
+    error: result.ok ? null : "error" in result ? result.error : result.reason,
+    related_order_id: options.orderId,
+    sent_at: result.ok ? new Date().toISOString() : null,
+  });
 }
 
 const profileSelect = "id, email, notification_email, full_name, nickname";
@@ -301,37 +379,32 @@ export async function notifyOrderEvent(input: OrderNotifyInput) {
       orderId: order.id,
     });
 
-    const adminSummary = `${copies.seller.body}\n\n${copies.buyer.body}`;
-    const adminEmail = getAdminEmail();
-    const adminResult = await sendEmail({
-      to: adminEmail,
-      subject: `[OLM Market] 거래 성립 · ${title}`,
-      html: `<p>${copies.seller.body}</p><p>${copies.buyer.body}</p><p>주문번호: ${order.id}</p>`,
-    });
-    await recordJob(supabase, {
-      channel: "email",
-      recipient: adminEmail,
+    await notifyAdmin(supabase, {
       subject: `거래 성립 · ${title}`,
-      body: adminSummary,
+      lines: [
+        `${pickupLabelKo(pickupMethod)} 거래가 성립되었습니다.`,
+        `판매자(${sellerName}) 안내: ${copies.seller.body}`,
+        `구매자(${buyerName}) 안내: ${copies.buyer.body}`,
+        pickupMethod === "seller_location"
+          ? "집 픽업 거래입니다. 성당 드롭오프 없이 관리자 페이지에서 「거래 완료 확인」으로 마감해 주세요."
+          : "판매자가 성당에 물건을 맡기면 관리자 페이지에서 「드롭오프 확인」을 눌러 주세요.",
+      ],
       payload: { ...basePayload, role: "admin" },
-      status: adminResult.ok
-        ? "sent"
-        : adminResult.reason === "pending_credentials"
-          ? "pending_credentials"
-          : "failed",
-      error: adminResult.ok
-        ? null
-        : "error" in adminResult
-          ? adminResult.error
-          : adminResult.reason,
-      related_order_id: order.id,
-      sent_at: adminResult.ok ? new Date().toISOString() : null,
+      orderId: order.id,
     });
 
     return;
   }
 
-  const copy = sharedEventCopy(input.event, title, order.price_cents);
+  const copies = eventCopies({
+    event: input.event,
+    title,
+    priceCents: order.price_cents,
+    pickupMethod,
+    buyerName,
+    sellerName,
+  });
+
   const payload = {
     order_id: order.id,
     event: input.event,
@@ -347,7 +420,7 @@ export async function notifyOrderEvent(input: OrderNotifyInput) {
     const role = person.id === order.buyer_id ? "buyer" : "seller";
     await deliverToPerson(supabase, {
       person,
-      copy: { ...copy, role },
+      copy: role === "buyer" ? copies.buyer : copies.seller,
       payload: {
         ...payload,
         role,
@@ -357,29 +430,121 @@ export async function notifyOrderEvent(input: OrderNotifyInput) {
     });
   }
 
-  const adminEmail = getAdminEmail();
-  const adminResult = await sendEmail({
-    to: adminEmail,
-    subject: `[OLM Market] ${copy.title}`,
-    html: `<p>${copy.body}</p><p>주문번호: ${order.id}</p>`,
-  });
-  await recordJob(supabase, {
-    channel: "email",
-    recipient: adminEmail,
-    subject: copy.title,
-    body: copy.body,
+  await notifyAdmin(supabase, {
+    subject:
+      input.event === "dropoff" ? `성당 접수 · ${title}` : `거래 완료 · ${title}`,
+    lines: [
+      `${pickupLabelKo(pickupMethod)} 거래입니다.`,
+      `판매자(${sellerName}) 안내: ${copies.seller.body}`,
+      `구매자(${buyerName}) 안내: ${copies.buyer.body}`,
+    ],
     payload: { ...payload, role: "admin" },
-    status: adminResult.ok
-      ? "sent"
-      : adminResult.reason === "pending_credentials"
-        ? "pending_credentials"
-        : "failed",
-    error: adminResult.ok
-      ? null
-      : "error" in adminResult
-        ? adminResult.error
-        : adminResult.reason,
-    related_order_id: order.id,
-    sent_at: adminResult.ok ? new Date().toISOString() : null,
+    orderId: order.id,
+  });
+}
+
+/**
+ * Sends the seller's pickup address and contact to the buyer for home-pickup
+ * trades, and confirms to the seller that it went out.
+ */
+export async function notifyPickupDetails(input: {
+  orderId: string;
+  note: string;
+  contact: string;
+}) {
+  const supabase = createServiceClient();
+
+  const { data: order, error } = await supabase
+    .from("orders")
+    .select("id, price_cents, buyer_id, seller_id, listing_id")
+    .eq("id", input.orderId)
+    .single();
+
+  if (error || !order) {
+    throw new Error(error?.message || "Order not found for pickup details");
+  }
+
+  const [{ data: listing }, { data: buyer }, { data: seller }] =
+    await Promise.all([
+      supabase
+        .from("listings")
+        .select("id, title, pickup_method")
+        .eq("id", order.listing_id)
+        .maybeSingle(),
+      supabase
+        .from("profiles")
+        .select(profileSelect)
+        .eq("id", order.buyer_id)
+        .maybeSingle(),
+      supabase
+        .from("profiles")
+        .select(profileSelect)
+        .eq("id", order.seller_id)
+        .maybeSingle(),
+    ]);
+
+  if (!buyer || !seller) {
+    throw new Error("Buyer or seller profile missing for pickup details");
+  }
+
+  const title = listing?.title || "Item";
+  const buyerName = displayName(buyer, "구매자");
+  const sellerName = displayName(seller, "판매자");
+  const priceLabel = formatPrice(order.price_cents);
+  const item = `「${title}」(${priceLabel})`;
+
+  const basePayload = {
+    order_id: order.id,
+    event: "pickup_details",
+    listing_title: title,
+    price_cents: order.price_cents,
+    pickup_method: "seller_location" as PickupMethod,
+    buyer_name: buyerName,
+    seller_name: sellerName,
+    pickup_note: input.note,
+    pickup_contact: input.contact,
+  };
+
+  const buyerLines = [
+    `판매자(${sellerName})가 ${item} 픽업 주소와 연락처를 보냈습니다. 연락해서 날짜와 시간을 정하고, 물건을 받을 때 현금으로 결제해 주세요.`,
+    input.note,
+    input.contact ? `연락처: ${input.contact}` : "",
+  ].filter(Boolean);
+
+  await deliverToPerson(supabase, {
+    person: buyer,
+    copy: {
+      type: "order_pickup_details",
+      title: "판매자가 픽업 정보를 보냈습니다",
+      body: buyerLines.join("\n"),
+      role: "buyer",
+    },
+    payload: { ...basePayload, role: "buyer", counterparty_name: sellerName },
+    orderId: order.id,
+  });
+
+  await deliverToPerson(supabase, {
+    person: seller,
+    copy: {
+      type: "order_pickup_details",
+      title: "픽업 정보를 보냈습니다",
+      body: `구매자(${buyerName})에게 ${item} 픽업 주소와 연락처를 전달했습니다. 구매자가 연락하면 날짜와 시간을 정해 주세요.`,
+      role: "seller",
+    },
+    payload: { ...basePayload, role: "seller", counterparty_name: buyerName },
+    orderId: order.id,
+  });
+
+  await notifyAdmin(supabase, {
+    subject: `픽업 정보 전달 · ${title}`,
+    lines: [
+      `집 픽업 거래에서 판매자(${sellerName})가 구매자(${buyerName})에게 픽업 정보를 전달했습니다.`,
+      `물건: ${item}`,
+      `픽업 안내: ${input.note}`,
+      input.contact ? `연락처: ${input.contact}` : "",
+      "픽업이 끝나면 관리자 페이지에서 「거래 완료 확인」을 눌러 주세요.",
+    ].filter(Boolean),
+    payload: { ...basePayload, role: "admin" },
+    orderId: order.id,
   });
 }

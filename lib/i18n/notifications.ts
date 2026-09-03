@@ -10,6 +10,10 @@ export type NotificationPayload = {
   buyer_name?: string;
   seller_name?: string;
   counterparty_name?: string;
+  order_id?: string;
+  listing_id?: string;
+  pickup_note?: string;
+  pickup_contact?: string;
 } | null;
 
 type NotificationLike = {
@@ -130,25 +134,60 @@ export function localizeNotification(
     };
   }
 
-  const titles: Record<string, string> = {
-    order_at_church: t.notify.atChurchTitle,
-    order_completed: t.notify.completedTitle,
-  };
-  const bodies: Record<string, string> = {
-    order_at_church: t.notify.atChurchBody,
-    order_completed: t.notify.completedBody,
-  };
-
-  const title = titles[notification.type] || notification.title;
-  if (!bodies[notification.type]) {
-    return { title, body: notification.body, details };
+  if (notification.type === "order_at_church") {
+    return {
+      title:
+        role === "seller" ? t.notify.atChurchSellerTitle : t.notify.atChurchTitle,
+      body: fill(
+        role === "seller" ? t.notify.atChurchSellerBody : t.notify.atChurchBody,
+      ),
+      details,
+    };
   }
 
-  const hasDetails =
-    Boolean(notification.payload?.listing_title) ||
-    typeof notification.payload?.price_cents === "number";
-  if (!hasDetails) {
-    return { title, body: notification.body, details };
+  if (notification.type === "order_pickup_details") {
+    const note = notification.payload?.pickup_note?.trim();
+    const contact = notification.payload?.pickup_contact?.trim();
+    if (role === "seller") {
+      return {
+        title: t.notify.pickupDetailsSellerTitle,
+        body: fill(t.notify.pickupDetailsSellerBody),
+        details,
+      };
+    }
+    const lines = [fill(t.notify.pickupDetailsBuyerBody)];
+    if (note) lines.push(note);
+    if (contact) lines.push(`${t.notify.pickupContactLabel}: ${contact}`);
+    return {
+      title: t.notify.pickupDetailsBuyerTitle,
+      body: lines.join("\n"),
+      details,
+    };
   }
-  return { title, body: fill(bodies[notification.type]), details };
+
+  if (notification.type === "order_completed") {
+    const home = notification.payload?.pickup_method === "seller_location";
+    if (role === "seller") {
+      return {
+        title: t.notify.completedTitle,
+        body: fill(
+          home
+            ? t.notify.completedSellerHomeBody
+            : t.notify.completedSellerChurchBody,
+        ),
+        details,
+      };
+    }
+    if (role === "buyer") {
+      return {
+        title: t.notify.completedTitle,
+        body: fill(t.notify.completedBuyerBody),
+        details,
+      };
+    }
+    return { title: t.notify.completedTitle, body: fill(t.notify.completedBody), details };
+  }
+
+  // Unknown type — show whatever the dispatcher stored.
+  return { title: notification.title, body: notification.body, details };
 }
