@@ -1,6 +1,6 @@
 "use client";
 
-import { BellIcon } from "@heroicons/react/24/outline";
+import { BellIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { useI18n } from "@/components/locale-provider";
@@ -16,6 +16,7 @@ export function NotificationBell() {
     recentNotifications,
     markRead,
     markAllRead,
+    deleteNotification,
     pending,
     markFailed,
   } = useNotifications();
@@ -156,16 +157,27 @@ export function NotificationBell() {
                           />
                         ) : null}
                       </div>
-                      {unread ? (
+                      <div className="flex shrink-0 items-center gap-1">
+                        {unread ? (
+                          <button
+                            type="button"
+                            disabled={pending}
+                            onClick={() => markRead([item.id])}
+                            className="rounded-md bg-brand px-2 py-1 text-[11px] font-semibold text-white hover:bg-brand-soft disabled:opacity-50"
+                          >
+                            {t.alerts.ok}
+                          </button>
+                        ) : null}
                         <button
                           type="button"
                           disabled={pending}
-                          onClick={() => markRead([item.id])}
-                          className="shrink-0 rounded-md bg-brand px-2 py-1 text-[11px] font-semibold text-white hover:bg-brand-soft disabled:opacity-50"
+                          onClick={() => deleteNotification(item.id)}
+                          className="rounded-md p-1 text-ink-muted hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                          aria-label={t.alerts.deleteAria}
                         >
-                          {t.alerts.ok}
+                          <TrashIcon className="size-3.5" aria-hidden />
                         </button>
-                      ) : null}
+                      </div>
                     </div>
                   </li>
                 );

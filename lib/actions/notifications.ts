@@ -95,3 +95,46 @@ export async function markNotificationsReadAction(
 export async function markAllTradeNotificationsReadAction(): Promise<MarkResult> {
   return markRead(null);
 }
+
+type DeleteResult =
+  | { ok: true; data: Awaited<ReturnType<typeof getUserAlertsData>> }
+  | { ok: false; error: string };
+
+export async function deleteNotificationsAction(
+  ids: string[],
+): Promise<DeleteResult> {
+  const uniqueIds = [
+    ...new Set(ids.map((id) => String(id || "").trim()).filter(Boolean)),
+  ];
+  if (!uniqueIds.length) {
+    return { ok: true, data: await getUserAlertsData() };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Unauthorized" };
+
+  // Try RPC first, fall back to direct delete.
+  const rpc = await supabase.rpc("delete_notifications", { p_ids: uniqueIds });
+  if (rpc.error) {
+    // Fallback: direct delete via user client (needs DELETE policy).
+    const client = (() => {
+      try {
+        return createServiceClient();
+      } catch {
+        return null;
+      }
+    })();
+    const db = client ?? supabase;
+    const { error } = await db
+      .from("notifications")
+      .delete()
+      .eq("user_id", user.id)
+      .in("id", uniqueIds);
+    if (error) return { ok: false, error: error.message };
+  }
+
+  return { ok: true, data: await getUserAlertsData() };
+}

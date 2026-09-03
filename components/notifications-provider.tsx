@@ -13,6 +13,7 @@ import {
 } from "react";
 import { usePathname } from "next/navigation";
 import {
+  deleteNotificationsAction,
   loadUserAlertsAction,
   markAllTradeNotificationsReadAction,
   markNotificationsReadAction,
@@ -38,6 +39,7 @@ type NotificationsContextValue = {
   dismissToast: () => void;
   markRead: (ids: string[]) => void;
   markAllRead: () => void;
+  deleteNotification: (id: string) => void;
   refresh: () => void;
 };
 
@@ -204,6 +206,32 @@ export function NotificationsProvider({
     runMark(null, () => markAllTradeNotificationsReadAction());
   }
 
+  function deleteNotification(id: string) {
+    if (!id) return;
+    const snapshot = data;
+    setMarkFailed(false);
+    setData((prev) => {
+      if (!prev) return prev;
+      const notifications = prev.notifications.filter((n) => n.id !== id);
+      return {
+        ...prev,
+        notifications,
+        unreadCount: notifications.filter((n) => !n.readAt).length,
+      };
+    });
+    if (toast?.id === id) dismissToast();
+
+    startTransition(async () => {
+      const result = await deleteNotificationsAction([id]);
+      if (!result.ok) {
+        setData(snapshot);
+        setMarkFailed(true);
+        return;
+      }
+      if (result.data) applyData(result.data);
+    });
+  }
+
   const value: NotificationsContextValue = {
     enabled,
     loading,
@@ -219,6 +247,7 @@ export function NotificationsProvider({
     dismissToast,
     markRead,
     markAllRead,
+    deleteNotification,
     refresh,
   };
 

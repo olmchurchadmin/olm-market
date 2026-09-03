@@ -190,21 +190,23 @@ export default async function AccountProfilePage({
         </form>
       </section>
 
-      <section className="mt-8 rounded-lg border border-red-200/80 bg-red-50/40 p-5">
-        <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-red-900">
-          <TrashIcon className="size-6" aria-hidden />
-          {t.account.deleteAccount}
-        </h2>
-        <p className="mt-1 text-sm text-red-900/80">
-          {t.account.deleteAccountBlurb}
-        </p>
-        <p className="mt-2 text-sm font-medium text-red-800">
-          {t.account.deleteAccountWarning}
-        </p>
-        <div className="mt-4">
-          <DeleteAccountButton />
-        </div>
-      </section>
+      {profile.role !== "admin" ? (
+        <section className="mt-8 rounded-lg border border-red-200/80 bg-red-50/40 p-5">
+          <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-red-900">
+            <TrashIcon className="size-6" aria-hidden />
+            {t.account.deleteAccount}
+          </h2>
+          <p className="mt-1 text-sm text-red-900/80">
+            {t.account.deleteAccountBlurb}
+          </p>
+          <p className="mt-2 text-sm font-medium text-red-800">
+            {t.account.deleteAccountWarning}
+          </p>
+          <div className="mt-4">
+            <DeleteAccountButton />
+          </div>
+        </section>
+      ) : null}
     </AccountShell>
   );
 }

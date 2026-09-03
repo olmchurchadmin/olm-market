@@ -1,5 +1,6 @@
 import { BellIcon } from "@heroicons/react/24/outline";
 import { AccountShell } from "@/components/account-shell";
+import { DeleteNotificationButton } from "@/components/delete-notification-button";
 import { MarkAllReadButton } from "@/components/mark-all-read-button";
 import { NotificationDetailRows } from "@/components/notification-detail-rows";
 import { SharePickupDetails } from "@/components/share-pickup-details";
@@ -78,7 +79,10 @@ export default async function AccountNotificationsPage() {
                       : "border-brand/10 bg-white/70"
                   }`}
                 >
-                  <p className="font-medium">{copy.title}</p>
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-medium">{copy.title}</p>
+                    <DeleteNotificationButton id={n.id} />
+                  </div>
                   <NotificationDetailRows details={copy.details} t={t} />
                   <p className="mt-2 text-sm whitespace-pre-line text-ink-muted">
                     {copy.body}

@@ -81,3 +81,52 @@ export async function resolveComplaintAction(formData: FormData) {
   revalidatePath("/admin");
   redirect("/admin?resolved=1");
 }
+
+export async function replyComplaintAction(formData: FormData) {
+  const complaintId = String(formData.get("complaint_id") || "").trim();
+  const reply = String(formData.get("reply") || "").trim();
+  if (!complaintId || !reply) {
+    redirect(
+      `/account/complaints?error=${encodeURIComponent("Reply is required")}`,
+    );
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login?next=/account/complaints");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profile?.role !== "admin") {
+    redirect("/");
+  }
+
+  const { error } = await supabase
+    .from("complaints")
+    .update({
+      admin_reply: reply,
+      replied_at: new Date().toISOString(),
+      replied_by: user.id,
+      status: "resolved",
+      resolved_at: new Date().toISOString(),
+      resolved_by: user.id,
+    })
+    .eq("id", complaintId);
+
+  if (error) {
+    const { t } = await getI18n();
+    redirect(
+      `/account/complaints?error=${encodeURIComponent(error.message || t.errors.resolveFailed)}`,
+    );
+  }
+
+  revalidatePath("/account/complaints");
+  revalidatePath("/admin");
+  redirect("/account/complaints?saved=replied");
+}
