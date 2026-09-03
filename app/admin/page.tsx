@@ -1,24 +1,19 @@
 import {
   ChartBarIcon,
-  ShoppingBagIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import { AdminOrderActions } from "@/components/admin-order-actions";
 import {
   AdminComplaintsPanel,
   AdminListingsPanel,
   AdminMembersPanel,
+  AdminOrdersPanel,
 } from "@/components/admin-list-panels";
 import { AdminTabs, type AdminTab } from "@/components/admin-tabs";
 import { requireAdmin } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import type { AdminStats, Listing } from "@/lib/types";
-import {
-  formatPersonName,
-  formatPrice,
-  orderStatusLabel,
-} from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -195,17 +190,33 @@ export default async function AdminPage({
     const buyer = Array.isArray(order.buyer) ? order.buyer[0] : order.buyer;
     const seller = Array.isArray(order.seller) ? order.seller[0] : order.seller;
     return {
-      order,
+      order: {
+        id: order.id,
+        status: order.status,
+        price_cents: order.price_cents,
+        created_at: order.created_at,
+      },
       title: listing?.title || "—",
       homePickup: listing?.pickup_method === "seller_location",
-      buyer,
-      seller,
+      buyer: buyer
+        ? {
+            email: buyer.email ?? null,
+            full_name: buyer.full_name ?? null,
+            nickname: buyer.nickname ?? null,
+            phone: buyer.phone ?? null,
+          }
+        : null,
+      seller: seller
+        ? {
+            email: seller.email ?? null,
+            full_name: seller.full_name ?? null,
+            nickname: seller.nickname ?? null,
+            phone: seller.phone ?? null,
+          }
+        : null,
     };
   });
   const activeTrades = tradeRows.filter((r) => r.order.status !== "completed");
-  const completedTrades = tradeRows.filter(
-    (r) => r.order.status === "completed",
-  );
 
   const rangeTabs: { key: StatsRange; label: string }[] = [
     { key: "all", label: t.admin.rangeAll },
@@ -382,135 +393,7 @@ export default async function AdminPage({
         />
       ) : null}
 
-      {tab === "orders" ? (
-        <section className="mt-8">
-          <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-foreground">
-            <ShoppingBagIcon className="size-6" aria-hidden />
-            {t.admin.orders}
-          </h2>
-
-          <h3 className="mt-6 text-sm font-semibold text-brand">
-            {t.admin.activeTrades} ({activeTrades.length})
-          </h3>
-          <div className="mt-3 space-y-3">
-            {activeTrades.length ? (
-              activeTrades.map(
-                ({ order, title, homePickup, buyer, seller }) => (
-                  <div
-                    key={order.id}
-                    className="rounded-lg border border-brand/15 bg-white/70 p-4"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-medium text-foreground">{title}</p>
-                          <span className="rounded bg-brand/10 px-2 py-0.5 text-[11px] font-semibold text-brand">
-                            {homePickup
-                              ? t.market.pickupSeller
-                              : t.market.pickupChurch}
-                          </span>
-                          <span className="rounded bg-sun px-2 py-0.5 text-[11px] font-semibold text-brand">
-                            {orderStatusLabel(order.status, t.status)}
-                          </span>
-                        </div>
-                        <p className="mt-1 text-sm text-ink-muted">
-                          {formatPrice(order.price_cents, locale)} ·{" "}
-                          {new Date(order.created_at).toLocaleString(
-                            locale === "en" ? "en-US" : "ko-KR",
-                          )}
-                        </p>
-                      </div>
-                      <AdminOrderActions
-                        orderId={order.id}
-                        status={order.status}
-                        homePickup={homePickup}
-                      />
-                    </div>
-
-                    <dl className="mt-3 grid gap-2 border-t border-brand/10 pt-3 text-sm sm:grid-cols-2">
-                      <div>
-                        <dt className="text-xs text-ink-muted">
-                          {t.admin.seller}
-                        </dt>
-                        <dd className="text-foreground">
-                          {formatPersonName(seller, "—")}
-                          {seller?.phone ? ` · ${seller.phone}` : ""}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-xs text-ink-muted">
-                          {t.admin.buyer}
-                        </dt>
-                        <dd className="text-foreground">
-                          {formatPersonName(buyer, "—")}
-                          {buyer?.phone ? ` · ${buyer.phone}` : ""}
-                        </dd>
-                      </div>
-                    </dl>
-
-                    <p className="mt-2 text-xs leading-relaxed text-ink-muted">
-                      {homePickup
-                        ? t.admin.homePickupHint
-                        : order.status === "awaiting_dropoff"
-                          ? t.admin.churchDropoffHint
-                          : t.admin.churchPickupHint}
-                    </p>
-                  </div>
-                ),
-              )
-            ) : (
-              <p className="text-sm text-ink-muted">
-                {t.admin.noActiveTrades}
-              </p>
-            )}
-          </div>
-
-          <h3 className="mt-8 text-sm font-semibold text-brand">
-            {t.admin.completedTrades} ({completedTrades.length})
-          </h3>
-          <div className="mt-3 overflow-x-auto rounded-lg border border-brand/10 bg-white/70">
-            <table className="min-w-full text-left text-sm">
-              <thead className="border-b border-brand/10 text-ink-muted">
-                <tr>
-                  <th className="px-4 py-3 font-medium">{t.admin.item}</th>
-                  <th className="px-4 py-3 font-medium">{t.admin.seller}</th>
-                  <th className="px-4 py-3 font-medium">{t.admin.buyer}</th>
-                  <th className="px-4 py-3 font-medium">{t.admin.pickup}</th>
-                  <th className="px-4 py-3 font-medium">{t.admin.amount}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {completedTrades.map(
-                  ({ order, title, homePickup, buyer, seller }) => (
-                    <tr key={order.id} className="border-t border-brand/5">
-                      <td className="px-4 py-3">{title}</td>
-                      <td className="px-4 py-3">
-                        {formatPersonName(seller, "—")}
-                      </td>
-                      <td className="px-4 py-3">
-                        {formatPersonName(buyer, "—")}
-                      </td>
-                      <td className="px-4 py-3">
-                        {homePickup
-                          ? t.market.pickupSeller
-                          : t.market.pickupChurch}
-                      </td>
-                      <td className="px-4 py-3">
-                        {formatPrice(order.price_cents, locale)}
-                      </td>
-                    </tr>
-                  ),
-                )}
-              </tbody>
-            </table>
-            {!completedTrades.length ? (
-              <p className="px-4 py-6 text-sm text-ink-muted">
-                {t.admin.noCompletedTrades}
-              </p>
-            ) : null}
-          </div>
-        </section>
-      ) : null}
+      {tab === "orders" ? <AdminOrdersPanel trades={tradeRows} /> : null}
     </main>
   );
 }
