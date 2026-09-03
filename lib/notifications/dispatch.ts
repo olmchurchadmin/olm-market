@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/supabase/server";
 import { getAdminEmail, sendEmail } from "@/lib/notifications/email";
+import { tradeNotificationEmailHtml } from "@/lib/notifications/trade-emails";
 import { formatPersonName, formatPrice } from "@/lib/utils";
 import type { PickupMethod } from "@/lib/types";
 
@@ -162,16 +163,20 @@ async function deliverEmail(
     return;
   }
 
-  const footer = orderId
-    ? `<p>주문번호: ${orderId}</p>`
-    : payload.listing_id
-      ? `<p>물품 ID: ${payload.listing_id}</p>`
-      : "";
+  const listingId =
+    typeof payload.listing_id === "string" ? payload.listing_id : null;
+  const role = typeof payload.role === "string" ? payload.role : null;
 
   const result = await sendEmail({
     to,
     subject: `[OLM Market] ${copy.title}`,
-    html: `<p>${copy.body}</p>${footer}`,
+    html: tradeNotificationEmailHtml({
+      title: copy.title,
+      body: copy.body,
+      orderId,
+      listingId,
+      role,
+    }),
   });
   await recordJob(supabase, {
     channel: "email",
@@ -227,10 +232,16 @@ async function notifyAdmin(
 ) {
   const adminEmail = getAdminEmail();
   const body = options.lines.join("\n\n");
-  const html = [
-    ...options.lines.map((line) => `<p>${line}</p>`),
-    options.orderId ? `<p>주문번호: ${options.orderId}</p>` : "",
-  ].join("");
+  const html = tradeNotificationEmailHtml({
+    title: options.subject,
+    body,
+    orderId: options.orderId,
+    listingId:
+      typeof options.payload.listing_id === "string"
+        ? options.payload.listing_id
+        : null,
+    role: "admin",
+  });
 
   const result = await sendEmail({
     to: adminEmail,

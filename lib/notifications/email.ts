@@ -18,7 +18,7 @@ export async function sendEmail(options: {
 
   const resend = new Resend(apiKey);
   const from =
-    process.env.RESEND_FROM_EMAIL || "Church Market <onboarding@resend.dev>";
+    process.env.RESEND_FROM_EMAIL || "OLM Market <onboarding@resend.dev>";
 
   const { error } = await resend.emails.send({
     from,
