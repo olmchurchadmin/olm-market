@@ -79,7 +79,7 @@ export async function resolveComplaintAction(formData: FormData) {
   }
 
   revalidatePath("/admin");
-  redirect("/admin?resolved=1");
+  redirect("/admin?tab=complaints&resolved=1");
 }
 
 export async function replyComplaintAction(formData: FormData) {

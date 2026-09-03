@@ -145,20 +145,29 @@ export async function updateListingAction(formData: FormData) {
   const { title, description, categoryId, priceCents, donationPercent, pickupMethod, files } =
     await parseListingFields(formData);
 
-  const { data: existing, error: loadError } = await supabase
-    .from("listings")
-    .select("id, seller_id, status, cover_image_path")
-    .eq("id", listingId)
-    .maybeSingle();
+  const [{ data: existing, error: loadError }, { data: profile }] =
+    await Promise.all([
+      supabase
+        .from("listings")
+        .select("id, seller_id, status, cover_image_path")
+        .eq("id", listingId)
+        .maybeSingle(),
+      supabase.from("profiles").select("role").eq("id", user.id).maybeSingle(),
+    ]);
 
-  if (loadError || !existing || existing.seller_id !== user.id) {
+  const isAdmin = profile?.role === "admin";
+  if (loadError || !existing || (existing.seller_id !== user.id && !isAdmin)) {
     throw new Error(t.errors.cannotEdit);
   }
-  if (existing.status !== "available" && existing.status !== "cancelled") {
+  if (
+    !isAdmin &&
+    existing.status !== "available" &&
+    existing.status !== "cancelled"
+  ) {
     throw new Error(t.errors.cannotEditActive);
   }
 
-  const { error } = await supabase
+  let updateQuery = supabase
     .from("listings")
     .update({
       category_id: categoryId,
@@ -167,10 +176,17 @@ export async function updateListingAction(formData: FormData) {
       price_cents: priceCents,
       donation_percent: donationPercent,
       pickup_method: pickupMethod,
-      status: "available",
+      // Admins can patch active listings without forcing them back to available.
+      ...(isAdmin && existing.status !== "available" && existing.status !== "cancelled"
+        ? {}
+        : { status: "available" }),
     })
-    .eq("id", listingId)
-    .eq("seller_id", user.id);
+    .eq("id", listingId);
+  if (!isAdmin) {
+    updateQuery = updateQuery.eq("seller_id", user.id);
+  }
+
+  const { error } = await updateQuery;
 
   if (error) {
     throw new Error(error.message || t.errors.updateFailed);
@@ -207,9 +223,10 @@ export async function updateListingAction(formData: FormData) {
 
   const startOrder = remaining?.length ? remaining.length : 0;
   const slots = Math.max(0, 6 - startOrder);
+  const ownerId = existing.seller_id;
   const uploadedPaths = await uploadListingImages(
     supabase,
-    user.id,
+    ownerId,
     listingId,
     files.slice(0, slots),
     startOrder,
@@ -229,8 +246,9 @@ export async function updateListingAction(formData: FormData) {
   revalidatePath("/market");
   revalidatePath(`/market/${listingId}`);
   revalidatePath("/account/transactions");
+  revalidatePath("/admin");
   revalidatePath("/me");
-  redirect(`/market/${listingId}`);
+  redirect(isAdmin ? `/admin?tab=listings` : `/market/${listingId}`);
 }
 
 export async function deleteListingAction(formData: FormData) {
@@ -241,26 +259,31 @@ export async function deleteListingAction(formData: FormData) {
     redirect("/account/transactions?error=missing");
   }
 
-  const { data: existing } = await supabase
-    .from("listings")
-    .select("id, seller_id, status")
-    .eq("id", listingId)
-    .maybeSingle();
+  const [{ data: existing }, { data: profile }] = await Promise.all([
+    supabase
+      .from("listings")
+      .select("id, seller_id, status")
+      .eq("id", listingId)
+      .maybeSingle(),
+    supabase.from("profiles").select("role").eq("id", user.id).maybeSingle(),
+  ]);
 
-  if (!existing || existing.seller_id !== user.id) {
-    redirect(
-      `/account/transactions?error=${encodeURIComponent(t.errors.cannotDelete)}`,
-    );
+  const isAdmin = profile?.role === "admin";
+  const backTo = isAdmin ? "/admin?tab=listings" : "/account/transactions";
+  const withError = (message: string) =>
+    `${backTo}${backTo.includes("?") ? "&" : "?"}error=${encodeURIComponent(message)}`;
+
+  if (!existing || (existing.seller_id !== user.id && !isAdmin)) {
+    redirect(withError(t.errors.cannotDelete));
   }
 
   if (
-    existing.status === "reserved" ||
-    existing.status === "at_church" ||
-    existing.status === "sold"
+    !isAdmin &&
+    (existing.status === "reserved" ||
+      existing.status === "at_church" ||
+      existing.status === "sold")
   ) {
-    redirect(
-      `/account/transactions?error=${encodeURIComponent(t.errors.cannotDeleteActive)}`,
-    );
+    redirect(withError(t.errors.cannotDeleteActive));
   }
 
   const { data: images } = await supabase
@@ -274,31 +297,33 @@ export async function deleteListingAction(formData: FormData) {
   }
 
   // Soft-cancel first (works with existing update RLS even without DELETE policy)
-  const { error: cancelError } = await supabase
+  let cancelQuery = supabase
     .from("listings")
     .update({ status: "cancelled", cover_image_path: null })
-    .eq("id", listingId)
-    .eq("seller_id", user.id);
+    .eq("id", listingId);
+  if (!isAdmin) {
+    cancelQuery = cancelQuery.eq("seller_id", user.id);
+  }
+  const { error: cancelError } = await cancelQuery;
 
   if (cancelError) {
-    redirect(
-      `/account/transactions?error=${encodeURIComponent(cancelError.message || t.errors.deleteFailed)}`,
-    );
+    redirect(withError(cancelError.message || t.errors.deleteFailed));
   }
 
   await supabase.from("listing_images").delete().eq("listing_id", listingId);
 
   // Best-effort hard delete when policy/FK allow it
-  await supabase
-    .from("listings")
-    .delete()
-    .eq("id", listingId)
-    .eq("seller_id", user.id);
+  let hardDelete = supabase.from("listings").delete().eq("id", listingId);
+  if (!isAdmin) {
+    hardDelete = hardDelete.eq("seller_id", user.id);
+  }
+  await hardDelete;
 
   revalidatePath("/");
   revalidatePath("/market");
   revalidatePath(`/market/${listingId}`);
   revalidatePath("/account/transactions");
+  revalidatePath("/admin");
   revalidatePath("/me");
-  redirect("/account/transactions?deleted=1");
+  redirect(isAdmin ? "/admin?tab=listings&deleted=1" : "/account/transactions?deleted=1");
 }

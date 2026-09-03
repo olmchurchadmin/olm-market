@@ -6,7 +6,7 @@ import { DonationPercentField } from "@/components/donation-percent-field";
 import { PickupMethodField } from "@/components/pickup-method-field";
 import { SelectField } from "@/components/ui/select-field";
 import { updateListingAction } from "@/lib/actions/listings";
-import { getSessionUser } from "@/lib/auth";
+import { getCurrentProfile, getSessionUser } from "@/lib/auth";
 import { categoryLabel } from "@/lib/i18n/categories";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
@@ -26,6 +26,8 @@ export default async function EditListingPage({
     redirect(`/login?next=/sell/${id}/edit`);
   }
 
+  const profile = await getCurrentProfile();
+  const isAdmin = profile?.role === "admin";
   const supabase = await createClient();
   const [{ data: listing }, { data: categories }] = await Promise.all([
     supabase
@@ -36,8 +38,12 @@ export default async function EditListingPage({
     supabase.from("categories").select("*").order("sort_order"),
   ]);
 
-  if (!listing || listing.seller_id !== user.id) notFound();
-  if (listing.status !== "available" && listing.status !== "cancelled") {
+  if (!listing || (listing.seller_id !== user.id && !isAdmin)) notFound();
+  if (
+    !isAdmin &&
+    listing.status !== "available" &&
+    listing.status !== "cancelled"
+  ) {
     redirect(
       `/account/transactions?error=${encodeURIComponent(t.sell.cannotEditActive)}`,
     );
@@ -48,6 +54,7 @@ export default async function EditListingPage({
       a.sort_order - b.sort_order,
   );
   const pickupMethod = (listing.pickup_method || "church") as PickupMethod;
+  const cancelHref = isAdmin ? "/admin?tab=listings" : "/account/transactions";
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
@@ -118,7 +125,7 @@ export default async function EditListingPage({
             {t.sell.save}
           </button>
           <Link
-            href="/account/transactions"
+            href={cancelHref}
             className="rounded-md border border-brand/15 bg-white px-5 py-3 text-sm font-medium text-foreground hover:bg-brand/5"
           >
             {t.sell.cancel}
