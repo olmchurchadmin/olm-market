@@ -1,13 +1,6 @@
-/** Branded auth emails (confirm / password reset) for Resend. */
+import { olmLogoSvgMarkup } from "@/lib/notifications/email-logo";
 
-function siteOrigin() {
-  const base = process.env.NEXT_PUBLIC_SITE_URL
-    ? process.env.NEXT_PUBLIC_SITE_URL
-    : process.env.VERCEL_PROJECT_PRODUCTION_URL
-      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-      : "http://localhost:3000";
-  return base.replace(/\/$/, "");
-}
+/** Branded auth emails (confirm / password reset) for Resend. */
 
 function escapeHtml(value: string) {
   return value
@@ -24,8 +17,6 @@ export function brandedAuthEmailHtml(options: {
   actionLink: string;
   footerNote?: string;
 }) {
-  const origin = siteOrigin();
-  const logoUrl = `${origin}/logo-olm.png`;
   const year = new Date().getFullYear();
   const link = escapeHtml(options.actionLink);
   const title = escapeHtml(options.title);
@@ -35,6 +26,7 @@ export function brandedAuthEmailHtml(options: {
     options.footerNote ||
       "If you did not request this email, you can safely ignore it.",
   );
+  const logo = olmLogoSvgMarkup(240);
 
   return `<!DOCTYPE html>
 <html lang="ko">
@@ -50,12 +42,7 @@ export function brandedAuthEmailHtml(options: {
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:520px;background:#ffffff;border-radius:12px;overflow:hidden;">
           <tr>
             <td style="padding:32px 28px 8px 28px;">
-              <img
-                src="${logoUrl}"
-                alt="Our Lady of Mercy Parish"
-                width="240"
-                style="display:block;width:240px;max-width:70%;height:auto;border:0;"
-              />
+              ${logo}
             </td>
           </tr>
           <tr>

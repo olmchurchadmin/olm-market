@@ -500,6 +500,119 @@ export async function deleteAccountAction() {
   redirect("/");
 }
 
+export async function adminDeleteMemberAction(formData: FormData) {
+  const { t } = await getI18n();
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { data: adminProfile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (adminProfile?.role !== "admin") {
+    redirect("/");
+  }
+
+  const targetId = String(formData.get("user_id") || "").trim();
+  const fail = (message: string) =>
+    redirect(
+      `/admin?tab=members&error=${encodeURIComponent(message)}`,
+    );
+
+  if (!targetId) {
+    fail(t.errors.deleteMemberFailed);
+  }
+  if (targetId === user.id) {
+    fail(t.errors.deleteMemberForbidden);
+  }
+
+  let admin;
+  try {
+    admin = createServiceClient();
+  } catch {
+    fail(t.errors.deleteMemberFailed);
+    return;
+  }
+
+  const { data: target } = await admin
+    .from("profiles")
+    .select("id, role")
+    .eq("id", targetId)
+    .maybeSingle();
+
+  if (!target || target.role === "admin") {
+    fail(t.errors.deleteMemberForbidden);
+  }
+
+  const { count: activeCount, error: activeError } = await admin
+    .from("orders")
+    .select("id", { count: "exact", head: true })
+    .or(`buyer_id.eq.${targetId},seller_id.eq.${targetId}`)
+    .in("status", ["reserved", "awaiting_dropoff", "ready_for_pickup"]);
+
+  if (activeError) {
+    fail(activeError.message || t.errors.deleteMemberFailed);
+  }
+  if ((activeCount || 0) > 0) {
+    fail(t.errors.deleteMemberActiveTrades);
+  }
+
+  const { data: listings, error: listingsError } = await admin
+    .from("listings")
+    .select("id")
+    .eq("seller_id", targetId);
+
+  if (listingsError) {
+    fail(listingsError.message || t.errors.deleteMemberFailed);
+  }
+
+  const listingIds = (listings || []).map((row) => row.id);
+
+  if (listingIds.length) {
+    const { data: images } = await admin
+      .from("listing_images")
+      .select("storage_path")
+      .in("listing_id", listingIds);
+    const paths = (images || [])
+      .map((row) => row.storage_path)
+      .filter(Boolean);
+    if (paths.length) {
+      await admin.storage.from("listing-images").remove(paths);
+    }
+  }
+
+  const { error: ordersError } = await admin
+    .from("orders")
+    .delete()
+    .or(`buyer_id.eq.${targetId},seller_id.eq.${targetId}`);
+
+  if (ordersError) {
+    fail(ordersError.message || t.errors.deleteMemberFailed);
+  }
+
+  if (listingIds.length) {
+    await admin.from("listing_images").delete().in("listing_id", listingIds);
+    const { error: deleteListingsError } = await admin
+      .from("listings")
+      .delete()
+      .eq("seller_id", targetId);
+    if (deleteListingsError) {
+      fail(deleteListingsError.message || t.errors.deleteMemberFailed);
+    }
+  }
+
+  const { error: deleteUserError } = await admin.auth.admin.deleteUser(targetId);
+  if (deleteUserError) {
+    fail(deleteUserError.message || t.errors.deleteMemberFailed);
+  }
+
+  redirect("/admin?tab=members&memberDeleted=1");
+}
+
 export async function updatePhoneAction(formData: FormData) {
   const phone = String(formData.get("phone") || "").trim();
   const supabase = await createClient();

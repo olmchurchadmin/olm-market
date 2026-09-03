@@ -1,3 +1,5 @@
+import { olmLogoSvgMarkup } from "@/lib/notifications/email-logo";
+
 /** Branded trade / marketplace notification emails for Resend. */
 
 function siteOrigin() {
@@ -37,8 +39,6 @@ export function brandedNotificationEmailHtml(options: {
   metaLabel?: string;
   metaValue?: string;
 }) {
-  const origin = siteOrigin();
-  const logoUrl = `${origin}/logo-olm.png`;
   const year = new Date().getFullYear();
   const title = escapeHtml(options.title);
   const bodyHtml = bodyToHtml(options.body);
@@ -49,6 +49,7 @@ export function brandedNotificationEmailHtml(options: {
     : "";
   const metaLabel = options.metaLabel ? escapeHtml(options.metaLabel) : "";
   const metaValue = options.metaValue ? escapeHtml(options.metaValue) : "";
+  const logo = olmLogoSvgMarkup(240);
 
   return `<!DOCTYPE html>
 <html lang="ko">
@@ -64,12 +65,7 @@ export function brandedNotificationEmailHtml(options: {
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:520px;background:#ffffff;border-radius:12px;overflow:hidden;">
           <tr>
             <td style="padding:32px 28px 8px 28px;">
-              <img
-                src="${logoUrl}"
-                alt="Our Lady of Mercy Parish"
-                width="240"
-                style="display:block;width:240px;max-width:70%;height:auto;border:0;"
-              />
+              ${logo}
             </td>
           </tr>
           <tr>

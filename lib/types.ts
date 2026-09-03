@@ -101,6 +101,7 @@ export type AdminStats = {
   sold: number;
   gmv_cents: number;
   donation_cents?: number;
+  total_users?: number;
   active_users: number;
   orders_awaiting_dropoff: number;
   orders_ready_for_pickup: number;

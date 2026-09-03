@@ -1,26 +1,22 @@
 import {
   ChartBarIcon,
-  ExclamationTriangleIcon,
-  PencilSquareIcon,
   ShoppingBagIcon,
-  TagIcon,
-  UsersIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { AdminOrderActions } from "@/components/admin-order-actions";
+import {
+  AdminComplaintsPanel,
+  AdminListingsPanel,
+  AdminMembersPanel,
+} from "@/components/admin-list-panels";
 import { AdminTabs, type AdminTab } from "@/components/admin-tabs";
-import { DeleteListingButton } from "@/components/delete-listing-button";
-import { ResolveComplaintButton } from "@/components/resolve-complaint-button";
 import { requireAdmin } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import type { AdminStats, Listing } from "@/lib/types";
 import {
-  accountDisplayName,
   formatPersonName,
   formatPrice,
-  listingImageUrl,
-  listingStatusLabel,
   orderStatusLabel,
 } from "@/lib/utils";
 
@@ -89,16 +85,18 @@ export default async function AdminPage({
     error?: string;
     resolved?: string;
     deleted?: string;
+    memberDeleted?: string;
     tab?: string;
     range?: string;
   }>;
 }) {
-  await requireAdmin();
+  const adminProfile = await requireAdmin();
   const { locale, t } = await getI18n();
   const {
     error,
     resolved,
     deleted,
+    memberDeleted,
     tab: tabParam,
     range: rangeParam,
   } = await searchParams;
@@ -127,7 +125,7 @@ export default async function AdminPage({
     supabase
       .from("complaints")
       .select(
-        "id, subject, body, status, created_at, resolved_at, user:profiles!complaints_user_id_fkey(email, full_name, nickname)",
+        "id, subject, body, status, admin_reply, created_at, resolved_at, user:profiles!complaints_user_id_fkey(email, full_name, nickname)",
       )
       .order("created_at", { ascending: false })
       .limit(40),
@@ -189,9 +187,6 @@ export default async function AdminPage({
   const stats = statsByRange[range];
 
   const openComplaints = (complaints || []).filter((c) => c.status === "open");
-  const resolvedComplaints = (complaints || []).filter(
-    (c) => c.status === "resolved",
-  );
 
   const tradeRows = (orders || []).map((order) => {
     const listing = Array.isArray(order.listings)
@@ -257,88 +252,31 @@ export default async function AdminPage({
           {t.admin.listingDeletedFlash}
         </p>
       ) : null}
+      {memberDeleted ? (
+        <p className="mt-6 rounded-md border border-brand/20 bg-brand/5 px-3 py-2 text-sm text-brand">
+          {t.admin.memberDeletedFlash}
+        </p>
+      ) : null}
 
       {tab === "listings" ? (
-        <section className="mt-8">
-          <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-foreground">
-            <TagIcon className="size-6" aria-hidden />
-            {t.admin.listingsTab}
-          </h2>
-          <ul className="mt-4 space-y-3">
-            {(allListings || []).length ? (
-              (allListings as (Listing & {
-                seller?:
-                  | { email?: string; full_name?: string; nickname?: string }
-                  | { email?: string; full_name?: string; nickname?: string }[]
-                  | null;
-              })[]).map((listing) => {
-                const seller = Array.isArray(listing.seller)
-                  ? listing.seller[0]
-                  : listing.seller;
-                const thumb = listingImageUrl(listing.cover_image_path);
-                return (
-                  <li
-                    key={listing.id}
-                    className="flex gap-3 rounded-lg border border-brand/10 bg-white/70 p-3"
-                  >
-                    <Link
-                      href={`/market/${listing.id}`}
-                      className="relative size-16 shrink-0 overflow-hidden rounded-md bg-[linear-gradient(135deg,#dfe8e2,#f7f3ea)] sm:size-20"
-                    >
-                      {thumb ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={thumb}
-                          alt=""
-                          className="absolute inset-0 h-full w-full object-cover object-center"
-                        />
-                      ) : (
-                        <span className="absolute inset-0 flex items-center justify-center text-[10px] text-ink-muted">
-                          {t.market.noImage}
-                        </span>
-                      )}
-                    </Link>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <Link
-                            href={`/market/${listing.id}`}
-                            className="font-medium text-foreground hover:underline"
-                          >
-                            {listing.title}
-                          </Link>
-                          <p className="text-sm text-ink-muted">
-                            {formatPrice(listing.price_cents, locale)} ·{" "}
-                            {listingStatusLabel(listing.status, t.status)} ·{" "}
-                            {listing.pickup_method === "seller_location"
-                              ? t.market.pickupSeller
-                              : t.market.pickupChurch}
-                          </p>
-                          <p className="mt-1 text-xs text-ink-muted">
-                            {t.admin.seller}: {formatPersonName(seller, "—")}
-                            {seller?.email ? ` · ${seller.email}` : ""}
-                          </p>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          <Link
-                            href={`/sell/${listing.id}/edit`}
-                            className="inline-flex items-center gap-1 rounded-md border border-brand/15 bg-white px-2.5 py-1 text-xs font-medium text-foreground hover:bg-brand/5"
-                          >
-                            <PencilSquareIcon className="size-3.5" aria-hidden />
-                            {t.account.edit}
-                          </Link>
-                          <DeleteListingButton listingId={listing.id} />
-                        </div>
-                      </div>
-                    </div>
-                  </li>
-                );
-              })
-            ) : (
-              <li className="text-sm text-ink-muted">{t.admin.noListings}</li>
-            )}
-          </ul>
-        </section>
+        <AdminListingsPanel
+          listings={
+            (allListings || []) as (Listing & {
+              seller?:
+                | {
+                    email?: string | null;
+                    full_name?: string | null;
+                    nickname?: string | null;
+                  }
+                | {
+                    email?: string | null;
+                    full_name?: string | null;
+                    nickname?: string | null;
+                  }[]
+                | null;
+            })[]
+          }
+        />
       ) : null}
 
       {tab === "stats" ? (
@@ -367,12 +305,16 @@ export default async function AdminPage({
             })}
           </div>
 
-          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard
               label={t.admin.listings}
               value={stats.new_listings ?? 0}
             />
             <StatCard label={t.admin.sold} value={stats.sold ?? 0} />
+            <StatCard
+              label={t.admin.totalUsers}
+              value={stats.total_users ?? 0}
+            />
             <StatCard
               label={t.admin.activeUsers}
               value={stats.active_users ?? 0}
@@ -398,137 +340,46 @@ export default async function AdminPage({
       ) : null}
 
       {tab === "members" ? (
-        <section className="mt-8">
-          <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-foreground">
-            <UsersIcon className="size-6" aria-hidden />
-            {t.admin.members}
-          </h2>
-          <div className="mt-4 overflow-x-auto rounded-lg border border-brand/10 bg-white/70">
-            <table className="min-w-full text-left text-sm">
-              <thead className="border-b border-brand/10 text-ink-muted">
-                <tr>
-                  <th className="px-4 py-3 font-medium">{t.admin.name}</th>
-                  <th className="px-4 py-3 font-medium">{t.admin.email}</th>
-                  <th className="px-4 py-3 font-medium">{t.admin.phone}</th>
-                  <th className="px-4 py-3 font-medium">{t.admin.role}</th>
-                  <th className="px-4 py-3 font-medium">{t.admin.joined}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(members || []).map((member) => (
-                  <tr key={member.id} className="border-t border-brand/5">
-                    <td className="px-4 py-3">
-                      {accountDisplayName(member)}
-                    </td>
-                    <td className="px-4 py-3 break-all">
-                      {member.email || "—"}
-                    </td>
-                    <td className="px-4 py-3">{member.phone || "—"}</td>
-                    <td className="px-4 py-3">
-                      {member.role === "admin" ? (
-                        <span className="rounded bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand">
-                          admin
-                        </span>
-                      ) : (
-                        "user"
-                      )}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      {new Date(member.created_at).toLocaleDateString(
-                        locale === "en" ? "en-US" : "ko-KR",
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {!members?.length ? (
-              <p className="px-4 py-6 text-sm text-ink-muted">
-                {t.admin.noMembers}
-              </p>
-            ) : null}
-          </div>
-        </section>
+        <AdminMembersPanel
+          currentUserId={adminProfile.id}
+          members={(members || []).map((member) => ({
+            id: member.id,
+            email: member.email,
+            full_name: member.full_name,
+            nickname: member.nickname,
+            phone: member.phone,
+            role: member.role,
+            created_at: member.created_at,
+          }))}
+        />
       ) : null}
 
       {tab === "complaints" ? (
-        <section className="mt-8">
-          <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-foreground">
-            <ExclamationTriangleIcon className="size-6" aria-hidden />
-            {t.admin.complaints}
-          </h2>
-          <div className="mt-4 rounded-lg border border-brand/10 bg-white/70 p-4">
-            <p className="text-sm text-ink-muted">
-              {t.admin.unresolved} {openComplaints.length} · {t.admin.resolved}{" "}
-              {resolvedComplaints.length}
-            </p>
-            <ul className="mt-4 space-y-3">
-              {(complaints || []).length ? (
-                (complaints || []).map((item) => {
-                  const user = Array.isArray(item.user)
-                    ? item.user[0]
-                    : item.user;
-                  const isOpen = item.status === "open";
-                  return (
-                    <li
-                      key={item.id}
-                      className={`rounded-md border px-4 py-3 ${
-                        isOpen
-                          ? "border-amber-200 bg-amber-50/60"
-                          : "border-brand/10 bg-[color-mix(in_oklab,var(--background)_55%,white)]"
-                      }`}
-                    >
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="font-medium text-foreground">
-                              {item.subject}
-                            </p>
-                            <span
-                              className={`rounded px-2 py-0.5 text-[11px] font-semibold ${
-                                isOpen
-                                  ? "bg-amber-200/80 text-amber-950"
-                                  : "bg-brand/15 text-brand"
-                              }`}
-                            >
-                              {isOpen
-                                ? t.admin.unresolved
-                                : t.admin.resolved}
-                            </span>
-                          </div>
-                          <p className="mt-1 text-xs text-ink-muted">
-                            {user
-                              ? `${accountDisplayName(user)} · ${user.email || ""}`
-                              : "—"}{" "}
-                            ·{" "}
-                            {new Date(item.created_at).toLocaleString(
-                              locale === "en" ? "en-US" : "ko-KR",
-                            )}
-                            {!isOpen && item.resolved_at
-                              ? ` · ${t.admin.resolved} ${new Date(item.resolved_at).toLocaleString(
-                                  locale === "en" ? "en-US" : "ko-KR",
-                                )}`
-                              : ""}
-                          </p>
-                          <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-foreground">
-                            {item.body}
-                          </p>
-                        </div>
-                        {isOpen ? (
-                          <ResolveComplaintButton complaintId={item.id} />
-                        ) : null}
-                      </div>
-                    </li>
-                  );
-                })
-              ) : (
-                <li className="text-sm text-ink-muted">
-                  {t.admin.noComplaints}
-                </li>
-              )}
-            </ul>
-          </div>
-        </section>
+        <AdminComplaintsPanel
+          complaints={(complaints || []).map((item) => {
+            const user = Array.isArray(item.user) ? item.user[0] : item.user;
+            return {
+              id: item.id,
+              subject: item.subject,
+              body: item.body,
+              status: item.status,
+              created_at: item.created_at,
+              resolved_at: item.resolved_at,
+              admin_reply:
+                "admin_reply" in item
+                  ? ((item as { admin_reply?: string | null }).admin_reply ??
+                    null)
+                  : null,
+              user: user
+                ? {
+                    email: user.email ?? null,
+                    full_name: user.full_name ?? null,
+                    nickname: user.nickname ?? null,
+                  }
+                : null,
+            };
+          })}
+        />
       ) : null}
 
       {tab === "orders" ? (
