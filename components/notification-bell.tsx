@@ -2,7 +2,7 @@
 
 import { BellIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useI18n } from "@/components/locale-provider";
 import { NotificationDetailRows } from "@/components/notification-detail-rows";
 import { SharePickupDetails } from "@/components/share-pickup-details";
@@ -27,6 +27,11 @@ export function NotificationBell() {
   // clicks inside the other as an outside click and closed the panel before
   // the click could reach the button or link under the cursor.
   const [panelOpen, setPanelOpen] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  const toggleDeleteConfirm = useCallback((id: string) => {
+    setConfirmDeleteId((prev) => (prev === id ? null : id));
+  }, []);
 
   useEffect(() => {
     if (!panelOpen) return;
@@ -157,7 +162,33 @@ export function NotificationBell() {
                           />
                         ) : null}
                       </div>
-                      <div className="flex shrink-0 items-center gap-1">
+                      <div className="flex shrink-0 items-center gap-1 overflow-hidden">
+                        <div
+                          className={`flex items-center gap-1.5 transition-all duration-200 ${
+                            confirmDeleteId === item.id
+                              ? "max-w-[10rem] opacity-100"
+                              : "max-w-0 opacity-0 pointer-events-none"
+                          }`}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => setConfirmDeleteId(null)}
+                            className="whitespace-nowrap text-[11px] font-medium text-ink-muted hover:text-foreground"
+                          >
+                            {t.common.cancel}
+                          </button>
+                          <button
+                            type="button"
+                            disabled={pending}
+                            onClick={() => {
+                              setConfirmDeleteId(null);
+                              deleteNotification(item.id);
+                            }}
+                            className="whitespace-nowrap text-[11px] font-semibold text-red-600 hover:text-red-700 disabled:opacity-50"
+                          >
+                            {t.common.confirm}
+                          </button>
+                        </div>
                         {unread ? (
                           <button
                             type="button"
@@ -171,7 +202,7 @@ export function NotificationBell() {
                         <button
                           type="button"
                           disabled={pending}
-                          onClick={() => deleteNotification(item.id)}
+                          onClick={() => toggleDeleteConfirm(item.id)}
                           className="rounded-md p-1 text-ink-muted hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
                           aria-label={t.alerts.deleteAria}
                         >
