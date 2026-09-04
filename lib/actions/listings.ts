@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { getI18n } from "@/lib/i18n/server";
 import { notifyListingCreated } from "@/lib/notifications/dispatch";
 import { createClient } from "@/lib/supabase/server";
+import type { PickupMethod } from "@/lib/types";
 
 async function requireSeller() {
   const supabase = await createClient();
@@ -30,14 +31,19 @@ async function parseListingFields(formData: FormData) {
     Math.max(30, Math.round(Number.isFinite(donationRaw) ? donationRaw : 100)),
   );
   const pickupRaw = String(formData.get("pickup_method") || "church");
-  const pickupMethod =
+  const pickupMethod: PickupMethod =
     pickupRaw === "seller_location" ? "seller_location" : "church";
+  const pickupAddress = String(formData.get("pickup_address") || "").trim();
+  const pickupPhone = String(formData.get("pickup_phone") || "").trim();
   const files = formData
     .getAll("images")
     .filter((f): f is File => f instanceof File && f.size > 0);
 
   if (!title || !categoryId || Number.isNaN(priceDollars) || priceDollars < 0) {
     throw new Error(t.errors.requiredFields);
+  }
+  if (pickupMethod === "seller_location" && (!pickupAddress || !pickupPhone)) {
+    throw new Error(t.errors.pickupContactRequired);
   }
 
   return {
@@ -47,8 +53,36 @@ async function parseListingFields(formData: FormData) {
     priceCents: Math.round(priceDollars * 100),
     donationPercent,
     pickupMethod,
+    pickupAddress,
+    pickupPhone,
     files,
   };
+}
+
+async function upsertPickupContacts(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  listingId: string,
+  pickupMethod: PickupMethod,
+  address: string,
+  phone: string,
+) {
+  if (pickupMethod === "seller_location") {
+    const { error } = await supabase.from("listing_pickup_contacts").upsert(
+      {
+        listing_id: listingId,
+        address,
+        phone,
+      },
+      { onConflict: "listing_id" },
+    );
+    if (error) throw new Error(error.message);
+    return;
+  }
+
+  await supabase
+    .from("listing_pickup_contacts")
+    .delete()
+    .eq("listing_id", listingId);
 }
 
 async function uploadListingImages(
@@ -84,8 +118,17 @@ async function uploadListingImages(
 
 export async function createListingAction(formData: FormData) {
   const { supabase, user } = await requireSeller();
-  const { title, description, categoryId, priceCents, donationPercent, pickupMethod, files } =
-    await parseListingFields(formData);
+  const {
+    title,
+    description,
+    categoryId,
+    priceCents,
+    donationPercent,
+    pickupMethod,
+    pickupAddress,
+    pickupPhone,
+    files,
+  } = await parseListingFields(formData);
 
   const { data: listing, error } = await supabase
     .from("listings")
@@ -105,6 +148,19 @@ export async function createListingAction(formData: FormData) {
   if (error || !listing) {
     const { t } = await getI18n();
     throw new Error(error?.message || t.errors.createFailed);
+  }
+
+  try {
+    await upsertPickupContacts(
+      supabase,
+      listing.id,
+      pickupMethod,
+      pickupAddress,
+      pickupPhone,
+    );
+  } catch (contactError) {
+    await supabase.from("listings").delete().eq("id", listing.id);
+    throw contactError;
   }
 
   const uploadedPaths = await uploadListingImages(
@@ -142,8 +198,17 @@ export async function updateListingAction(formData: FormData) {
   const listingId = String(formData.get("listing_id") || "");
   if (!listingId) throw new Error(t.errors.listingNotFound);
 
-  const { title, description, categoryId, priceCents, donationPercent, pickupMethod, files } =
-    await parseListingFields(formData);
+  const {
+    title,
+    description,
+    categoryId,
+    priceCents,
+    donationPercent,
+    pickupMethod,
+    pickupAddress,
+    pickupPhone,
+    files,
+  } = await parseListingFields(formData);
 
   const [{ data: existing, error: loadError }, { data: profile }] =
     await Promise.all([
@@ -191,6 +256,14 @@ export async function updateListingAction(formData: FormData) {
   if (error) {
     throw new Error(error.message || t.errors.updateFailed);
   }
+
+  await upsertPickupContacts(
+    supabase,
+    listingId,
+    pickupMethod,
+    pickupAddress,
+    pickupPhone,
+  );
 
   const removeIds = formData
     .getAll("remove_image_id")

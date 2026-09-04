@@ -44,10 +44,24 @@ function buyCopies(options: {
   pickupMethod: PickupMethod;
   buyerName: string;
   sellerName: string;
+  pickupAddress?: string;
+  pickupPhone?: string;
 }) {
   const priceLabel = formatPrice(options.priceCents);
   const item = `「${options.title}」(${priceLabel})`;
   const church = options.pickupMethod !== "seller_location";
+  const address = options.pickupAddress?.trim() || "";
+  const phone = options.pickupPhone?.trim() || "";
+  const hasPickupDetails = Boolean(address || phone);
+
+  const buyerHomeLines = [
+    `${item} 거래가 성립되었습니다. 판매자(${options.sellerName}) 집에서 픽업하는 거래입니다.`,
+    hasPickupDetails
+      ? "아래 주소와 연락처로 연락해 날짜와 시간을 정하고, 물건을 받을 때 현금으로 결제해 주세요."
+      : "판매자가 픽업 주소와 연락처를 보내드리면 알림으로 확인하실 수 있습니다.",
+    address,
+    phone ? `연락처: ${phone}` : "",
+  ].filter(Boolean);
 
   return {
     seller: {
@@ -55,7 +69,9 @@ function buyCopies(options: {
       title: church ? "팔렸습니다" : "팔렸습니다 · 집에서 픽업",
       body: church
         ? `${item}이 팔렸습니다. 구매자는 ${options.buyerName}입니다. 다음 주 성당으로 가져와 주세요.`
-        : `${item}이 팔렸습니다. 구매자(${options.buyerName})가 집으로 픽업하러 옵니다. 내 계정 › 거래 내역에서 픽업 주소와 연락처를 구매자에게 보내 주세요.`,
+        : hasPickupDetails
+          ? `${item}이 팔렸습니다. 구매자(${options.buyerName})가 집으로 픽업하러 옵니다. 등록하신 픽업 주소와 연락처가 구매자에게 전달되었습니다.`
+          : `${item}이 팔렸습니다. 구매자(${options.buyerName})가 집으로 픽업하러 옵니다. 내 계정 › 거래 내역에서 픽업 주소와 연락처를 구매자에게 보내 주세요.`,
       role: "seller" as const,
     },
     buyer: {
@@ -65,7 +81,7 @@ function buyCopies(options: {
         : "거래가 성립되었습니다 · 집에서 픽업",
       body: church
         ? `${item} 거래가 성립되었습니다. 판매자(${options.sellerName})가 물건을 성당에 맡기면 다시 알려드립니다. 그때 성당에서 현금으로 결제하고 수령하세요.`
-        : `${item} 거래가 성립되었습니다. 판매자(${options.sellerName}) 집에서 픽업하는 거래입니다. 판매자가 픽업 주소와 연락처를 보내드리면 알림으로 확인하실 수 있습니다.`,
+        : buyerHomeLines.join("\n"),
       role: "buyer" as const,
     },
   };
@@ -328,7 +344,7 @@ export async function notifyOrderEvent(input: OrderNotifyInput) {
     throw new Error(error?.message || "Order not found for notification");
   }
 
-  const [{ data: listing }, { data: buyer }, { data: seller }] =
+  const [{ data: listing }, { data: buyer }, { data: seller }, { data: pickupContact }] =
     await Promise.all([
       supabase
         .from("listings")
@@ -345,6 +361,11 @@ export async function notifyOrderEvent(input: OrderNotifyInput) {
         .select(profileSelect)
         .eq("id", order.seller_id)
         .maybeSingle(),
+      supabase
+        .from("listing_pickup_contacts")
+        .select("address, phone")
+        .eq("listing_id", order.listing_id)
+        .maybeSingle(),
     ]);
 
   const title = listing?.title || "Item";
@@ -352,6 +373,10 @@ export async function notifyOrderEvent(input: OrderNotifyInput) {
     listing?.pickup_method === "seller_location" ? "seller_location" : "church";
   const buyerName = displayName(buyer, "구매자");
   const sellerName = displayName(seller, "판매자");
+  const pickupAddress =
+    pickupMethod === "seller_location" ? pickupContact?.address?.trim() || "" : "";
+  const pickupPhone =
+    pickupMethod === "seller_location" ? pickupContact?.phone?.trim() || "" : "";
 
   if (input.event === "buy") {
     if (!buyer || !seller) {
@@ -364,6 +389,8 @@ export async function notifyOrderEvent(input: OrderNotifyInput) {
       pickupMethod,
       buyerName,
       sellerName,
+      pickupAddress,
+      pickupPhone,
     });
 
     const basePayload = {
@@ -374,6 +401,8 @@ export async function notifyOrderEvent(input: OrderNotifyInput) {
       pickup_method: pickupMethod,
       buyer_name: buyerName,
       seller_name: sellerName,
+      ...(pickupAddress ? { pickup_note: pickupAddress } : {}),
+      ...(pickupPhone ? { pickup_contact: pickupPhone } : {}),
     };
 
     await deliverToPerson(supabase, {

@@ -125,6 +125,12 @@ const ko = {
     pickupChurchHint: "성당에 맡긴 뒤 구매자가 찾아갑니다.",
     pickupSeller: "판매자 위치에서 픽업",
     pickupSellerHint: "판매자와 약속한 장소에서 직접 전달합니다.",
+    pickupContactHint:
+      "주소와 전화번호는 포스팅에 공개되지 않으며, 구매자가 Buy 했을 때만 알림으로 전달됩니다.",
+    pickupAddress: "픽업 주소",
+    pickupAddressPlaceholder: "예) 123 Main St, Edison, NJ 08817 / 아파트 동호수 등",
+    pickupPhone: "전화번호",
+    pickupPhonePlaceholder: "예) 201-555-0100",
     deleteTitle: "물품 삭제",
     deleteMessage: "이 물품을 삭제할까요? 삭제 후 되돌릴 수 없습니다.",
     cannotEditActive: "거래 중인 물품은 수정할 수 없습니다.",
@@ -401,12 +407,14 @@ const ko = {
       "구매자({buyer})와의 거래입니다. 다음 주 성당으로 물건을 가져와 주세요.",
     reservedSellerHomeTitle: "팔렸습니다 · 집에서 픽업",
     reservedSellerHomeBody:
-      "구매자({buyer})가 집으로 픽업하러 옵니다. 내 계정 › 거래 내역에서 픽업 주소와 연락처를 구매자에게 보내 주세요.",
+      "구매자({buyer})가 집으로 픽업하러 옵니다. 등록하신 픽업 주소와 연락처가 구매자에게 전달되었습니다.",
     reservedBuyerChurchTitle: "거래가 성립되었습니다",
     reservedBuyerChurchBody:
       "판매자({seller})가 물건을 성당에 맡기면 다시 알려드립니다. 그때 성당에서 현금으로 결제하고 수령하세요.",
     reservedBuyerHomeTitle: "거래가 성립되었습니다 · 집에서 픽업",
     reservedBuyerHomeBody:
+      "판매자({seller}) 집에서 픽업하는 거래입니다. 아래 주소와 연락처로 연락해 날짜와 시간을 정하고, 물건을 받을 때 현금으로 결제해 주세요.",
+    reservedBuyerHomeBodyPending:
       "판매자({seller}) 집에서 픽업하는 거래입니다. 판매자가 픽업 주소와 연락처를 보내드리면 알림으로 확인하실 수 있습니다.",
     atChurchTitle: "물건이 성당에 도착했습니다",
     atChurchBody:
@@ -464,6 +472,7 @@ const ko = {
     categoryNameRequired: "카테고리 이름을 입력해 주세요.",
     deleteCompletedOrderFailed: "완료된 거래를 삭제하지 못했습니다.",
     pickupNoteRequired: "픽업 주소나 안내 내용을 입력해 주세요.",
+    pickupContactRequired: "판매자 위치 픽업은 주소와 전화번호를 입력해 주세요.",
     pickupNotAllowed: "이 거래에는 픽업 정보를 보낼 수 없습니다.",
     pickupShareFailed: "픽업 정보를 보내지 못했습니다.",
     emailPasswordRequired: "이메일과 비밀번호를 입력해 주세요.",
@@ -640,6 +649,12 @@ const en: Dictionary = {
     pickupChurchHint: "Drop off at church; the buyer collects there.",
     pickupSeller: "Pickup at seller location",
     pickupSellerHint: "Meet the buyer at your location to hand it over.",
+    pickupContactHint:
+      "Address and phone stay private on the listing and are sent to the buyer only after they Buy.",
+    pickupAddress: "Pickup address",
+    pickupAddressPlaceholder: "e.g. 123 Main St, Edison, NJ 08817 / apt #",
+    pickupPhone: "Phone number",
+    pickupPhonePlaceholder: "e.g. 201-555-0100",
     deleteTitle: "Delete listing",
     deleteMessage: "Delete this listing? This cannot be undone.",
     cannotEditActive: "Items in an active trade cannot be edited.",
@@ -920,12 +935,14 @@ const en: Dictionary = {
       "Sold to buyer ({buyer}). Please bring the item to church next week.",
     reservedSellerHomeTitle: "Sold · home pickup",
     reservedSellerHomeBody:
-      "Buyer ({buyer}) will come to your place. Send your pickup address and contact from My account › Transactions.",
+      "Buyer ({buyer}) will come to your place. Your registered pickup address and contact were sent to the buyer.",
     reservedBuyerChurchTitle: "Purchase confirmed",
     reservedBuyerChurchBody:
       "We will notify you once seller ({seller}) drops the item off at church. Pay cash there and collect it.",
     reservedBuyerHomeTitle: "Purchase confirmed · home pickup",
     reservedBuyerHomeBody:
+      "You will pick this up at seller ({seller}) place. Use the address and contact below to agree on a date and time, and pay cash on pickup.",
+    reservedBuyerHomeBodyPending:
       "You will pick this up at seller ({seller}) place. The seller will send the pickup address and contact, and you will get a notification.",
     atChurchTitle: "Item arrived at church",
     atChurchBody:
@@ -984,6 +1001,8 @@ const en: Dictionary = {
     categoryNameRequired: "Please enter a category name.",
     deleteCompletedOrderFailed: "Could not delete the completed trade.",
     pickupNoteRequired: "Enter the pickup address or instructions.",
+    pickupContactRequired:
+      "Address and phone are required for seller-location pickup.",
     pickupNotAllowed: "Pickup details cannot be sent for this trade.",
     pickupShareFailed: "Could not send the pickup details.",
     emailPasswordRequired: "Please enter email and password.",

@@ -106,15 +106,25 @@ export function localizeNotification(
       };
     }
     if (role === "buyer") {
+      const note = notification.payload?.pickup_note?.trim();
+      const contact = notification.payload?.pickup_contact?.trim();
+      const hasDetails = Boolean(note || contact);
+      const lines = [
+        fill(
+          hasDetails
+            ? t.notify.reservedBuyerHomeBody
+            : t.notify.reservedBuyerHomeBodyPending,
+        ),
+      ];
+      if (note) lines.push(note);
+      if (contact) lines.push(`${t.notify.pickupContactLabel}: ${contact}`);
       return {
         title: home
           ? t.notify.reservedBuyerHomeTitle
           : t.notify.reservedBuyerChurchTitle,
-        body: fill(
-          home
-            ? t.notify.reservedBuyerHomeBody
-            : t.notify.reservedBuyerChurchBody,
-        ),
+        body: home
+          ? lines.join("\n")
+          : fill(t.notify.reservedBuyerChurchBody),
         details,
       };
     }

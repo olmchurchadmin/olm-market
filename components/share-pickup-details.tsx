@@ -8,11 +8,13 @@ import { sharePickupDetailsAction } from "@/lib/actions/pickup";
 
 export function SharePickupDetails({
   orderId,
+  defaultNote = "",
   defaultContact,
   alreadySent,
   compact = false,
 }: {
   orderId: string;
+  defaultNote?: string;
   defaultContact: string;
   alreadySent: boolean;
   compact?: boolean;
@@ -20,7 +22,7 @@ export function SharePickupDetails({
   const router = useRouter();
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
-  const [note, setNote] = useState("");
+  const [note, setNote] = useState(defaultNote);
   const [contact, setContact] = useState(defaultContact);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);

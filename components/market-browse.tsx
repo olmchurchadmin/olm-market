@@ -18,7 +18,7 @@ function hrefFor(params: { category?: string; q?: string }) {
 }
 
 function tabClass(active: boolean) {
-  return `shrink-0 rounded-md px-3.5 py-1.5 text-sm whitespace-nowrap transition ${
+  return `rounded-md px-3.5 py-1.5 text-sm whitespace-nowrap transition ${
     active
       ? "bg-brand text-white shadow-sm"
       : "bg-white text-foreground ring-1 ring-brand/10 hover:bg-neutral-100"
@@ -102,7 +102,7 @@ export async function MarketBrowse({
         </Link>
       </form>
 
-      <div className="animate-rise-delay-1 mt-5 flex gap-2 overflow-x-auto py-1">
+      <div className="animate-rise-delay-1 mt-5 flex flex-wrap gap-2 py-1">
         <Link
           href={hrefFor({ q: queryText || undefined })}
           className={tabClass(!category)}

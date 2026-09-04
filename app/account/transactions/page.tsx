@@ -53,6 +53,26 @@ export default async function AccountTransactionsPage({
         .eq("type", "order_pickup_details"),
     ]);
 
+  const sellingListingIds = (sellingOrders || [])
+    .map((order) => {
+      const listing = Array.isArray(order.listings)
+        ? order.listings[0]
+        : order.listings;
+      return listing?.id as string | undefined;
+    })
+    .filter(Boolean) as string[];
+
+  const { data: pickupContacts } = sellingListingIds.length
+    ? await supabase
+        .from("listing_pickup_contacts")
+        .select("listing_id, address, phone")
+        .in("listing_id", sellingListingIds)
+    : { data: [] as { listing_id: string; address: string; phone: string }[] };
+
+  const pickupByListingId = new Map(
+    (pickupContacts || []).map((row) => [row.listing_id, row]),
+  );
+
   const sharedOrderIds = new Set(
     (sharedRows || [])
       .map((row) => (row.payload as { order_id?: string } | null)?.order_id)
@@ -102,6 +122,9 @@ export default async function AccountTransactionsPage({
                 ? order.listings[0]
                 : order.listings;
               const homePickup = listing?.pickup_method === "seller_location";
+              const savedPickup = listing?.id
+                ? pickupByListingId.get(listing.id)
+                : undefined;
               return (
                 <li
                   key={order.id}
@@ -127,7 +150,10 @@ export default async function AccountTransactionsPage({
                   {homePickup ? (
                     <SharePickupDetails
                       orderId={order.id}
-                      defaultContact={profile.phone || ""}
+                      defaultNote={savedPickup?.address || ""}
+                      defaultContact={
+                        savedPickup?.phone || profile.phone || ""
+                      }
                       alreadySent={sharedOrderIds.has(order.id)}
                     />
                   ) : null}

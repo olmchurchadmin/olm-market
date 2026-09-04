@@ -29,14 +29,20 @@ export default async function EditListingPage({
   const profile = await getCurrentProfile();
   const isAdmin = profile?.role === "admin";
   const supabase = await createClient();
-  const [{ data: listing }, { data: categories }] = await Promise.all([
-    supabase
-      .from("listings")
-      .select("*, listing_images(*)")
-      .eq("id", id)
-      .maybeSingle(),
-    supabase.from("categories").select("*").order("sort_order"),
-  ]);
+  const [{ data: listing }, { data: categories }, { data: pickupContact }] =
+    await Promise.all([
+      supabase
+        .from("listings")
+        .select("*, listing_images(*)")
+        .eq("id", id)
+        .maybeSingle(),
+      supabase.from("categories").select("*").order("sort_order"),
+      supabase
+        .from("listing_pickup_contacts")
+        .select("address, phone")
+        .eq("listing_id", id)
+        .maybeSingle(),
+    ]);
 
   if (!listing || (listing.seller_id !== user.id && !isAdmin)) notFound();
   if (
@@ -98,7 +104,11 @@ export default async function EditListingPage({
           defaultPrice={Math.round(listing.price_cents / 100)}
         />
 
-        <PickupMethodField defaultValue={pickupMethod} />
+        <PickupMethodField
+          defaultValue={pickupMethod}
+          defaultAddress={pickupContact?.address || ""}
+          defaultPhone={pickupContact?.phone || ""}
+        />
 
         <label className="block text-sm font-medium">
           {t.sell.description}
