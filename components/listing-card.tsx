@@ -38,35 +38,25 @@ export function ListingCard({ listing }: { listing: Listing }) {
             {t.market.noImage}
           </div>
         )}
-        {soldLike ? (
-          <span
-            className={`absolute left-2 top-2 z-10 rounded-md px-2 py-1 text-[10px] font-semibold shadow-sm sm:left-3 sm:top-3 sm:text-xs ${listingStatusBadgeClass(listing.status)}`}
-          >
-            {listingStatusLabel(listing.status, t.status)}
-          </span>
-        ) : null}
       </div>
       <div className="space-y-0.5 p-2.5 sm:space-y-1 sm:p-3.5">
-        <p className="truncate text-[10px] font-medium tracking-wide text-ink-muted uppercase sm:text-xs">
-          {categoryLabel(listing.categories, locale)}
-        </p>
+        <div className="flex items-start justify-between gap-2">
+          <p className="min-w-0 truncate text-[10px] font-medium tracking-wide text-ink-muted uppercase sm:text-xs">
+            {categoryLabel(listing.categories, locale)}
+          </p>
+          {soldLike ? (
+            <span
+              className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-semibold leading-none sm:px-2 sm:text-[10px] ${listingStatusBadgeClass(listing.status)}`}
+            >
+              {listingStatusLabel(listing.status, t.status)}
+            </span>
+          ) : null}
+        </div>
         <h3 className="line-clamp-2 font-[family-name:var(--font-display)] text-sm text-foreground sm:text-base">
           {listing.title}
         </h3>
         <p className="text-sm font-semibold text-foreground sm:text-base">
           {formatPrice(listing.price_cents, locale)}
-        </p>
-        <p className="truncate text-[10px] text-ink-muted sm:text-xs">
-          {t.market.donation}{" "}
-          {t.market.donationValue.replace(
-            "{percent}",
-            String(
-              Math.min(
-                100,
-                Math.max(30, Math.round(listing.donation_percent ?? 100)),
-              ),
-            ),
-          )}
         </p>
         <p className="truncate text-[10px] text-ink-muted sm:text-xs">
           {listing.pickup_method === "seller_location"

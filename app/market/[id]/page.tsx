@@ -98,7 +98,7 @@ export default async function ListingDetailPage({
             {formatPrice(listing.price_cents, locale)}
           </p>
           <p className="mt-2 font-mono text-sm tracking-wide text-ink-muted" title={listing.id}>
-            {t.market.listingId}: {formatListingPublicId(listing.id)}
+            ID: {formatListingPublicId(listing.id)}
           </p>
           <p className="mt-1 text-sm text-ink-muted">
             {t.market.donation}:{" "}
