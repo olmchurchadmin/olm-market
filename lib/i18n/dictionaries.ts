@@ -33,6 +33,8 @@ const ko = {
   siteFooter: {
     contactLabel: "전화",
     contact: "732-356-1037",
+    managerLabel: "담당자",
+    manager: "홍길동",
     emailLabel: "이메일",
     email: "olmchurchadmin@gmail.com",
     addressLabel: "주소",
@@ -556,6 +558,8 @@ const en: Dictionary = {
   siteFooter: {
     contactLabel: "Phone",
     contact: "732-356-1037",
+    managerLabel: "Contact",
+    manager: "홍길동",
     emailLabel: "Email",
     email: "olmchurchadmin@gmail.com",
     addressLabel: "Address",
