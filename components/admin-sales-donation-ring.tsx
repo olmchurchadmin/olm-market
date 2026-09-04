@@ -68,7 +68,7 @@ function SalesDonationRing({
               strokeLinecap="butt"
               strokeDasharray={`${Math.max(0, salesOnlyLength - gap)} ${circumference}`}
               strokeDashoffset={-(donationLength + gap)}
-              className="text-brand"
+              className="text-orange-500"
             />
           ) : null}
         </svg>
@@ -93,7 +93,7 @@ function SalesDonationRing({
           {donationLabel}
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="size-2.5 rounded-full bg-brand" aria-hidden />
+          <span className="size-2.5 rounded-full bg-orange-500" aria-hidden />
           {salesLabel}
         </span>
       </div>
