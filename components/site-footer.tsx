@@ -13,6 +13,14 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:grid-cols-2 sm:px-6 sm:py-10 lg:grid-cols-4">
         <div>
           <p className="text-xs font-semibold tracking-wide text-ink-muted uppercase">
+            {t.siteFooter.managerLabel}
+          </p>
+          <p className="mt-1.5 text-sm text-foreground">
+            {t.siteFooter.manager}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs font-semibold tracking-wide text-ink-muted uppercase">
             {t.siteFooter.contactLabel}
           </p>
           <p className="mt-1.5 text-sm text-foreground">
@@ -22,14 +30,6 @@ export function SiteFooter() {
             >
               {t.siteFooter.contact}
             </a>
-          </p>
-        </div>
-        <div>
-          <p className="text-xs font-semibold tracking-wide text-ink-muted uppercase">
-            {t.siteFooter.managerLabel}
-          </p>
-          <p className="mt-1.5 text-sm text-foreground">
-            {t.siteFooter.manager}
           </p>
         </div>
         <div>
