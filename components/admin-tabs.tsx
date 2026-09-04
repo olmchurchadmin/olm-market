@@ -8,7 +8,8 @@ export type AdminTab =
   | "listings"
   | "stats"
   | "members"
-  | "complaints";
+  | "complaints"
+  | "categories";
 
 export function AdminTabs({
   active,
@@ -34,6 +35,7 @@ export function AdminTabs({
       label: t.admin.complaints,
       badge: openComplaints > 0 ? openComplaints : undefined,
     },
+    { key: "categories", label: t.admin.categoriesTab },
   ];
 
   return (

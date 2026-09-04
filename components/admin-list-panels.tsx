@@ -420,14 +420,15 @@ export function AdminComplaintsPanel({
                             <AdminReplyForm complaintId={item.id} />
                           ) : null}
                         </div>
-                        {isOpen ? (
-                          <ResolveComplaintButton complaintId={item.id} />
-                        ) : (
+                        <div className="flex shrink-0 flex-wrap items-start gap-2">
+                          {isOpen ? (
+                            <ResolveComplaintButton complaintId={item.id} />
+                          ) : null}
                           <DeleteComplaintButton
                             complaintId={item.id}
                             subject={item.subject}
                           />
-                        )}
+                        </div>
                       </div>
                     </li>
                   );

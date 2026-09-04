@@ -85,9 +85,15 @@ export async function resolveComplaintAction(formData: FormData) {
 export async function deleteComplaintAction(formData: FormData) {
   const { t } = await getI18n();
   const complaintId = String(formData.get("complaint_id") || "").trim();
+  const nextRaw = String(formData.get("next") || "").trim();
+  const next =
+    nextRaw === "account"
+      ? "/account/complaints"
+      : "/admin?tab=complaints";
+
   if (!complaintId) {
     redirect(
-      `/admin?tab=complaints&error=${encodeURIComponent(t.errors.deleteComplaintFailed)}`,
+      `${next}${next.includes("?") ? "&" : "?"}error=${encodeURIComponent(t.errors.deleteComplaintFailed)}`,
     );
   }
 
@@ -95,7 +101,11 @@ export async function deleteComplaintAction(formData: FormData) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login?next=/admin?tab=complaints");
+  if (!user) {
+    redirect(
+      `/login?next=${encodeURIComponent(next === "/account/complaints" ? next : "/admin?tab=complaints")}`,
+    );
+  }
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -110,18 +120,21 @@ export async function deleteComplaintAction(formData: FormData) {
   const { error } = await supabase
     .from("complaints")
     .delete()
-    .eq("id", complaintId)
-    .eq("status", "resolved");
+    .eq("id", complaintId);
 
   if (error) {
     redirect(
-      `/admin?tab=complaints&error=${encodeURIComponent(error.message || t.errors.deleteComplaintFailed)}`,
+      `${next}${next.includes("?") ? "&" : "?"}error=${encodeURIComponent(error.message || t.errors.deleteComplaintFailed)}`,
     );
   }
 
   revalidatePath("/admin");
   revalidatePath("/account/complaints");
-  redirect("/admin?tab=complaints&complaintDeleted=1");
+  redirect(
+    next === "/account/complaints"
+      ? "/account/complaints?saved=deleted"
+      : "/admin?tab=complaints&complaintDeleted=1",
+  );
 }
 
 export async function replyComplaintAction(formData: FormData) {

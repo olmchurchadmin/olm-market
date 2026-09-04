@@ -9,9 +9,11 @@ import { deleteComplaintAction } from "@/lib/actions/complaints";
 export function DeleteComplaintButton({
   complaintId,
   subject,
+  next = "admin",
 }: {
   complaintId: string;
   subject: string;
+  next?: "admin" | "account";
 }) {
   const { t } = useI18n();
   const confirm = useConfirm();
@@ -25,6 +27,7 @@ export function DeleteComplaintButton({
       onSubmit={() => setSubmitting(true)}
     >
       <input type="hidden" name="complaint_id" value={complaintId} />
+      <input type="hidden" name="next" value={next} />
       <button
         type="button"
         disabled={submitting}

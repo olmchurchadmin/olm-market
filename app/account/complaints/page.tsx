@@ -1,6 +1,7 @@
 import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
 import { AccountShell } from "@/components/account-shell";
 import { AdminReplyForm } from "@/components/admin-reply-form";
+import { DeleteComplaintButton } from "@/components/delete-complaint-button";
 import { createComplaintAction } from "@/lib/actions/complaints";
 import { getCurrentProfile } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
@@ -60,6 +61,11 @@ export default async function AccountComplaintsPage({
       {saved === "replied" ? (
         <p className="mb-6 rounded-md border border-brand/20 bg-brand/5 px-3 py-2 text-sm text-brand">
           {t.account.complaintReplied}
+        </p>
+      ) : null}
+      {saved === "deleted" ? (
+        <p className="mb-6 rounded-md border border-brand/20 bg-brand/5 px-3 py-2 text-sm text-brand">
+          {t.admin.complaintDeletedFlash}
         </p>
       ) : null}
 
@@ -144,55 +150,64 @@ export default async function AccountComplaintsPage({
                       : "border-brand/10 bg-white/70"
                   }`}
                 >
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-medium">{item.subject}</p>
-                    <span
-                      className={`rounded px-2 py-0.5 text-[11px] font-semibold ${
-                        isOpen
-                          ? "bg-amber-200/80 text-amber-950"
-                          : "bg-brand/15 text-brand"
-                      }`}
-                    >
-                      {isOpen
-                        ? t.account.statusOpen
-                        : t.account.statusResolved}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-xs text-ink-muted">
-                    {isAdmin && author
-                      ? `${formatPersonName(author, "—")} · `
-                      : ""}
-                    {new Date(item.created_at).toLocaleString(
-                      locale === "en" ? "en-US" : "ko-KR",
-                    )}
-                  </p>
-                  <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">
-                    {item.body}
-                  </p>
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-medium">{item.subject}</p>
+                        <span
+                          className={`rounded px-2 py-0.5 text-[11px] font-semibold ${
+                            isOpen
+                              ? "bg-amber-200/80 text-amber-950"
+                              : "bg-brand/15 text-brand"
+                          }`}
+                        >
+                          {isOpen
+                            ? t.account.statusOpen
+                            : t.account.statusResolved}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-xs text-ink-muted">
+                        {isAdmin && author
+                          ? `${formatPersonName(author, "—")} · `
+                          : ""}
+                        {new Date(item.created_at).toLocaleString(
+                          locale === "en" ? "en-US" : "ko-KR",
+                        )}
+                      </p>
+                      <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">
+                        {item.body}
+                      </p>
 
-                  {/* Show existing reply */}
-                  {item.admin_reply ? (
-                    <div className="mt-3 rounded-md border border-brand/15 bg-brand/5 px-3 py-2">
-                      <p className="text-[11px] font-semibold text-brand uppercase">
-                        {t.account.complaintReplyLabel}
-                      </p>
-                      <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">
-                        {item.admin_reply}
-                      </p>
-                      {item.replied_at ? (
-                        <p className="mt-1 text-xs text-ink-muted">
-                          {new Date(item.replied_at).toLocaleString(
-                            locale === "en" ? "en-US" : "ko-KR",
-                          )}
-                        </p>
+                      {item.admin_reply ? (
+                        <div className="mt-3 rounded-md border border-brand/15 bg-brand/5 px-3 py-2">
+                          <p className="text-[11px] font-semibold text-brand uppercase">
+                            {t.account.complaintReplyLabel}
+                          </p>
+                          <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">
+                            {item.admin_reply}
+                          </p>
+                          {item.replied_at ? (
+                            <p className="mt-1 text-xs text-ink-muted">
+                              {new Date(item.replied_at).toLocaleString(
+                                locale === "en" ? "en-US" : "ko-KR",
+                              )}
+                            </p>
+                          ) : null}
+                        </div>
+                      ) : null}
+
+                      {isAdmin && isOpen ? (
+                        <AdminReplyForm complaintId={item.id} />
                       ) : null}
                     </div>
-                  ) : null}
-
-                  {/* Admin can reply to open complaints */}
-                  {isAdmin && isOpen ? (
-                    <AdminReplyForm complaintId={item.id} />
-                  ) : null}
+                    {isAdmin ? (
+                      <DeleteComplaintButton
+                        complaintId={item.id}
+                        subject={item.subject}
+                        next="account"
+                      />
+                    ) : null}
+                  </div>
                 </li>
               );
             })

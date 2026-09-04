@@ -26,12 +26,17 @@ const categoryNamesEnByKo: Record<string, string> = {
 };
 
 export function categoryLabel(
-  category: { slug?: string | null; name_ko?: string | null } | null | undefined,
+  category: {
+    slug?: string | null;
+    name_ko?: string | null;
+    name_en?: string | null;
+  } | null | undefined,
   locale: Locale,
   fallback = "—",
 ) {
   if (!category) return fallback;
   if (locale === "en") {
+    if (category.name_en?.trim()) return category.name_en.trim();
     const bySlug = category.slug
       ? categoryNamesEnBySlug[category.slug]
       : undefined;

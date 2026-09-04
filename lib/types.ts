@@ -38,6 +38,7 @@ export type Category = {
   id: string;
   slug: string;
   name_ko: string;
+  name_en?: string | null;
   sort_order: number;
 };
 

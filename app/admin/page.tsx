@@ -2,17 +2,19 @@ import {
   ChartBarIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
+import { AdminCategoriesPanel } from "@/components/admin-categories-panel";
 import {
   AdminComplaintsPanel,
   AdminListingsPanel,
   AdminMembersPanel,
   AdminOrdersPanel,
 } from "@/components/admin-list-panels";
+import { SalesDonationRing } from "@/components/admin-sales-donation-ring";
 import { AdminTabs, type AdminTab } from "@/components/admin-tabs";
 import { requireAdmin } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
-import type { AdminStats, Listing } from "@/lib/types";
+import type { AdminStats, Category, Listing } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -45,7 +47,8 @@ function parseTab(raw: string | undefined): AdminTab {
     raw === "members" ||
     raw === "complaints" ||
     raw === "orders" ||
-    raw === "listings"
+    raw === "listings" ||
+    raw === "categories"
   ) {
     return raw;
   }
@@ -83,6 +86,9 @@ export default async function AdminPage({
     memberDeleted?: string;
     complaintDeleted?: string;
     orderDeleted?: string;
+    categoryAdded?: string;
+    categoryDeleted?: string;
+    categoryReordered?: string;
     tab?: string;
     range?: string;
   }>;
@@ -96,6 +102,9 @@ export default async function AdminPage({
     memberDeleted,
     complaintDeleted,
     orderDeleted,
+    categoryAdded,
+    categoryDeleted,
+    categoryReordered,
     tab: tabParam,
     range: rangeParam,
   } = await searchParams;
@@ -112,6 +121,7 @@ export default async function AdminPage({
     { data: orders },
     { data: completedSales },
     { data: allListings },
+    { data: categories },
   ] = await Promise.all([
     supabase.rpc("admin_stats", { p_range: "week" }),
     supabase.rpc("admin_stats", { p_range: "month" }),
@@ -150,6 +160,10 @@ export default async function AdminPage({
       .neq("status", "cancelled")
       .order("created_at", { ascending: false })
       .limit(100),
+    supabase
+      .from("categories")
+      .select("id, slug, name_ko, name_en, sort_order")
+      .order("sort_order", { ascending: true }),
   ]);
 
   const week = (weekStats || {}) as AdminStats;
@@ -282,6 +296,21 @@ export default async function AdminPage({
           {t.admin.orderDeletedFlash}
         </p>
       ) : null}
+      {categoryAdded ? (
+        <p className="mt-6 rounded-md border border-brand/20 bg-brand/5 px-3 py-2 text-sm text-brand">
+          {t.admin.categoryAddedFlash}
+        </p>
+      ) : null}
+      {categoryDeleted ? (
+        <p className="mt-6 rounded-md border border-brand/20 bg-brand/5 px-3 py-2 text-sm text-brand">
+          {t.admin.categoryDeletedFlash}
+        </p>
+      ) : null}
+      {categoryReordered ? (
+        <p className="mt-6 rounded-md border border-brand/20 bg-brand/5 px-3 py-2 text-sm text-brand">
+          {t.admin.categoryReorderedFlash}
+        </p>
+      ) : null}
 
       {tab === "listings" ? (
         <AdminListingsPanel
@@ -330,36 +359,37 @@ export default async function AdminPage({
             })}
           </div>
 
-          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard
-              label={t.admin.listings}
-              value={stats.new_listings ?? 0}
+          <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(240px,320px)_1fr]">
+            <SalesDonationRing
+              salesCents={stats.gmv_cents ?? 0}
+              donationCents={stats.donation_cents ?? 0}
+              salesLabel={t.admin.totalSales}
+              donationLabel={t.admin.totalDonation}
+              formatMoney={(cents) => formatPrice(cents, locale)}
             />
-            <StatCard label={t.admin.sold} value={stats.sold ?? 0} />
-            <StatCard
-              label={t.admin.totalUsers}
-              value={stats.total_users ?? 0}
-            />
-            <StatCard
-              label={t.admin.activeUsers}
-              value={stats.active_users ?? 0}
-            />
-            <StatCard
-              label={t.admin.totalSales}
-              value={formatPrice(stats.gmv_cents ?? 0, locale)}
-            />
-            <StatCard
-              label={t.admin.totalDonation}
-              value={formatPrice(stats.donation_cents ?? 0, locale)}
-            />
-            <StatCard
-              label={t.admin.awaitingDropoff}
-              value={stats.orders_awaiting_dropoff ?? 0}
-            />
-            <StatCard
-              label={t.admin.readyForPickup}
-              value={stats.orders_ready_for_pickup ?? 0}
-            />
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <StatCard
+                label={t.admin.listings}
+                value={stats.new_listings ?? 0}
+              />
+              <StatCard label={t.admin.sold} value={stats.sold ?? 0} />
+              <StatCard
+                label={t.admin.totalUsers}
+                value={stats.total_users ?? 0}
+              />
+              <StatCard
+                label={t.admin.activeUsers}
+                value={stats.active_users ?? 0}
+              />
+              <StatCard
+                label={t.admin.awaitingDropoff}
+                value={stats.orders_awaiting_dropoff ?? 0}
+              />
+              <StatCard
+                label={t.admin.readyForPickup}
+                value={stats.orders_ready_for_pickup ?? 0}
+              />
+            </div>
           </div>
         </section>
       ) : null}
@@ -408,6 +438,12 @@ export default async function AdminPage({
       ) : null}
 
       {tab === "orders" ? <AdminOrdersPanel trades={tradeRows} /> : null}
+
+      {tab === "categories" ? (
+        <AdminCategoriesPanel
+          categories={(categories || []) as Category[]}
+        />
+      ) : null}
     </main>
   );
 }
