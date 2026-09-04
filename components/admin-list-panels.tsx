@@ -17,6 +17,7 @@ import {
   matchesSearch,
 } from "@/components/admin-searchable-section";
 import { DeleteComplaintButton } from "@/components/delete-complaint-button";
+import { DeleteCompletedOrderButton } from "@/components/delete-completed-order-button";
 import { DeleteListingButton } from "@/components/delete-listing-button";
 import { ResolveComplaintButton } from "@/components/resolve-complaint-button";
 import { useI18n } from "@/components/locale-provider";
@@ -609,6 +610,11 @@ export function AdminOrdersPanel({ trades }: { trades: AdminTradeRow[] }) {
                       <th className="px-4 py-3 font-medium">{t.admin.buyer}</th>
                       <th className="px-4 py-3 font-medium">{t.admin.pickup}</th>
                       <th className="px-4 py-3 font-medium">{t.admin.amount}</th>
+                      <th className="px-4 py-3 font-medium">
+                        <span className="sr-only">
+                          {t.admin.deleteCompletedOrder}
+                        </span>
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -629,6 +635,12 @@ export function AdminOrdersPanel({ trades }: { trades: AdminTradeRow[] }) {
                           </td>
                           <td className="px-4 py-3">
                             {formatPrice(order.price_cents, locale)}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <DeleteCompletedOrderButton
+                              orderId={order.id}
+                              title={title}
+                            />
                           </td>
                         </tr>
                       ),

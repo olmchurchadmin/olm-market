@@ -2,6 +2,7 @@
 
 import { after } from "next/server";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import { notifyOrderEvent } from "@/lib/notifications/dispatch";
@@ -107,4 +108,55 @@ export async function adminCompleteTradeAction(orderId: string) {
   revalidatePath("/");
   revalidatePath("/market");
   return { ok: true as const };
+}
+
+export async function adminDeleteCompletedOrderAction(formData: FormData) {
+  const { t } = await getI18n();
+  const orderId = String(formData.get("order_id") || "").trim();
+  const fail = (message: string) =>
+    redirect(`/admin?tab=orders&error=${encodeURIComponent(message)}`);
+
+  if (!orderId) {
+    fail(t.errors.deleteCompletedOrderFailed);
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login?next=/admin?tab=orders");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profile?.role !== "admin") {
+    redirect("/");
+  }
+
+  const { data: order } = await supabase
+    .from("orders")
+    .select("id, status")
+    .eq("id", orderId)
+    .maybeSingle();
+
+  if (!order || order.status !== "completed") {
+    fail(t.errors.deleteCompletedOrderFailed);
+  }
+
+  const { error } = await supabase
+    .from("orders")
+    .delete()
+    .eq("id", orderId)
+    .eq("status", "completed");
+
+  if (error) {
+    fail(error.message || t.errors.deleteCompletedOrderFailed);
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/account/transactions");
+  redirect("/admin?tab=orders&orderDeleted=1");
 }

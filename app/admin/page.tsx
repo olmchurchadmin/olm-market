@@ -82,6 +82,7 @@ export default async function AdminPage({
     deleted?: string;
     memberDeleted?: string;
     complaintDeleted?: string;
+    orderDeleted?: string;
     tab?: string;
     range?: string;
   }>;
@@ -94,6 +95,7 @@ export default async function AdminPage({
     deleted,
     memberDeleted,
     complaintDeleted,
+    orderDeleted,
     tab: tabParam,
     range: rangeParam,
   } = await searchParams;
@@ -273,6 +275,11 @@ export default async function AdminPage({
       {complaintDeleted ? (
         <p className="mt-6 rounded-md border border-brand/20 bg-brand/5 px-3 py-2 text-sm text-brand">
           {t.admin.complaintDeletedFlash}
+        </p>
+      ) : null}
+      {orderDeleted ? (
+        <p className="mt-6 rounded-md border border-brand/20 bg-brand/5 px-3 py-2 text-sm text-brand">
+          {t.admin.orderDeletedFlash}
         </p>
       ) : null}
 
