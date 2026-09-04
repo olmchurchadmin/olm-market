@@ -88,6 +88,7 @@ export default async function AdminPage({
     orderDeleted?: string;
     categoryAdded?: string;
     categoryDeleted?: string;
+    categoryUpdated?: string;
     categoryReordered?: string;
     tab?: string;
     range?: string;
@@ -104,6 +105,7 @@ export default async function AdminPage({
     orderDeleted,
     categoryAdded,
     categoryDeleted,
+    categoryUpdated,
     categoryReordered,
     tab: tabParam,
     range: rangeParam,
@@ -304,6 +306,11 @@ export default async function AdminPage({
       {categoryDeleted ? (
         <p className="mt-6 rounded-md border border-brand/20 bg-brand/5 px-3 py-2 text-sm text-brand">
           {t.admin.categoryDeletedFlash}
+        </p>
+      ) : null}
+      {categoryUpdated ? (
+        <p className="mt-6 rounded-md border border-brand/20 bg-brand/5 px-3 py-2 text-sm text-brand">
+          {t.admin.categoryUpdatedFlash}
         </p>
       ) : null}
       {categoryReordered ? (

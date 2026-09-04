@@ -127,6 +127,44 @@ export async function deleteCategoryAction(formData: FormData) {
   redirect("/admin?tab=categories&categoryDeleted=1");
 }
 
+export async function updateCategoryAction(formData: FormData) {
+  const { t } = await getI18n();
+  const categoryId = String(formData.get("category_id") || "").trim();
+  const nameKo = String(formData.get("name_ko") || "").trim();
+  const nameEn = String(formData.get("name_en") || "").trim();
+
+  if (!categoryId) {
+    redirect(
+      `/admin?tab=categories&error=${encodeURIComponent(t.errors.categoryUpdateFailed)}`,
+    );
+  }
+  if (!nameKo) {
+    redirect(
+      `/admin?tab=categories&error=${encodeURIComponent(t.errors.categoryNameRequired)}`,
+    );
+  }
+
+  const supabase = await requireAdminClient();
+  const { error } = await supabase
+    .from("categories")
+    .update({
+      name_ko: nameKo,
+      name_en: nameEn || null,
+    })
+    .eq("id", categoryId);
+
+  if (error) {
+    redirect(
+      `/admin?tab=categories&error=${encodeURIComponent(error.message || t.errors.categoryUpdateFailed)}`,
+    );
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/");
+  revalidatePath("/sell");
+  redirect("/admin?tab=categories&categoryUpdated=1");
+}
+
 export async function reorderCategoriesAction(formData: FormData) {
   const { t } = await getI18n();
   const raw = String(formData.get("ordered_ids") || "").trim();

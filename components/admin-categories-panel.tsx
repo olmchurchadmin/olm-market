@@ -1,6 +1,11 @@
 "use client";
 
-import { Bars3Icon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+  Bars3Icon,
+  PencilSquareIcon,
+  PlusIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useConfirm } from "@/components/confirm-dialog";
 import { useI18n } from "@/components/locale-provider";
@@ -8,6 +13,7 @@ import {
   createCategoryAction,
   deleteCategoryAction,
   reorderCategoriesAction,
+  updateCategoryAction,
 } from "@/lib/actions/categories";
 import type { Category } from "@/lib/types";
 
@@ -22,6 +28,9 @@ export function AdminCategoriesPanel({
   const confirm = useConfirm();
   const [items, setItems] = useState(categories);
   const [dragId, setDragId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editKo, setEditKo] = useState("");
+  const [editEn, setEditEn] = useState("");
   const [pending, startTransition] = useTransition();
   const orderFormRef = useRef<HTMLFormElement>(null);
 
@@ -47,6 +56,12 @@ export function AdminCategoriesPanel({
       return next;
     });
     setDragId(null);
+  }
+
+  function startEdit(item: CategoryRow) {
+    setEditingId(item.id);
+    setEditKo(item.name_ko);
+    setEditEn(item.name_en || "");
   }
 
   return (
@@ -112,60 +127,127 @@ export function AdminCategoriesPanel({
 
       <ul className="mt-3 space-y-2">
         {items.length ? (
-          items.map((item) => (
-            <li
-              key={item.id}
-              draggable
-              onDragStart={() => setDragId(item.id)}
-              onDragOver={(event) => event.preventDefault()}
-              onDrop={() => onDrop(item.id)}
-              onDragEnd={() => setDragId(null)}
-              className={`flex items-center gap-3 rounded-lg border border-brand/10 bg-white/70 px-3 py-2.5 ${
-                dragId === item.id ? "opacity-60" : ""
-              }`}
-            >
-              <span className="cursor-grab text-ink-muted active:cursor-grabbing">
-                <Bars3Icon className="size-5" aria-hidden />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="font-medium text-foreground">
-                  {locale === "en"
-                    ? item.name_en || item.name_ko
-                    : item.name_ko}
-                </p>
-                <p className="truncate text-xs text-ink-muted">
-                  {item.name_ko}
-                  {item.name_en ? ` · ${item.name_en}` : ""} · {item.slug}
-                </p>
-              </div>
-              <button
-                type="button"
-                className="inline-flex size-8 items-center justify-center rounded-md border border-red-200 bg-white text-red-700 hover:bg-red-50"
-                title={t.admin.categoryDeleteTitle}
-                aria-label={`${t.admin.categoryDeleteTitle}: ${item.name_ko}`}
-                onClick={() => {
-                  startTransition(async () => {
-                    const ok = await confirm({
-                      title: t.admin.categoryDeleteTitle,
-                      message: t.admin.categoryDeleteMessage.replace(
-                        "{name}",
-                        item.name_ko,
-                      ),
-                      confirmLabel: t.admin.categoryDeleteConfirm,
-                      cancelLabel: t.common.cancel,
-                      tone: "danger",
-                    });
-                    if (!ok) return;
-                    const fd = new FormData();
-                    fd.set("category_id", item.id);
-                    await deleteCategoryAction(fd);
-                  });
+          items.map((item) => {
+            const isEditing = editingId === item.id;
+            return (
+              <li
+                key={item.id}
+                draggable={!isEditing}
+                onDragStart={() => {
+                  if (!isEditing) setDragId(item.id);
                 }}
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={() => onDrop(item.id)}
+                onDragEnd={() => setDragId(null)}
+                className={`rounded-lg border border-brand/10 bg-white/70 px-3 py-2.5 ${
+                  dragId === item.id ? "opacity-60" : ""
+                }`}
               >
-                <TrashIcon className="size-4" aria-hidden />
-              </button>
-            </li>
-          ))
+                <div className="flex items-center gap-3">
+                  <span className="cursor-grab text-ink-muted active:cursor-grabbing">
+                    <Bars3Icon className="size-5" aria-hidden />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-foreground">
+                      {locale === "en"
+                        ? item.name_en || item.name_ko
+                        : item.name_ko}
+                    </p>
+                    <p className="truncate text-xs text-ink-muted">
+                      {item.name_ko}
+                      {item.name_en ? ` · ${item.name_en}` : ""} · {item.slug}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="inline-flex size-8 items-center justify-center rounded-md border border-brand/15 bg-white text-foreground hover:bg-brand/5"
+                    title={t.admin.categoryEdit}
+                    aria-label={`${t.admin.categoryEdit}: ${item.name_ko}`}
+                    onClick={() =>
+                      isEditing ? setEditingId(null) : startEdit(item)
+                    }
+                  >
+                    <PencilSquareIcon className="size-4" aria-hidden />
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-flex size-8 items-center justify-center rounded-md border border-red-200 bg-white text-red-700 hover:bg-red-50"
+                    title={t.admin.categoryDeleteTitle}
+                    aria-label={`${t.admin.categoryDeleteTitle}: ${item.name_ko}`}
+                    onClick={() => {
+                      startTransition(async () => {
+                        const ok = await confirm({
+                          title: t.admin.categoryDeleteTitle,
+                          message: t.admin.categoryDeleteMessage.replace(
+                            "{name}",
+                            item.name_ko,
+                          ),
+                          confirmLabel: t.admin.categoryDeleteConfirm,
+                          cancelLabel: t.common.cancel,
+                          tone: "danger",
+                        });
+                        if (!ok) return;
+                        const fd = new FormData();
+                        fd.set("category_id", item.id);
+                        await deleteCategoryAction(fd);
+                      });
+                    }}
+                  >
+                    <TrashIcon className="size-4" aria-hidden />
+                  </button>
+                </div>
+
+                {isEditing ? (
+                  <form
+                    action={updateCategoryAction}
+                    className="mt-3 grid gap-3 border-t border-brand/10 pt-3 sm:grid-cols-[1fr_1fr_auto]"
+                  >
+                    <input type="hidden" name="category_id" value={item.id} />
+                    <label className="block space-y-1.5">
+                      <span className="text-sm font-medium text-foreground">
+                        {t.admin.categoryNameKo}
+                      </span>
+                      <input
+                        name="name_ko"
+                        required
+                        maxLength={40}
+                        value={editKo}
+                        onChange={(e) => setEditKo(e.target.value)}
+                        className="w-full rounded-md border border-brand/15 bg-white px-3 py-2 text-sm"
+                      />
+                    </label>
+                    <label className="block space-y-1.5">
+                      <span className="text-sm font-medium text-foreground">
+                        {t.admin.categoryNameEn}
+                      </span>
+                      <input
+                        name="name_en"
+                        maxLength={40}
+                        value={editEn}
+                        onChange={(e) => setEditEn(e.target.value)}
+                        className="w-full rounded-md border border-brand/15 bg-white px-3 py-2 text-sm"
+                      />
+                    </label>
+                    <div className="flex items-end gap-2">
+                      <button
+                        type="submit"
+                        className="rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-soft"
+                      >
+                        {t.admin.categorySave}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingId(null)}
+                        className="rounded-md border border-brand/15 bg-white px-3 py-2.5 text-sm font-medium text-foreground hover:bg-neutral-100"
+                      >
+                        {t.common.cancel}
+                      </button>
+                    </div>
+                  </form>
+                ) : null}
+              </li>
+            );
+          })
         ) : (
           <li className="text-sm text-ink-muted">{t.admin.categoryEmpty}</li>
         )}
