@@ -49,7 +49,7 @@ export function SiteFooter() {
           <p className="text-xs font-semibold tracking-wide text-ink-muted uppercase">
             {t.siteFooter.addressLabel}
           </p>
-          <p className="mt-1.5 text-sm leading-relaxed text-foreground">
+          <p className="mt-1.5 text-sm whitespace-nowrap text-foreground">
             {t.siteFooter.address}
           </p>
         </div>
