@@ -82,6 +82,48 @@ export async function resolveComplaintAction(formData: FormData) {
   redirect("/admin?tab=complaints&resolved=1");
 }
 
+export async function deleteComplaintAction(formData: FormData) {
+  const { t } = await getI18n();
+  const complaintId = String(formData.get("complaint_id") || "").trim();
+  if (!complaintId) {
+    redirect(
+      `/admin?tab=complaints&error=${encodeURIComponent(t.errors.deleteComplaintFailed)}`,
+    );
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login?next=/admin?tab=complaints");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profile?.role !== "admin") {
+    redirect("/");
+  }
+
+  const { error } = await supabase
+    .from("complaints")
+    .delete()
+    .eq("id", complaintId)
+    .eq("status", "resolved");
+
+  if (error) {
+    redirect(
+      `/admin?tab=complaints&error=${encodeURIComponent(error.message || t.errors.deleteComplaintFailed)}`,
+    );
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/account/complaints");
+  redirect("/admin?tab=complaints&complaintDeleted=1");
+}
+
 export async function replyComplaintAction(formData: FormData) {
   const complaintId = String(formData.get("complaint_id") || "").trim();
   const reply = String(formData.get("reply") || "").trim();

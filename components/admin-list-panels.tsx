@@ -16,6 +16,7 @@ import {
   AdminSearchableSection,
   matchesSearch,
 } from "@/components/admin-searchable-section";
+import { DeleteComplaintButton } from "@/components/delete-complaint-button";
 import { DeleteListingButton } from "@/components/delete-listing-button";
 import { ResolveComplaintButton } from "@/components/resolve-complaint-button";
 import { useI18n } from "@/components/locale-provider";
@@ -420,7 +421,12 @@ export function AdminComplaintsPanel({
                         </div>
                         {isOpen ? (
                           <ResolveComplaintButton complaintId={item.id} />
-                        ) : null}
+                        ) : (
+                          <DeleteComplaintButton
+                            complaintId={item.id}
+                            subject={item.subject}
+                          />
+                        )}
                       </div>
                     </li>
                   );
