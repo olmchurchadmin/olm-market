@@ -46,7 +46,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
           </p>
           {soldLike ? (
             <span
-              className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-semibold leading-none sm:px-2 sm:text-[10px] ${listingStatusBadgeClass(listing.status)}`}
+              className={`shrink-0 rounded-full px-1.5 py-1 text-[9px] font-semibold leading-none sm:px-1.5 sm:py-1 sm:text-[10px] ${listingStatusBadgeClass(listing.status)}`}
             >
               {listingStatusLabel(listing.status, t.status)}
             </span>
