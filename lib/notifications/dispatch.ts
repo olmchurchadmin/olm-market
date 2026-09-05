@@ -331,6 +331,132 @@ export async function notifyListingCreated(listingId: string) {
   });
 }
 
+/**
+ * When an admin edits or deletes someone else's listing, notify the seller and
+ * any buyers with an in-progress order (in-app + email).
+ */
+export async function notifyAdminListingChange(input: {
+  listingId: string;
+  action: "updated" | "deleted";
+  actorUserId: string;
+  /** Required for delete — listing may already be gone. */
+  listingSnapshot?: {
+    title: string;
+    price_cents: number;
+    seller_id: string;
+  };
+}) {
+  const supabase = createServiceClient();
+
+  let listing = input.listingSnapshot
+    ? {
+        id: input.listingId,
+        title: input.listingSnapshot.title,
+        price_cents: input.listingSnapshot.price_cents,
+        seller_id: input.listingSnapshot.seller_id,
+      }
+    : null;
+
+  if (!listing) {
+    const { data, error } = await supabase
+      .from("listings")
+      .select("id, title, price_cents, seller_id")
+      .eq("id", input.listingId)
+      .maybeSingle();
+    if (error || !data) {
+      throw new Error(error?.message || "Listing not found for admin change notification");
+    }
+    listing = data;
+  }
+
+  const { data: activeOrders } = await supabase
+    .from("orders")
+    .select("id, buyer_id")
+    .eq("listing_id", input.listingId)
+    .in("status", ["reserved", "awaiting_dropoff", "ready_for_pickup"]);
+
+  const recipientIds = new Set<string>();
+  recipientIds.add(listing.seller_id);
+  for (const order of activeOrders || []) {
+    if (order.buyer_id) recipientIds.add(order.buyer_id);
+  }
+  recipientIds.delete(input.actorUserId);
+
+  if (!recipientIds.size) return;
+
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select(profileSelect)
+    .in("id", [...recipientIds]);
+
+  const byId = new Map((profiles || []).map((p) => [p.id, p]));
+  const priceLabel = formatPrice(listing.price_cents);
+  const item = `「${listing.title}」(${priceLabel})`;
+  const updated = input.action === "updated";
+
+  const sellerCopy: MessageCopy = {
+    type: updated ? "listing_admin_updated" : "listing_admin_deleted",
+    title: updated
+      ? "관리자가 리스팅을 수정했습니다"
+      : "관리자가 리스팅을 삭제했습니다",
+    body: updated
+      ? `관리자가 회원님의 ${item} 물품 정보를 수정했습니다. 내용을 확인해 주세요.`
+      : `관리자가 회원님의 ${item} 물품을 삭제했습니다.`,
+    role: "seller",
+  };
+
+  const buyerCopy: MessageCopy = {
+    type: updated ? "listing_admin_updated" : "listing_admin_deleted",
+    title: updated
+      ? "구매 중인 물품 정보가 변경되었습니다"
+      : "구매 중인 물품이 삭제되었습니다",
+    body: updated
+      ? `관리자가 구매 진행 중인 ${item} 정보를 수정했습니다. 내 계정 › 거래 내역에서 확인해 주세요.`
+      : `관리자가 구매 진행 중이던 ${item}을 삭제했습니다. 내 계정 › 거래 내역을 확인해 주세요.`,
+    role: "buyer",
+  };
+
+  const basePayload = {
+    event: updated ? "listing_admin_updated" : "listing_admin_deleted",
+    listing_id: listing.id,
+    listing_title: listing.title,
+    price_cents: listing.price_cents,
+  };
+
+  if (recipientIds.has(listing.seller_id)) {
+    const seller = byId.get(listing.seller_id);
+    if (seller) {
+      await deliverToPerson(supabase, {
+        person: seller,
+        copy: sellerCopy,
+        payload: { ...basePayload, role: "seller" },
+        orderId: null,
+      });
+    }
+  }
+
+  const notifiedBuyers = new Set<string>();
+  for (const order of activeOrders || []) {
+    if (
+      !order.buyer_id ||
+      order.buyer_id === input.actorUserId ||
+      order.buyer_id === listing.seller_id ||
+      notifiedBuyers.has(order.buyer_id)
+    ) {
+      continue;
+    }
+    const buyer = byId.get(order.buyer_id);
+    if (!buyer) continue;
+    notifiedBuyers.add(order.buyer_id);
+    await deliverToPerson(supabase, {
+      person: buyer,
+      copy: buyerCopy,
+      payload: { ...basePayload, role: "buyer", order_id: order.id },
+      orderId: order.id,
+    });
+  }
+}
+
 export async function notifyOrderEvent(input: OrderNotifyInput) {
   const supabase = createServiceClient();
 

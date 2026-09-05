@@ -198,6 +198,7 @@ export function NotificationBell() {
                               const href = notificationActionHref(
                                 item.type,
                                 item.payload?.event,
+                                item.payload?.listing_id,
                               );
                               markRead([item.id]);
                               setPanelOpen(false);

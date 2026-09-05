@@ -58,6 +58,8 @@ export const TRADE_TYPES = [
   "order_completed",
   "complaint_new",
   "complaint_reply",
+  "listing_admin_updated",
+  "listing_admin_deleted",
 ] as const;
 
 export async function getUserAlertsData(): Promise<UserAlertsData | null> {

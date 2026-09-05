@@ -38,6 +38,7 @@ export function NotificationToast() {
               const href = notificationActionHref(
                 toast.type,
                 toast.payload?.event,
+                toast.payload?.listing_id,
               );
               markRead([toast.id]);
               dismissToast();

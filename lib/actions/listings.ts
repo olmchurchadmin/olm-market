@@ -4,7 +4,7 @@ import { after } from "next/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getI18n } from "@/lib/i18n/server";
-import { notifyListingCreated } from "@/lib/notifications/dispatch";
+import { notifyListingCreated, notifyAdminListingChange } from "@/lib/notifications/dispatch";
 import { createClient } from "@/lib/supabase/server";
 import type { PickupMethod } from "@/lib/types";
 
@@ -315,6 +315,20 @@ export async function updateListingAction(formData: FormData) {
     .update({ cover_image_path: cover })
     .eq("id", listingId);
 
+  if (isAdmin) {
+    after(async () => {
+      try {
+        await notifyAdminListingChange({
+          listingId,
+          action: "updated",
+          actorUserId: user.id,
+        });
+      } catch (error) {
+        console.error("[notifyAdminListingChange:updated]", error);
+      }
+    });
+  }
+
   revalidatePath("/");
   revalidatePath("/market");
   revalidatePath(`/market/${listingId}`);
@@ -335,7 +349,7 @@ export async function deleteListingAction(formData: FormData) {
   const [{ data: existing }, { data: profile }] = await Promise.all([
     supabase
       .from("listings")
-      .select("id, seller_id, status")
+      .select("id, seller_id, status, title, price_cents")
       .eq("id", listingId)
       .maybeSingle(),
     supabase.from("profiles").select("role").eq("id", user.id).maybeSingle(),
@@ -358,6 +372,13 @@ export async function deleteListingAction(formData: FormData) {
   ) {
     redirect(withError(t.errors.cannotDeleteActive));
   }
+
+  const shouldNotifyParties = isAdmin;
+  const listingSnapshot = {
+    title: existing.title || "Item",
+    price_cents: existing.price_cents ?? 0,
+    seller_id: existing.seller_id,
+  };
 
   const { data: images } = await supabase
     .from("listing_images")
@@ -391,6 +412,21 @@ export async function deleteListingAction(formData: FormData) {
     hardDelete = hardDelete.eq("seller_id", user.id);
   }
   await hardDelete;
+
+  if (shouldNotifyParties) {
+    after(async () => {
+      try {
+        await notifyAdminListingChange({
+          listingId,
+          action: "deleted",
+          actorUserId: user.id,
+          listingSnapshot,
+        });
+      } catch (error) {
+        console.error("[notifyAdminListingChange:deleted]", error);
+      }
+    });
+  }
 
   revalidatePath("/");
   revalidatePath("/market");

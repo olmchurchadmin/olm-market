@@ -442,6 +442,17 @@ const ko = {
       "판매자({seller})와의 거래가 완료되었습니다. 이용해 주셔서 감사합니다.",
     listingCreatedTitle: "물품이 등록되었습니다",
     listingCreatedBody: "장터에 등록되었습니다.",
+    listingAdminUpdatedSellerTitle: "관리자가 리스팅을 수정했습니다",
+    listingAdminUpdatedSellerBody:
+      "관리자가 회원님의 물품 정보를 수정했습니다. 내용을 확인해 주세요.",
+    listingAdminUpdatedBuyerTitle: "구매 중인 물품 정보가 변경되었습니다",
+    listingAdminUpdatedBuyerBody:
+      "관리자가 구매 진행 중인 물품 정보를 수정했습니다. 내 계정 › 거래 내역에서 확인해 주세요.",
+    listingAdminDeletedSellerTitle: "관리자가 리스팅을 삭제했습니다",
+    listingAdminDeletedSellerBody: "관리자가 회원님의 물품을 삭제했습니다.",
+    listingAdminDeletedBuyerTitle: "구매 중인 물품이 삭제되었습니다",
+    listingAdminDeletedBuyerBody:
+      "관리자가 구매 진행 중이던 물품을 삭제했습니다. 내 계정 › 거래 내역을 확인해 주세요.",
     complaintNewTitle: "새 문의/컴플레인이 접수되었습니다",
     complaintNewBody: "{name}님이 「{subject}」 문의/컴플레인을 보냈습니다.",
     complaintReplyTitle: "문의/컴플레인 답변이 도착했습니다",
@@ -977,6 +988,17 @@ const en: Dictionary = {
       "Your trade with seller ({seller}) is complete. Thank you for using the market.",
     listingCreatedTitle: "Listing published",
     listingCreatedBody: "Your listing is now on the marketplace.",
+    listingAdminUpdatedSellerTitle: "Admin updated your listing",
+    listingAdminUpdatedSellerBody:
+      "An admin updated your listing details. Please review the changes.",
+    listingAdminUpdatedBuyerTitle: "An item you are buying was updated",
+    listingAdminUpdatedBuyerBody:
+      "An admin updated an item in your active trade. Check My account › Transactions.",
+    listingAdminDeletedSellerTitle: "Admin deleted your listing",
+    listingAdminDeletedSellerBody: "An admin deleted your listing.",
+    listingAdminDeletedBuyerTitle: "An item you are buying was deleted",
+    listingAdminDeletedBuyerBody:
+      "An admin deleted an item in your active trade. Check My account › Transactions.",
     complaintNewTitle: "New inquiry / complaint",
     complaintNewBody: "{name} submitted 「{subject}」.",
     complaintReplyTitle: "Reply to your inquiry / complaint",

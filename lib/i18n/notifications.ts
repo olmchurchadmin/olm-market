@@ -225,6 +225,36 @@ export function localizeNotification(
     };
   }
 
+  if (notification.type === "listing_admin_updated") {
+    return {
+      title:
+        role === "buyer"
+          ? t.notify.listingAdminUpdatedBuyerTitle
+          : t.notify.listingAdminUpdatedSellerTitle,
+      body: fill(
+        role === "buyer"
+          ? t.notify.listingAdminUpdatedBuyerBody
+          : t.notify.listingAdminUpdatedSellerBody,
+      ),
+      details,
+    };
+  }
+
+  if (notification.type === "listing_admin_deleted") {
+    return {
+      title:
+        role === "buyer"
+          ? t.notify.listingAdminDeletedBuyerTitle
+          : t.notify.listingAdminDeletedSellerTitle,
+      body: fill(
+        role === "buyer"
+          ? t.notify.listingAdminDeletedBuyerBody
+          : t.notify.listingAdminDeletedSellerBody,
+      ),
+      details,
+    };
+  }
+
   // Unknown type — show whatever the dispatcher stored.
   return { title: notification.title, body: notification.body, details };
 }
