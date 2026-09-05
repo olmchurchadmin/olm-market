@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import type { EmailOtpType } from "@supabase/supabase-js";
@@ -610,6 +611,7 @@ export async function adminDeleteMemberAction(formData: FormData) {
     fail(deleteUserError.message || t.errors.deleteMemberFailed);
   }
 
+  revalidatePath("/admin");
   redirect("/admin?tab=members&memberDeleted=1");
 }
 

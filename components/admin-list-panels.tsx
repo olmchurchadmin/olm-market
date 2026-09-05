@@ -7,7 +7,7 @@ import {
   TagIcon,
   UsersIcon,
 } from "@heroicons/react/24/outline";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AdminDeleteMemberButton } from "@/components/admin-delete-member-button";
 import { AdminOrderActions } from "@/components/admin-order-actions";
@@ -222,6 +222,14 @@ export function AdminMembersPanel({
   currentUserId: string;
 }) {
   const { locale, t } = useI18n();
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(() => new Set());
+
+  // Fresh server payload wins after redirect/refresh.
+  useEffect(() => {
+    setHiddenIds(new Set());
+  }, [members]);
+
+  const visibleMembers = members.filter((member) => !hiddenIds.has(member.id));
 
   return (
     <AdminSearchableSection
@@ -230,7 +238,7 @@ export function AdminMembersPanel({
       placeholder={t.admin.membersSearchPlaceholder}
     >
       {(query) => {
-        const filtered = members.filter((member) =>
+        const filtered = visibleMembers.filter((member) =>
           matchesSearch(
             query,
             accountDisplayName(member),
@@ -288,6 +296,9 @@ export function AdminMembersPanel({
                           <AdminDeleteMemberButton
                             memberId={member.id}
                             memberLabel={label}
+                            onDeleteStart={(id) =>
+                              setHiddenIds((prev) => new Set(prev).add(id))
+                            }
                           />
                         ) : null}
                       </td>
@@ -296,7 +307,7 @@ export function AdminMembersPanel({
                 })}
               </tbody>
             </table>
-            {!members.length ? (
+            {!visibleMembers.length ? (
               <p className="px-4 py-6 text-sm text-ink-muted">
                 {t.admin.noMembers}
               </p>

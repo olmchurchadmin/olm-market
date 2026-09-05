@@ -28,7 +28,10 @@ export function AdminShell({
       if (tab === active && !pendingTab) return;
       setPendingTab(tab);
       startTransition(() => {
+        // Always refetch: tab pages are cached client-side by search params,
+        // so a deleted member can reappear when returning to ?tab=members.
         router.push(`/admin?tab=${tab}`);
+        router.refresh();
       });
     },
     [active, pendingTab, router],

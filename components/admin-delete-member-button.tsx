@@ -9,9 +9,11 @@ import { adminDeleteMemberAction } from "@/lib/actions/auth";
 export function AdminDeleteMemberButton({
   memberId,
   memberLabel,
+  onDeleteStart,
 }: {
   memberId: string;
   memberLabel: string;
+  onDeleteStart?: (memberId: string) => void;
 }) {
   const { t } = useI18n();
   const confirm = useConfirm();
@@ -40,6 +42,7 @@ export function AdminDeleteMemberButton({
           });
           if (!ok) return;
           setSubmitting(true);
+          onDeleteStart?.(memberId);
           formRef.current?.requestSubmit();
         }}
         className="inline-flex size-8 items-center justify-center rounded-md border border-red-200 bg-white text-red-700 hover:bg-red-50 disabled:opacity-60"
