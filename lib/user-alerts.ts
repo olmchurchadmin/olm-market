@@ -60,14 +60,6 @@ export const TRADE_TYPES = [
   "complaint_reply",
 ] as const;
 
-/** Where "확인" should take the user for a given alert type. */
-export function notificationActionHref(type: string): string | null {
-  if (type === "complaint_new" || type === "complaint_reply") {
-    return "/account/complaints";
-  }
-  return null;
-}
-
 export async function getUserAlertsData(): Promise<UserAlertsData | null> {
   const user = await getSessionUser();
   if (!user) return null;

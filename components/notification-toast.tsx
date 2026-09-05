@@ -1,15 +1,13 @@
 "use client";
 
 import { BellAlertIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { useRouter } from "next/navigation";
 import { useI18n } from "@/components/locale-provider";
 import { NotificationDetailRows } from "@/components/notification-detail-rows";
 import { useNotifications } from "@/components/notifications-provider";
-import { notificationActionHref } from "@/lib/user-alerts";
+import { notificationActionHref } from "@/lib/notification-links";
 
 export function NotificationToast() {
   const { t } = useI18n();
-  const router = useRouter();
   const { toast, dismissToast, markRead, pending } = useNotifications();
 
   if (!toast) return null;
@@ -37,10 +35,15 @@ export function NotificationToast() {
             type="button"
             disabled={pending}
             onClick={() => {
+              const href = notificationActionHref(
+                toast.type,
+                toast.payload?.event,
+              );
               markRead([toast.id]);
               dismissToast();
-              const href = notificationActionHref(toast.type);
-              if (href) router.push(href);
+              if (href) {
+                window.location.assign(href);
+              }
             }}
             className="mt-2 rounded-md bg-brand px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-brand-soft disabled:opacity-50"
           >

@@ -2,17 +2,15 @@
 
 import { BellIcon, TrashIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useI18n } from "@/components/locale-provider";
 import { NotificationDetailRows } from "@/components/notification-detail-rows";
 import { SharePickupDetails } from "@/components/share-pickup-details";
 import { useNotifications } from "@/components/notifications-provider";
-import { notificationActionHref } from "@/lib/user-alerts";
+import { notificationActionHref } from "@/lib/notification-links";
 
 export function NotificationBell() {
   const { t, locale } = useI18n();
-  const router = useRouter();
   const {
     enabled,
     unreadCount,
@@ -197,11 +195,15 @@ export function NotificationBell() {
                             type="button"
                             disabled={pending}
                             onClick={() => {
+                              const href = notificationActionHref(
+                                item.type,
+                                item.payload?.event,
+                              );
                               markRead([item.id]);
-                              const href = notificationActionHref(item.type);
+                              setPanelOpen(false);
                               if (href) {
-                                setPanelOpen(false);
-                                router.push(href);
+                                // Hard navigate: markRead's transition can cancel router.push.
+                                window.location.assign(href);
                               }
                             }}
                             className="rounded-md bg-brand px-2 py-1 text-[11px] font-semibold text-white hover:bg-brand-soft disabled:opacity-50"
