@@ -588,3 +588,118 @@ export async function notifyPickupDetails(input: {
     orderId: order.id,
   });
 }
+
+/** Notify every admin in-app (+ email) when a member submits an inquiry. */
+export async function notifyComplaintCreated(complaintId: string) {
+  const supabase = createServiceClient();
+
+  const { data: complaint, error } = await supabase
+    .from("complaints")
+    .select("id, subject, body, user_id")
+    .eq("id", complaintId)
+    .maybeSingle();
+
+  if (error || !complaint) {
+    throw new Error(error?.message || "Complaint not found for notification");
+  }
+
+  const [{ data: member }, { data: admins }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select(profileSelect)
+      .eq("id", complaint.user_id)
+      .maybeSingle(),
+    supabase
+      .from("profiles")
+      .select(profileSelect)
+      .eq("role", "admin"),
+  ]);
+
+  const memberName = displayName(member, "회원");
+  const subject = complaint.subject || "문의/컴플레인";
+  const copy: MessageCopy = {
+    type: "complaint_new",
+    title: "새 문의/컴플레인이 접수되었습니다",
+    body: `${memberName}님이 「${subject}」 문의/컴플레인을 보냈습니다.`,
+    role: "admin",
+  };
+  const payload = {
+    event: "complaint_new",
+    complaint_id: complaint.id,
+    complaint_subject: subject,
+    member_name: memberName,
+    role: "admin",
+  };
+
+  for (const admin of admins || []) {
+    await supabase.from("notifications").insert({
+      user_id: admin.id,
+      type: copy.type,
+      title: copy.title,
+      body: copy.body,
+      payload,
+    });
+  }
+
+  // Shared admin inbox email (in-app rows above cover logged-in admins).
+  await notifyAdmin(supabase, {
+    subject: `새 문의/컴플레인 · ${subject}`,
+    lines: [
+      `${memberName}님이 문의/컴플레인을 접수했습니다.`,
+      `제목: ${subject}`,
+      complaint.body || "",
+      "관리자 › 문의/컴플레인 탭에서 확인·답변해 주세요.",
+    ].filter(Boolean),
+    payload,
+    orderId: null,
+  });
+}
+
+/** Notify the member when an admin replies to their inquiry. */
+export async function notifyComplaintReplied(complaintId: string) {
+  const supabase = createServiceClient();
+
+  const { data: complaint, error } = await supabase
+    .from("complaints")
+    .select("id, subject, admin_reply, user_id")
+    .eq("id", complaintId)
+    .maybeSingle();
+
+  if (error || !complaint) {
+    throw new Error(error?.message || "Complaint not found for reply notification");
+  }
+
+  const { data: member } = await supabase
+    .from("profiles")
+    .select(profileSelect)
+    .eq("id", complaint.user_id)
+    .maybeSingle();
+
+  if (!member) {
+    throw new Error("Member profile missing for complaint reply notification");
+  }
+
+  const subject = complaint.subject || "문의/컴플레인";
+  const reply = complaint.admin_reply?.trim() || "";
+  const bodyLines = [
+    `「${subject}」 문의/컴플레인에 관리자 답변이 등록되었습니다.`,
+    reply,
+  ].filter(Boolean);
+
+  await deliverToPerson(supabase, {
+    person: member,
+    copy: {
+      type: "complaint_reply",
+      title: "문의/컴플레인 답변이 도착했습니다",
+      body: bodyLines.join("\n"),
+      role: "buyer",
+    },
+    payload: {
+      event: "complaint_reply",
+      complaint_id: complaint.id,
+      complaint_subject: subject,
+      role: "member",
+    },
+    orderId: null,
+  });
+}

@@ -1,8 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
 import { useI18n } from "@/components/locale-provider";
 
 export type AdminTab =
@@ -15,21 +13,21 @@ export type AdminTab =
 
 export function AdminTabs({
   active,
+  displayActive,
+  pending = false,
   openComplaints = 0,
   activeTrades = 0,
+  onNavigate,
 }: {
   active: AdminTab;
+  displayActive?: AdminTab;
+  pending?: boolean;
   openComplaints?: number;
   activeTrades?: number;
+  onNavigate?: (tab: AdminTab) => void;
 }) {
   const { t } = useI18n();
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
-  const [pendingTab, setPendingTab] = useState<AdminTab | null>(null);
-
-  useEffect(() => {
-    setPendingTab(null);
-  }, [active]);
+  const shown = displayActive ?? active;
 
   const tabs: { key: AdminTab; label: string; badge?: number }[] = [
     { key: "stats", label: t.admin.stats },
@@ -48,13 +46,11 @@ export function AdminTabs({
     { key: "categories", label: t.admin.categoriesTab },
   ];
 
-  const displayActive = pendingTab ?? active;
-
   return (
     <nav className="flex flex-wrap gap-2 border-b border-brand/10 pb-4">
       {tabs.map((tab) => {
-        const isActive = displayActive === tab.key;
-        const isLoading = pending && pendingTab === tab.key;
+        const isActive = shown === tab.key;
+        const isLoading = pending && shown === tab.key && tab.key !== active;
         return (
           <Link
             key={tab.key}
@@ -63,6 +59,7 @@ export function AdminTabs({
             aria-current={isActive ? "page" : undefined}
             aria-busy={isLoading || undefined}
             onClick={(event) => {
+              if (!onNavigate) return;
               if (
                 event.metaKey ||
                 event.ctrlKey ||
@@ -72,12 +69,8 @@ export function AdminTabs({
               ) {
                 return;
               }
-              if (tab.key === active && !pendingTab) return;
               event.preventDefault();
-              setPendingTab(tab.key);
-              startTransition(() => {
-                router.push(`/admin?tab=${tab.key}`);
-              });
+              onNavigate(tab.key);
             }}
             className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition ${
               isActive

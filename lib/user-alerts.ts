@@ -50,12 +50,14 @@ function hasDeliverableEmail(options: {
   return true;
 }
 
-/** Personal trade alerts — what the bell and the toast surface. */
+/** Personal alerts shown in the bell and toast. */
 export const TRADE_TYPES = [
   "order_reserved",
   "order_at_church",
   "order_pickup_details",
   "order_completed",
+  "complaint_new",
+  "complaint_reply",
 ] as const;
 
 export async function getUserAlertsData(): Promise<UserAlertsData | null> {

@@ -1,5 +1,6 @@
 import { MagnifyingGlassIcon, PlusIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
+import { MarketCategoryTabs } from "@/components/market-category-tabs";
 import { MarketInfiniteList } from "@/components/market-infinite-list";
 import { categoryLabel } from "@/lib/i18n/categories";
 import { getI18n } from "@/lib/i18n/server";
@@ -8,22 +9,6 @@ import {
   sanitizeMarketSearch,
 } from "@/lib/market/listings-query";
 import { createClient } from "@/lib/supabase/server";
-
-function hrefFor(params: { category?: string; q?: string }) {
-  const sp = new URLSearchParams();
-  if (params.category) sp.set("category", params.category);
-  if (params.q) sp.set("q", params.q);
-  const qs = sp.toString();
-  return qs ? `/?${qs}` : "/";
-}
-
-function tabClass(active: boolean) {
-  return `rounded-md px-3.5 py-1.5 text-sm whitespace-nowrap transition ${
-    active
-      ? "bg-brand text-white shadow-sm"
-      : "bg-white text-foreground ring-1 ring-brand/10 hover:bg-neutral-100"
-  }`;
-}
 
 export async function MarketBrowse({
   category,
@@ -102,26 +87,16 @@ export async function MarketBrowse({
         </Link>
       </form>
 
-      <div className="animate-rise-delay-1 mt-5 flex flex-wrap gap-2 py-1">
-        <Link
-          href={hrefFor({ q: queryText || undefined })}
-          className={tabClass(!category)}
-        >
-          {t.market.all}
-        </Link>
-        {(categories || []).map((cat) => (
-          <Link
-            key={cat.id}
-            href={hrefFor({
-              category: cat.slug,
-              q: queryText || undefined,
-            })}
-            className={tabClass(category === cat.slug)}
-          >
-            {categoryLabel(cat, locale)}
-          </Link>
-        ))}
-      </div>
+      <MarketCategoryTabs
+        activeSlug={category}
+        queryText={queryText || undefined}
+        allLabel={t.market.all}
+        categories={(categories || []).map((cat) => ({
+          id: cat.id,
+          slug: cat.slug,
+          label: categoryLabel(cat, locale),
+        }))}
+      />
 
       <div className="animate-rise-delay-2 mt-6">
         <MarketInfiniteList

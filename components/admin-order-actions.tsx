@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckIcon, TruckIcon } from "@heroicons/react/24/outline";
-import { useState } from "react";
+import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useConfirm } from "@/components/confirm-dialog";
 import { useI18n } from "@/components/locale-provider";
@@ -23,7 +23,7 @@ export function AdminOrderActions({
   const router = useRouter();
   const confirm = useConfirm();
   const { t } = useI18n();
-  const [pending, setPending] = useState(false);
+  const [pending, startTransition] = useTransition();
 
   async function run(
     action: (id: string) => Promise<{ ok: boolean; error?: string }>,
@@ -36,13 +36,10 @@ export function AdminOrderActions({
       cancelLabel: t.common.cancel,
     });
     if (!ok) return;
-    setPending(true);
-    try {
+    startTransition(async () => {
       await action(orderId);
       router.refresh();
-    } finally {
-      setPending(false);
-    }
+    });
   }
 
   // Home pickup never passes through church, so the only step is confirming

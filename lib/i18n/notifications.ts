@@ -14,6 +14,9 @@ export type NotificationPayload = {
   listing_id?: string;
   pickup_note?: string;
   pickup_contact?: string;
+  complaint_id?: string;
+  complaint_subject?: string;
+  member_name?: string;
 } | null;
 
 type NotificationLike = {
@@ -196,6 +199,30 @@ export function localizeNotification(
       };
     }
     return { title: t.notify.completedTitle, body: fill(t.notify.completedBody), details };
+  }
+
+  if (notification.type === "complaint_new") {
+    const subject =
+      notification.payload?.complaint_subject?.trim() || t.account.complaint;
+    const name =
+      notification.payload?.member_name?.trim() || t.notify.buyerLabel;
+    return {
+      title: t.notify.complaintNewTitle,
+      body: t.notify.complaintNewBody
+        .replaceAll("{subject}", subject)
+        .replaceAll("{name}", name),
+      details,
+    };
+  }
+
+  if (notification.type === "complaint_reply") {
+    const subject =
+      notification.payload?.complaint_subject?.trim() || t.account.complaint;
+    return {
+      title: t.notify.complaintReplyTitle,
+      body: t.notify.complaintReplyBody.replaceAll("{subject}", subject),
+      details,
+    };
   }
 
   // Unknown type — show whatever the dispatcher stored.

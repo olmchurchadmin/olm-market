@@ -1,8 +1,13 @@
 "use server";
 
+import { after } from "next/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getI18n } from "@/lib/i18n/server";
+import {
+  notifyComplaintCreated,
+  notifyComplaintReplied,
+} from "@/lib/notifications/dispatch";
 import { createClient } from "@/lib/supabase/server";
 
 export async function createComplaintAction(formData: FormData) {
@@ -22,18 +27,30 @@ export async function createComplaintAction(formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/account/complaints");
 
-  const { error } = await supabase.from("complaints").insert({
-    user_id: user.id,
-    subject,
-    body,
-    status: "open",
-  });
+  const { data: complaint, error } = await supabase
+    .from("complaints")
+    .insert({
+      user_id: user.id,
+      subject,
+      body,
+      status: "open",
+    })
+    .select("id")
+    .single();
 
-  if (error) {
+  if (error || !complaint) {
     redirect(
-      `/account/complaints?error=${encodeURIComponent(error.message || t.errors.complaintFailed)}`,
+      `/account/complaints?error=${encodeURIComponent(error?.message || t.errors.complaintFailed)}`,
     );
   }
+
+  after(async () => {
+    try {
+      await notifyComplaintCreated(complaint.id);
+    } catch (err) {
+      console.error("[notifyComplaintCreated]", err);
+    }
+  });
 
   revalidatePath("/account/complaints");
   revalidatePath("/admin");
@@ -180,6 +197,14 @@ export async function replyComplaintAction(formData: FormData) {
       `/account/complaints?error=${encodeURIComponent(error.message || t.errors.resolveFailed)}`,
     );
   }
+
+  after(async () => {
+    try {
+      await notifyComplaintReplied(complaintId);
+    } catch (err) {
+      console.error("[notifyComplaintReplied]", err);
+    }
+  });
 
   revalidatePath("/account/complaints");
   revalidatePath("/admin");
