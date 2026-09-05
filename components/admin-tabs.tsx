@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
 import { useI18n } from "@/components/locale-provider";
 
 export type AdminTab =
@@ -21,6 +23,14 @@ export function AdminTabs({
   activeTrades?: number;
 }) {
   const { t } = useI18n();
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  const [pendingTab, setPendingTab] = useState<AdminTab | null>(null);
+
+  useEffect(() => {
+    setPendingTab(null);
+  }, [active]);
+
   const tabs: { key: AdminTab; label: string; badge?: number }[] = [
     { key: "stats", label: t.admin.stats },
     {
@@ -38,19 +48,42 @@ export function AdminTabs({
     { key: "categories", label: t.admin.categoriesTab },
   ];
 
+  const displayActive = pendingTab ?? active;
+
   return (
     <nav className="flex flex-wrap gap-2 border-b border-brand/10 pb-4">
       {tabs.map((tab) => {
-        const isActive = active === tab.key;
+        const isActive = displayActive === tab.key;
+        const isLoading = pending && pendingTab === tab.key;
         return (
           <Link
             key={tab.key}
             href={`/admin?tab=${tab.key}`}
+            prefetch
+            aria-current={isActive ? "page" : undefined}
+            aria-busy={isLoading || undefined}
+            onClick={(event) => {
+              if (
+                event.metaKey ||
+                event.ctrlKey ||
+                event.shiftKey ||
+                event.altKey ||
+                event.button !== 0
+              ) {
+                return;
+              }
+              if (tab.key === active && !pendingTab) return;
+              event.preventDefault();
+              setPendingTab(tab.key);
+              startTransition(() => {
+                router.push(`/admin?tab=${tab.key}`);
+              });
+            }}
             className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition ${
               isActive
                 ? "bg-brand text-white shadow-sm"
                 : "bg-white text-foreground ring-1 ring-brand/10 hover:bg-neutral-100"
-            }`}
+            } ${isLoading ? "opacity-80" : ""}`}
           >
             {tab.label}
             {tab.badge != null ? (

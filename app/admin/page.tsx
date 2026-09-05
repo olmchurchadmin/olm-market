@@ -1,6 +1,3 @@
-import {
-  ChartBarIcon,
-} from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { AdminCategoriesPanel } from "@/components/admin-categories-panel";
 import {
@@ -9,37 +6,16 @@ import {
   AdminMembersPanel,
   AdminOrdersPanel,
 } from "@/components/admin-list-panels";
-import { SalesDonationRing } from "@/components/admin-sales-donation-ring";
+import { AdminStatsPanel } from "@/components/admin-stats-panel";
 import { AdminTabs, type AdminTab } from "@/components/admin-tabs";
 import { requireAdmin } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import type { AdminStats, Category, Listing } from "@/lib/types";
-import { formatPrice } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 type StatsRange = "all" | "week" | "month";
-
-function StatCard({
-  label,
-  value,
-  hint,
-}: {
-  label: string;
-  value: string | number;
-  hint?: string;
-}) {
-  return (
-    <div className="rounded-lg border border-brand/10 bg-white/70 p-4">
-      <p className="text-sm text-ink-muted">{label}</p>
-      <p className="mt-2 font-[family-name:var(--font-display)] text-3xl text-foreground">
-        {value}
-      </p>
-      {hint ? <p className="mt-1 text-xs text-ink-muted">{hint}</p> : null}
-    </div>
-  );
-}
 
 function parseTab(raw: string | undefined): AdminTab {
   if (
@@ -95,7 +71,7 @@ export default async function AdminPage({
   }>;
 }) {
   const adminProfile = await requireAdmin();
-  const { locale, t } = await getI18n();
+  const { t } = await getI18n();
   const {
     error,
     resolved,
@@ -114,96 +90,169 @@ export default async function AdminPage({
   const range = parseRange(rangeParam);
   const supabase = await createClient();
 
-  const [
-    { data: weekStats },
-    { data: monthStats },
-    { data: allStats },
-    { data: members },
-    { data: complaints },
-    { data: orders },
-    { data: completedSales },
-    { data: allListings },
-    { data: categories },
-  ] = await Promise.all([
-    supabase.rpc("admin_stats", { p_range: "week" }),
-    supabase.rpc("admin_stats", { p_range: "month" }),
-    supabase.rpc("admin_stats", { p_range: "all" }),
+  // Badges only need counts — always cheap, parallel with the active-tab payload.
+  const badgePromise = Promise.all([
     supabase
+      .from("complaints")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "open"),
+    supabase
+      .from("orders")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["awaiting_dropoff", "ready_for_pickup"]),
+  ]);
+
+  let statsByRange: Record<StatsRange, AdminStats> | null = null;
+  let members:
+    | {
+        id: string;
+        email: string | null;
+        full_name: string | null;
+        nickname: string | null;
+        phone: string | null;
+        role: string;
+        created_at: string;
+      }[]
+    | null = null;
+  let complaints: unknown[] | null = null;
+  let orders: unknown[] | null = null;
+  let allListings: unknown[] | null = null;
+  let categories: unknown[] | null = null;
+
+  if (tab === "stats") {
+    const [
+      { data: weekStats },
+      { data: monthStats },
+      { data: allStats },
+      { data: completedSales },
+    ] = await Promise.all([
+      supabase.rpc("admin_stats", { p_range: "week" }),
+      supabase.rpc("admin_stats", { p_range: "month" }),
+      supabase.rpc("admin_stats", { p_range: "all" }),
+      // Fallback donation totals if admin_stats hasn't been migrated yet.
+      supabase
+        .from("orders")
+        .select("price_cents, completed_at, listings(donation_percent)")
+        .eq("status", "completed")
+        .limit(500),
+    ]);
+
+    const week = (weekStats || {}) as AdminStats;
+    const month = (monthStats || {}) as AdminStats;
+    const all = (allStats || {}) as AdminStats;
+
+    function donationFallback(target: StatsRange): number {
+      const since = startOfRange(target);
+      return (completedSales || []).reduce((sum, row) => {
+        if (since && (!row.completed_at || new Date(row.completed_at) < since)) {
+          return sum;
+        }
+        const listing = Array.isArray(row.listings)
+          ? row.listings[0]
+          : row.listings;
+        const percent = Math.min(
+          100,
+          Math.max(30, Math.round(listing?.donation_percent ?? 100)),
+        );
+        return sum + Math.floor((Number(row.price_cents) * percent) / 100);
+      }, 0);
+    }
+
+    function withDonation(stats: AdminStats, target: StatsRange): AdminStats {
+      if (typeof stats.donation_cents === "number") return stats;
+      return { ...stats, donation_cents: donationFallback(target) };
+    }
+
+    statsByRange = {
+      all: withDonation(all, "all"),
+      week: withDonation(week, "week"),
+      month: withDonation(month, "month"),
+    };
+  } else if (tab === "members") {
+    const { data } = await supabase
       .from("profiles")
       .select("id, email, full_name, nickname, phone, role, created_at")
       .order("created_at", { ascending: false })
-      .limit(100),
-    supabase
+      .limit(100);
+    members = data;
+  } else if (tab === "complaints") {
+    const { data } = await supabase
       .from("complaints")
       .select(
         "id, subject, body, status, admin_reply, created_at, resolved_at, user:profiles!complaints_user_id_fkey(email, full_name, nickname)",
       )
       .order("created_at", { ascending: false })
-      .limit(40),
-    supabase
+      .limit(40);
+    complaints = data;
+  } else if (tab === "orders") {
+    const { data } = await supabase
       .from("orders")
       .select(
         "*, listings(title, pickup_method), buyer:profiles!orders_buyer_id_fkey(email, phone, full_name, nickname), seller:profiles!orders_seller_id_fkey(email, phone, full_name, nickname)",
       )
       .in("status", ["awaiting_dropoff", "ready_for_pickup", "completed"])
       .order("created_at", { ascending: false })
-      .limit(50),
-    // Fallback donation totals if admin_stats hasn't been migrated yet.
-    supabase
-      .from("orders")
-      .select("price_cents, completed_at, listings(donation_percent)")
-      .eq("status", "completed")
-      .limit(500),
-    supabase
+      .limit(50);
+    orders = data;
+  } else if (tab === "listings") {
+    const { data } = await supabase
       .from("listings")
       .select(
         "*, seller:profiles!listings_seller_id_fkey(email, full_name, nickname)",
       )
       .neq("status", "cancelled")
       .order("created_at", { ascending: false })
-      .limit(100),
-    supabase
+      .limit(100);
+    allListings = data;
+  } else if (tab === "categories") {
+    const { data } = await supabase
       .from("categories")
       .select("id, slug, name_ko, name_en, sort_order")
-      .order("sort_order", { ascending: true }),
-  ]);
-
-  const week = (weekStats || {}) as AdminStats;
-  const month = (monthStats || {}) as AdminStats;
-  const all = (allStats || {}) as AdminStats;
-
-  function donationFallback(target: StatsRange): number {
-    const since = startOfRange(target);
-    return (completedSales || []).reduce((sum, row) => {
-      if (since && (!row.completed_at || new Date(row.completed_at) < since)) {
-        return sum;
-      }
-      const listing = Array.isArray(row.listings)
-        ? row.listings[0]
-        : row.listings;
-      const percent = Math.min(
-        100,
-        Math.max(30, Math.round(listing?.donation_percent ?? 100)),
-      );
-      return sum + Math.floor((Number(row.price_cents) * percent) / 100);
-    }, 0);
+      .order("sort_order", { ascending: true });
+    categories = data;
   }
 
-  function withDonation(stats: AdminStats, target: StatsRange): AdminStats {
-    if (typeof stats.donation_cents === "number") return stats;
-    return { ...stats, donation_cents: donationFallback(target) };
-  }
+  const [{ count: openComplaintCount }, { count: activeTradeCount }] =
+    await badgePromise;
 
-  const statsByRange: Record<StatsRange, AdminStats> = {
-    all: withDonation(all, "all"),
-    week: withDonation(week, "week"),
-    month: withDonation(month, "month"),
-  };
-  const stats = statsByRange[range];
-
-  const openComplaints = (complaints || []).filter((c) => c.status === "open");
-
-  const tradeRows = (orders || []).map((order) => {
+  const tradeRows = ((orders || []) as Array<{
+    id: string;
+    status: string;
+    price_cents: number;
+    created_at: string;
+    listings?:
+      | { title?: string | null; pickup_method?: string | null }
+      | { title?: string | null; pickup_method?: string | null }[]
+      | null;
+    buyer?:
+      | {
+          email?: string | null;
+          phone?: string | null;
+          full_name?: string | null;
+          nickname?: string | null;
+        }
+      | {
+          email?: string | null;
+          phone?: string | null;
+          full_name?: string | null;
+          nickname?: string | null;
+        }[]
+      | null;
+    seller?:
+      | {
+          email?: string | null;
+          phone?: string | null;
+          full_name?: string | null;
+          nickname?: string | null;
+        }
+      | {
+          email?: string | null;
+          phone?: string | null;
+          full_name?: string | null;
+          nickname?: string | null;
+        }[]
+      | null;
+  }>).map((order) => {
     const listing = Array.isArray(order.listings)
       ? order.listings[0]
       : order.listings;
@@ -236,13 +285,6 @@ export default async function AdminPage({
         : null,
     };
   });
-  const activeTrades = tradeRows.filter((r) => r.order.status !== "completed");
-
-  const rangeTabs: { key: StatsRange; label: string }[] = [
-    { key: "all", label: t.admin.rangeAll },
-    { key: "week", label: t.admin.rangeWeek },
-    { key: "month", label: t.admin.rangeMonth },
-  ];
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
@@ -263,8 +305,8 @@ export default async function AdminPage({
       <div className="mt-8">
         <AdminTabs
           active={tab}
-          openComplaints={openComplaints.length}
-          activeTrades={activeTrades.length}
+          openComplaints={openComplaintCount ?? 0}
+          activeTrades={activeTradeCount ?? 0}
         />
       </div>
 
@@ -340,65 +382,8 @@ export default async function AdminPage({
         />
       ) : null}
 
-      {tab === "stats" ? (
-        <section className="mt-8">
-          <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-foreground">
-            <ChartBarIcon className="size-6" aria-hidden />
-            {t.admin.stats}
-          </h2>
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            {rangeTabs.map((item) => {
-              const active = range === item.key;
-              return (
-                <Link
-                  key={item.key}
-                  href={`/admin?tab=stats&range=${item.key}`}
-                  className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
-                    active
-                      ? "bg-brand text-white shadow-sm"
-                      : "bg-white text-foreground ring-1 ring-brand/10 hover:bg-neutral-100"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </div>
-
-          <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(240px,320px)_1fr]">
-            <SalesDonationRing
-              salesCents={stats.gmv_cents ?? 0}
-              donationCents={stats.donation_cents ?? 0}
-              salesLabel={t.admin.totalSales}
-              donationLabel={t.admin.totalDonation}
-              formatMoney={(cents) => formatPrice(cents, locale)}
-            />
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              <StatCard
-                label={t.admin.listings}
-                value={stats.new_listings ?? 0}
-              />
-              <StatCard label={t.admin.sold} value={stats.sold ?? 0} />
-              <StatCard
-                label={t.admin.totalUsers}
-                value={stats.total_users ?? 0}
-              />
-              <StatCard
-                label={t.admin.activeUsers}
-                value={stats.active_users ?? 0}
-              />
-              <StatCard
-                label={t.admin.awaitingDropoff}
-                value={stats.orders_awaiting_dropoff ?? 0}
-              />
-              <StatCard
-                label={t.admin.readyForPickup}
-                value={stats.orders_ready_for_pickup ?? 0}
-              />
-            </div>
-          </div>
-        </section>
+      {tab === "stats" && statsByRange ? (
+        <AdminStatsPanel statsByRange={statsByRange} initialRange={range} />
       ) : null}
 
       {tab === "members" ? (
@@ -418,7 +403,29 @@ export default async function AdminPage({
 
       {tab === "complaints" ? (
         <AdminComplaintsPanel
-          complaints={(complaints || []).map((item) => {
+          complaints={(
+            (complaints || []) as Array<{
+              id: string;
+              subject: string;
+              body: string;
+              status: string;
+              created_at: string;
+              resolved_at: string | null;
+              admin_reply?: string | null;
+              user?:
+                | {
+                    email?: string | null;
+                    full_name?: string | null;
+                    nickname?: string | null;
+                  }
+                | {
+                    email?: string | null;
+                    full_name?: string | null;
+                    nickname?: string | null;
+                  }[]
+                | null;
+            }>
+          ).map((item) => {
             const user = Array.isArray(item.user) ? item.user[0] : item.user;
             return {
               id: item.id,
@@ -427,11 +434,7 @@ export default async function AdminPage({
               status: item.status,
               created_at: item.created_at,
               resolved_at: item.resolved_at,
-              admin_reply:
-                "admin_reply" in item
-                  ? ((item as { admin_reply?: string | null }).admin_reply ??
-                    null)
-                  : null,
+              admin_reply: item.admin_reply ?? null,
               user: user
                 ? {
                     email: user.email ?? null,
