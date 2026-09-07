@@ -6,13 +6,9 @@ import { categoryLabel } from "@/lib/i18n/categories";
 import type { Listing } from "@/lib/types";
 import {
   formatPrice,
-  itemConditionLabel,
   listingImageUrl,
-  listingQuantityRemaining,
-  listingQuantityTotal,
   listingStatusBadgeClass,
   listingStatusLabel,
-  publicSellerLabel,
 } from "@/lib/utils";
 
 export function ListingCard({ listing }: { listing: Listing }) {
@@ -22,8 +18,6 @@ export function ListingCard({ listing }: { listing: Listing }) {
     listing.status === "sold" ||
     listing.status === "reserved" ||
     listing.status === "at_church";
-  const remaining = listingQuantityRemaining(listing);
-  const total = listingQuantityTotal(listing);
 
   return (
     <Link
@@ -67,26 +61,6 @@ export function ListingCard({ listing }: { listing: Listing }) {
         </h3>
         <p className="text-sm font-semibold text-foreground sm:text-base">
           {formatPrice(listing.price_cents, locale)}
-        </p>
-        <p className="truncate text-[10px] text-ink-muted sm:text-xs">
-          {itemConditionLabel(listing.item_condition, t.condition)}
-          {total > 1
-            ? ` · ${t.market.quantityAvailableSold
-                .replace("{available}", String(remaining))
-                .replace("{sold}", String(Math.max(0, total - remaining)))}`
-            : ""}
-        </p>
-        <p className="truncate text-[10px] text-ink-muted sm:text-xs">
-          {listing.pickup_method === "seller_location"
-            ? t.market.pickupSeller
-            : t.market.pickupChurch}
-        </p>
-        <p className="truncate text-[10px] text-ink-muted sm:text-xs">
-          {t.market.seller}:{" "}
-          {publicSellerLabel(listing.seller, {
-            seller: t.market.seller,
-            anonymous: t.market.anonymous,
-          })}
         </p>
       </div>
     </Link>
