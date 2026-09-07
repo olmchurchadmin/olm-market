@@ -2,7 +2,6 @@ import { createClient } from "@/lib/supabase/server";
 import type { Listing } from "@/lib/types";
 
 export const MARKET_PAGE_SIZE = 12;
-export const MARKET_FEATURED_LIMIT = 48;
 export const MARKET_SOLD_STATUS = "sold" as const;
 
 export function sanitizeMarketSearch(value: string) {
@@ -16,19 +15,11 @@ export async function fetchMarketListingsPage(options: {
   pageSize?: number;
   /** Default: active marketplace (excludes sold + cancelled). */
   status?: "active" | "sold";
-  /**
-   * Active market only:
-   * - include: all (featured first)
-   * - only: featured rows
-   * - exclude: non-featured rows (default for paginated grid)
-   */
-  featured?: "include" | "only" | "exclude";
 }): Promise<{ items: Listing[]; total: number; hasMore: boolean }> {
   const page = Math.max(1, Math.floor(options.page) || 1);
   const pageSize = options.pageSize ?? MARKET_PAGE_SIZE;
   const queryText = sanitizeMarketSearch(options.q || "");
   const status = options.status === "sold" ? "sold" : "active";
-  const featuredMode = options.featured ?? "exclude";
 
   const supabase = await createClient();
   const { data: categories } = await supabase
@@ -48,17 +39,12 @@ export async function fetchMarketListingsPage(options: {
       .eq("status", "sold")
       .order("created_at", { ascending: false });
   } else {
+    // Featured listings stay pinned at the front of the single market grid.
     query = query
       .neq("status", "cancelled")
       .neq("status", "sold")
       .order("is_featured", { ascending: false })
       .order("created_at", { ascending: false });
-
-    if (featuredMode === "only") {
-      query = query.eq("is_featured", true);
-    } else if (featuredMode === "exclude") {
-      query = query.eq("is_featured", false);
-    }
   }
 
   if (options.category && status !== "sold") {

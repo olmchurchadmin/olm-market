@@ -90,19 +90,16 @@ export function MarketInfiniteList({
   category,
   q,
   status,
-  initialFeatured = [],
   initialItems,
   total,
 }: {
   category?: string;
   q?: string;
   status?: "active" | "sold";
-  initialFeatured?: Listing[];
   initialItems: Listing[];
   total: number;
 }) {
   const { t } = useI18n();
-  const [featured, setFeatured] = useState(initialFeatured);
   const [items, setItems] = useState(initialItems);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(initialItems.length < total);
@@ -115,14 +112,12 @@ export function MarketInfiniteList({
   const sentinelRef = useRef<HTMLDivElement>(null);
   const loadingRef = useRef(false);
   const rafRef = useRef(0);
-  const displayTotal = featured.length + total;
 
   useEffect(() => {
-    setFeatured(initialFeatured);
     setItems(initialItems);
     setPage(1);
     setHasMore(initialItems.length < total);
-  }, [initialFeatured, initialItems, total]);
+  }, [initialItems, total]);
 
   const loadMore = useCallback(async () => {
     if (loadingRef.current || !hasMore) return;
@@ -174,7 +169,7 @@ export function MarketInfiniteList({
   useEffect(() => {
     const updateProgress = () => {
       const list = listRef.current;
-      if (!list || displayTotal <= 0) {
+      if (!list || total <= 0) {
         setProgress(0);
         setSeen(0);
         setRingVisible(false);
@@ -192,7 +187,7 @@ export function MarketInfiniteList({
       // Past the list (footer): keep last known full progress while ring hides.
       if (!stillInList) {
         setProgress(1);
-        setSeen(displayTotal);
+        setSeen(total);
         return;
       }
 
@@ -214,15 +209,11 @@ export function MarketInfiniteList({
       }
 
       const displaySeen = Math.min(
-        displayTotal,
-        Math.max(0, Math.round(continuous * displayTotal)),
+        total,
+        Math.max(0, Math.round(continuous * total)),
       );
 
-      setSeen(
-        continuous >= 1
-          ? displayTotal
-          : Math.max(displaySeen, continuous > 0 ? 1 : 0),
-      );
+      setSeen(continuous >= 1 ? total : Math.max(displaySeen, continuous > 0 ? 1 : 0));
       setProgress(continuous);
     };
 
@@ -239,13 +230,13 @@ export function MarketInfiniteList({
       window.removeEventListener("scroll", onScrollOrResize);
       window.removeEventListener("resize", onScrollOrResize);
     };
-  }, [items.length, featured.length, displayTotal]);
+  }, [items.length, total]);
 
   const scrollToPageTop = useCallback(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  if (featured.length === 0 && items.length === 0) {
+  if (items.length === 0) {
     return (
       <p className="rounded-md border border-dashed border-black/10 bg-white/50 px-4 py-10 text-center text-ink-muted">
         {q ? t.market.noResults : t.market.empty}
@@ -264,7 +255,7 @@ export function MarketInfiniteList({
           <ListProgressRing
             progress={progress}
             seen={seen}
-            total={displayTotal}
+            total={total}
             onClick={scrollToPageTop}
             labels={{
               aria: t.market.scrollProgressAria,
@@ -274,38 +265,15 @@ export function MarketInfiniteList({
         </div>
       </div>
 
-      <div ref={listRef} className="space-y-8">
-        {featured.length > 0 ? (
-          <section>
-            <h2 className="mb-3 font-[family-name:var(--font-display)] text-xl text-foreground sm:text-2xl">
-              {t.market.featuredSection}
-            </h2>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
-              {featured.map((listing) => (
-                <div key={`featured-${listing.id}`}>
-                  <ListingCard listing={listing} />
-                </div>
-              ))}
-            </div>
-          </section>
-        ) : null}
-
-        {items.length > 0 ? (
-          <section>
-            {featured.length > 0 ? (
-              <h2 className="mb-3 font-[family-name:var(--font-display)] text-xl text-foreground sm:text-2xl">
-                {t.market.title}
-              </h2>
-            ) : null}
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
-              {items.map((listing, index) => (
-                <div key={listing.id} data-listing-index={index}>
-                  <ListingCard listing={listing} />
-                </div>
-              ))}
-            </div>
-          </section>
-        ) : null}
+      <div
+        ref={listRef}
+        className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4"
+      >
+        {items.map((listing, index) => (
+          <div key={listing.id} data-listing-index={index}>
+            <ListingCard listing={listing} />
+          </div>
+        ))}
       </div>
 
       <div ref={sentinelRef} className="h-8 w-full" aria-hidden />
@@ -315,9 +283,9 @@ export function MarketInfiniteList({
           {t.market.loadingMore}
         </p>
       ) : null}
-      {!hasMore && (items.length > 0 || featured.length > 0) ? (
+      {!hasMore && items.length > 0 ? (
         <p className="py-6 text-center text-xs tracking-wide text-ink-muted">
-          {t.market.itemsCount.replace("{total}", String(displayTotal))}
+          {t.market.itemsCount.replace("{total}", String(total))}
         </p>
       ) : null}
     </div>
