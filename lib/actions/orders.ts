@@ -57,6 +57,15 @@ export async function buyListingAction(listingId: string, quantity = 1) {
 }
 
 export async function adminMarkDropoffAction(orderId: string) {
+  return confirmDropoffAction(orderId);
+}
+
+export async function adminMarkPickupAction(orderId: string) {
+  return confirmPickupAction(orderId);
+}
+
+/** Seller or admin: item dropped off at church. */
+export async function confirmDropoffAction(orderId: string) {
   const { t } = await getI18n();
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("admin_mark_dropoff", {
@@ -69,12 +78,14 @@ export async function adminMarkDropoffAction(orderId: string) {
   revalidatePath("/admin");
   revalidatePath("/me");
   revalidatePath("/account/transactions");
+  revalidatePath("/account/notifications");
   revalidatePath("/");
   revalidatePath("/market");
   return { ok: true as const };
 }
 
-export async function adminMarkPickupAction(orderId: string) {
+/** Buyer or admin: item picked up (and paid) at church. */
+export async function confirmPickupAction(orderId: string) {
   const { t } = await getI18n();
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("admin_mark_pickup_complete", {

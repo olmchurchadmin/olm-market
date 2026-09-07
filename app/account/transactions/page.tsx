@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AccountShell } from "@/components/account-shell";
+import { OrderTradeConfirmButton } from "@/components/order-trade-confirm-button";
 import { SellingListingRow } from "@/components/selling-listing-row";
 import { SharePickupDetails } from "@/components/share-pickup-details";
 import { getCurrentProfile } from "@/lib/auth";
@@ -130,23 +131,35 @@ export default async function AccountTransactionsPage({
                   key={order.id}
                   className="rounded-md border border-brand/10 bg-white/70 p-3"
                 >
-                  {listing?.id ? (
-                    <Link
-                      href={`/market/${listing.id}`}
-                      className="font-medium text-foreground hover:underline"
-                    >
-                      {listing.title || t.account.item}
-                    </Link>
-                  ) : (
-                    <p className="font-medium">
-                      {listing?.title || t.account.item}
-                    </p>
-                  )}
-                  <p className="text-sm text-ink-muted">
-                    {formatPrice(order.price_cents, locale)} ·{" "}
-                    {orderStatusLabel(order.status, t.status)} ·{" "}
-                    {homePickup ? t.market.pickupSeller : t.market.pickupChurch}
-                  </p>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      {listing?.id ? (
+                        <Link
+                          href={`/market/${listing.id}`}
+                          className="font-medium text-foreground hover:underline"
+                        >
+                          {listing.title || t.account.item}
+                        </Link>
+                      ) : (
+                        <p className="font-medium">
+                          {listing?.title || t.account.item}
+                        </p>
+                      )}
+                      <p className="text-sm text-ink-muted">
+                        {formatPrice(order.price_cents, locale)} ·{" "}
+                        {orderStatusLabel(order.status, t.status)} ·{" "}
+                        {homePickup
+                          ? t.market.pickupSeller
+                          : t.market.pickupChurch}
+                      </p>
+                    </div>
+                    {!homePickup && order.status === "awaiting_dropoff" ? (
+                      <OrderTradeConfirmButton
+                        orderId={order.id}
+                        action="dropoff"
+                      />
+                    ) : null}
+                  </div>
                   {homePickup ? (
                     <SharePickupDetails
                       orderId={order.id}
@@ -179,6 +192,9 @@ export default async function AccountTransactionsPage({
                 ? order.listings[0]
                 : order.listings;
               const thumb = listingImageUrl(listing?.cover_image_path);
+              const homePickup = listing?.pickup_method === "seller_location";
+              const canConfirmPickup =
+                !homePickup && order.status === "ready_for_pickup";
               return (
                 <li
                   key={order.id}
@@ -198,23 +214,34 @@ export default async function AccountTransactionsPage({
                       </span>
                     )}
                   </div>
-                  <div className="min-w-0">
-                    {listing?.id ? (
-                      <Link
-                        href={`/market/${listing.id}`}
-                        className="font-medium text-foreground hover:underline"
-                      >
-                        {listing.title || t.account.item}
-                      </Link>
-                    ) : (
-                      <p className="font-medium">
-                        {listing?.title || t.account.item}
+                  <div className="flex min-w-0 flex-1 items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      {listing?.id ? (
+                        <Link
+                          href={`/market/${listing.id}`}
+                          className="font-medium text-foreground hover:underline"
+                        >
+                          {listing.title || t.account.item}
+                        </Link>
+                      ) : (
+                        <p className="font-medium">
+                          {listing?.title || t.account.item}
+                        </p>
+                      )}
+                      <p className="text-sm text-ink-muted">
+                        {formatPrice(order.price_cents, locale)} ·{" "}
+                        {orderStatusLabel(order.status, t.status)}
+                        {!homePickup
+                          ? ` · ${t.market.pickupChurch}`
+                          : ` · ${t.market.pickupSeller}`}
                       </p>
-                    )}
-                    <p className="text-sm text-ink-muted">
-                      {formatPrice(order.price_cents, locale)} ·{" "}
-                      {orderStatusLabel(order.status, t.status)}
-                    </p>
+                    </div>
+                    {canConfirmPickup ? (
+                      <OrderTradeConfirmButton
+                        orderId={order.id}
+                        action="pickup"
+                      />
+                    ) : null}
                   </div>
                 </li>
               );
