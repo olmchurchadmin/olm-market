@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { useConfirm } from "@/components/confirm-dialog";
 import { useI18n } from "@/components/locale-provider";
+import { requestTradeDockRefresh } from "@/components/trade-status-bar-client";
 import { buyListingAction } from "@/lib/actions/orders";
 import { formatPrice, itemConditionLabel } from "@/lib/utils";
 
@@ -122,6 +123,8 @@ export function ListingBuyPanel({
                   setError(result.error);
                   return;
                 }
+                requestTradeDockRefresh();
+                router.refresh();
                 router.push("/account/transactions");
               });
             }}

@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { OrderTradeConfirmButton } from "@/components/order-trade-confirm-button";
 import { useI18n } from "@/components/locale-provider";
+import { loadTradeDockAction } from "@/lib/actions/trade-dock";
+import { createClient } from "@/lib/supabase/client";
 import type { TradeDockItem } from "@/lib/trade-status";
 import {
   formatPrice,
@@ -13,11 +15,102 @@ import {
 } from "@/lib/utils";
 
 const DOCK_HEIGHT_VAR = "--trade-dock-h";
+export const TRADE_DOCK_REFRESH_EVENT = "cm:trade-dock-refresh";
 
-export function TradeStatusBarClient({ items }: { items: TradeDockItem[] }) {
+export function requestTradeDockRefresh() {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new Event(TRADE_DOCK_REFRESH_EVENT));
+}
+
+export function TradeStatusBarClient({
+  initialItems,
+  userId,
+}: {
+  initialItems: TradeDockItem[];
+  userId: string;
+}) {
   const { locale, t } = useI18n();
   const pathname = usePathname();
   const hideOnAdmin = pathname?.startsWith("/admin");
+  const [items, setItems] = useState(initialItems);
+  const refreshing = useRef(false);
+
+  const refresh = useCallback(async () => {
+    if (refreshing.current) return;
+    refreshing.current = true;
+    try {
+      const next = await loadTradeDockAction();
+      setItems(next.items);
+    } catch {
+      // Keep the last known dock state.
+    } finally {
+      refreshing.current = false;
+    }
+  }, []);
+
+  useEffect(() => {
+    setItems(initialItems);
+  }, [initialItems]);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh, pathname]);
+
+  useEffect(() => {
+    const onFocus = () => {
+      void refresh();
+    };
+    const onEvent = () => {
+      void refresh();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+    window.addEventListener(TRADE_DOCK_REFRESH_EVENT, onEvent);
+    const poll = window.setInterval(() => {
+      void refresh();
+    }, 12000);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
+      window.removeEventListener(TRADE_DOCK_REFRESH_EVENT, onEvent);
+      window.clearInterval(poll);
+    };
+  }, [refresh]);
+
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`trade-dock-${userId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "orders",
+          filter: `buyer_id=eq.${userId}`,
+        },
+        () => {
+          void refresh();
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "orders",
+          filter: `seller_id=eq.${userId}`,
+        },
+        () => {
+          void refresh();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [userId, refresh]);
 
   useEffect(() => {
     if (hideOnAdmin || !items.length) {

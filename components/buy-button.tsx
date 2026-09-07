@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useConfirm } from "@/components/confirm-dialog";
 import { useI18n } from "@/components/locale-provider";
+import { requestTradeDockRefresh } from "@/components/trade-status-bar-client";
 import { buyListingAction } from "@/lib/actions/orders";
 
 export function BuyButton({
@@ -50,6 +51,8 @@ export function BuyButton({
               setError(result.error);
               return;
             }
+            requestTradeDockRefresh();
+            router.refresh();
             router.push("/account/transactions");
           });
         }}

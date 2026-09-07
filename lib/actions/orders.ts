@@ -47,6 +47,7 @@ export async function buyListingAction(listingId: string, quantity = 1) {
 
   scheduleOrderNotify(data.id, "buy");
 
+  revalidatePath("/", "layout");
   revalidatePath("/");
   revalidatePath("/market");
   revalidatePath(`/market/${listingId}`);
@@ -75,6 +76,7 @@ export async function confirmDropoffAction(orderId: string) {
     return { ok: false as const, error: error?.message || t.errors.actionFailed };
   }
   scheduleOrderNotify(orderId, "dropoff");
+  revalidatePath("/", "layout");
   revalidatePath("/admin");
   revalidatePath("/me");
   revalidatePath("/account/transactions");
@@ -95,6 +97,7 @@ export async function confirmPickupAction(orderId: string) {
     return { ok: false as const, error: error?.message || t.errors.actionFailed };
   }
   scheduleOrderNotify(orderId, "completed");
+  revalidatePath("/", "layout");
   revalidatePath("/admin");
   revalidatePath("/me");
   revalidatePath("/account/transactions");

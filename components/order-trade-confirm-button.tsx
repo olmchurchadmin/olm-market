@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { useConfirm } from "@/components/confirm-dialog";
 import { useI18n } from "@/components/locale-provider";
+import { requestTradeDockRefresh } from "@/components/trade-status-bar-client";
 import {
   confirmDropoffAction,
   confirmPickupAction,
@@ -59,6 +60,7 @@ export function OrderTradeConfirmButton({
           } else {
             await confirmPickupAction(orderId);
           }
+          requestTradeDockRefresh();
           router.refresh();
         });
       }}
