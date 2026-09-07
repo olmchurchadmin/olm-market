@@ -112,6 +112,7 @@ export type AdminStats = {
   active_users: number;
   orders_awaiting_dropoff: number;
   orders_ready_for_pickup: number;
+  stats_reset_at?: string | null;
 };
 
 export type StatsRange = "day" | "week" | "month" | "year" | "all";

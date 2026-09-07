@@ -1,9 +1,12 @@
 "use client";
 
-import { ChartBarIcon } from "@heroicons/react/24/outline";
-import { useState } from "react";
-import { useI18n } from "@/components/locale-provider";
+import { ArrowPathIcon, ChartBarIcon } from "@heroicons/react/24/outline";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import { SalesDonationRing } from "@/components/admin-sales-donation-ring";
+import { useConfirm } from "@/components/confirm-dialog";
+import { useI18n } from "@/components/locale-provider";
+import { resetAdminStatsAction } from "@/lib/actions/admin-stats";
 import type { AdminStats } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
 
@@ -29,6 +32,16 @@ function StatCard({
   );
 }
 
+function formatResetDate(iso: string | null | undefined, locale: string) {
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "ko-KR", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+}
+
 export function AdminStatsPanel({
   statsByRange,
   initialRange,
@@ -37,8 +50,19 @@ export function AdminStatsPanel({
   initialRange: StatsRange;
 }) {
   const { locale, t } = useI18n();
+  const router = useRouter();
+  const confirm = useConfirm();
   const [range, setRange] = useState<StatsRange>(initialRange);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
   const stats = statsByRange[range];
+  const resetLabel = formatResetDate(
+    stats.stats_reset_at ??
+      statsByRange.all.stats_reset_at ??
+      statsByRange.week.stats_reset_at ??
+      statsByRange.month.stats_reset_at,
+    locale,
+  );
 
   const rangeTabs: { key: StatsRange; label: string }[] = [
     { key: "all", label: t.admin.rangeAll },
@@ -54,10 +78,48 @@ export function AdminStatsPanel({
 
   return (
     <section className="mt-8">
-      <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-foreground">
-        <ChartBarIcon className="size-6" aria-hidden />
-        {t.admin.stats}
-      </h2>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-foreground">
+            <ChartBarIcon className="size-6" aria-hidden />
+            {t.admin.stats}
+          </h2>
+          {resetLabel ? (
+            <p className="mt-1 text-xs text-ink-muted">
+              {t.admin.resetStatsSince.replace("{date}", resetLabel)}
+            </p>
+          ) : null}
+        </div>
+        <button
+          type="button"
+          disabled={pending}
+          onClick={async () => {
+            const ok = await confirm({
+              title: t.admin.resetStatsTitle,
+              message: t.admin.resetStatsMessage,
+              confirmLabel: t.admin.resetStatsConfirm,
+              cancelLabel: t.common.cancel,
+              tone: "danger",
+            });
+            if (!ok) return;
+            setError(null);
+            startTransition(async () => {
+              const result = await resetAdminStatsAction();
+              if (!result.ok) {
+                setError(result.error);
+                return;
+              }
+              router.refresh();
+            });
+          }}
+          className="inline-flex items-center gap-1.5 rounded-md border border-brand/15 bg-white px-3 py-1.5 text-sm font-medium text-foreground hover:bg-brand/5 disabled:opacity-60"
+        >
+          <ArrowPathIcon className="size-4" aria-hidden />
+          {pending ? t.common.loading : t.admin.resetStats}
+        </button>
+      </div>
+
+      {error ? <p className="mt-2 text-sm text-red-700">{error}</p> : null}
 
       <div className="mt-4 flex flex-wrap gap-2">
         {rangeTabs.map((item) => {
