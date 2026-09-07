@@ -44,7 +44,10 @@ export async function saveSiteBannerAction(formData: FormData) {
   const supabase = await requireAdminClient();
 
   const enabled = formData.get("enabled") === "on";
-  const bodyKo = String(formData.get("body_ko") || "").trim();
+  const bodyKo = String(formData.get("body_ko") || "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .trim();
   const startsAt = parseDateInput(
     String(formData.get("starts_on") || ""),
     "start",

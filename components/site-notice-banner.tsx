@@ -1,7 +1,9 @@
-import { createClient } from "@/lib/supabase/server";
-import { getI18n } from "@/lib/i18n/server";
-import type { SiteBanner } from "@/lib/types";
+import { unstable_cache } from "next/cache";
 import { SiteNoticeBannerClient } from "@/components/site-notice-banner-client";
+import { getI18n } from "@/lib/i18n/server";
+import { translateKoreanSentenceToEnglish } from "@/lib/i18n/translate-ko-en";
+import { createClient } from "@/lib/supabase/server";
+import type { SiteBanner } from "@/lib/types";
 
 function isBannerLive(banner: SiteBanner, now: number) {
   if (!banner.enabled) return false;
@@ -16,6 +18,34 @@ function isBannerLive(banner: SiteBanner, now: number) {
     if (!Number.isNaN(end) && now > end) return false;
   }
   return true;
+}
+
+function normalizeNewlines(text: string) {
+  return text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim();
+}
+
+const englishFromKoreanCached = unstable_cache(
+  async (korean: string, _updatedAt: string) =>
+    translateKoreanSentenceToEnglish(korean),
+  ["site-banner-en-from-ko"],
+  { revalidate: 60 * 60 * 24 },
+);
+
+async function resolveBannerBody(locale: string, banner: SiteBanner) {
+  const ko = normalizeNewlines(banner.body_ko || "");
+  const en = normalizeNewlines(banner.body_en || "");
+
+  if (locale !== "en") return ko || en;
+
+  // Korean is the structure source: keep the same line breaks for English.
+  if (ko.includes("\n")) {
+    const enLines = en.split("\n");
+    const koLines = ko.split("\n");
+    if (en && enLines.length === koLines.length) return en;
+    return englishFromKoreanCached(ko, banner.updated_at);
+  }
+
+  return en || ko;
 }
 
 export async function SiteNoticeBanner() {
@@ -37,11 +67,7 @@ export async function SiteNoticeBanner() {
   const banner = data as SiteBanner;
   if (!isBannerLive(banner, Date.now())) return null;
 
-  const body =
-    (locale === "en"
-      ? banner.body_en.trim() || banner.body_ko.trim()
-      : banner.body_ko.trim() || banner.body_en.trim()) || "";
-
+  const body = await resolveBannerBody(locale, banner);
   if (!body) return null;
 
   return (
