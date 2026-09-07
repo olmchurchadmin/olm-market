@@ -16,19 +16,22 @@ export function NotificationToast() {
     <div
       role="status"
       aria-live="polite"
-      className="fixed right-4 bottom-4 z-50 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-lg border border-black/8 bg-white shadow-[0_16px_40px_rgba(26,28,31,0.18)]"
+      className="fixed inset-x-3 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[70] mx-auto w-auto max-w-sm overflow-hidden rounded-lg border border-black/8 bg-white shadow-[0_16px_40px_rgba(26,28,31,0.18)] sm:inset-x-auto sm:right-4 sm:left-auto sm:w-[min(20rem,calc(100vw-2rem))]"
     >
       <div className="flex items-start gap-2.5 px-3.5 py-3">
-        <BellAlertIcon className="mt-0.5 size-5 shrink-0 text-brand" aria-hidden />
+        <BellAlertIcon
+          className="mt-0.5 size-5 shrink-0 text-brand"
+          aria-hidden
+        />
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-semibold tracking-wide text-brand uppercase">
             {t.alerts.newAlert}
           </p>
-          <p className="mt-0.5 text-sm font-semibold text-foreground">
+          <p className="mt-0.5 text-sm font-semibold break-words text-foreground">
             {toast.title}
           </p>
           <NotificationDetailRows details={toast.details} t={t} compact />
-          <p className="mt-1 line-clamp-3 text-xs leading-relaxed whitespace-pre-line text-ink-muted">
+          <p className="mt-1 line-clamp-4 text-xs leading-relaxed break-words whitespace-pre-line text-ink-muted">
             {toast.body}
           </p>
           <button
