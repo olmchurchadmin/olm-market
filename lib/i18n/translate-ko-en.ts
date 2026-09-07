@@ -119,7 +119,8 @@ function cleanEnglishLabel(raw: string) {
 
 function cleanEnglishSentence(raw: string) {
   return raw
-    .replace(/\s+/g, " ")
+    .replace(/[^\S\n]+/g, " ")
+    .replace(/ *\n */g, "\n")
     .replace(/^["'\s]+|["'\s]+$/g, "")
     .trim()
     .slice(0, 500);
@@ -192,14 +193,8 @@ export async function translateKoreanToEnglish(text: string): Promise<string> {
   return toTitleCase(trimmed);
 }
 
-/**
- * Translate free-form Korean notice text for English locale display.
- * Keeps natural sentence casing (not category Title Case).
- */
-export async function translateKoreanSentenceToEnglish(
-  text: string,
-): Promise<string> {
-  const trimmed = text.trim();
+async function translateOneLine(line: string): Promise<string> {
+  const trimmed = line.trim();
   if (!trimmed) return "";
 
   if (/^[\x00-\x7F]+$/.test(trimmed) && /[a-zA-Z]/.test(trimmed)) {
@@ -227,8 +222,22 @@ export async function translateKoreanSentenceToEnglish(
     // Fall through.
   }
 
-  // Prefer showing Korean over a broken romanization for full sentences.
   return trimmed;
+}
+
+/**
+ * Translate free-form Korean notice text for English locale display.
+ * Keeps natural sentence casing and preserves line breaks.
+ */
+export async function translateKoreanSentenceToEnglish(
+  text: string,
+): Promise<string> {
+  const trimmed = text.replace(/\r\n/g, "\n").trim();
+  if (!trimmed) return "";
+
+  const lines = trimmed.split("\n");
+  const translated = await Promise.all(lines.map((line) => translateOneLine(line)));
+  return translated.join("\n").slice(0, 500);
 }
 
 export function slugifyEnglishLabel(label: string) {
