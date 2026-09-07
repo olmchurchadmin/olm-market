@@ -55,34 +55,15 @@ export function MarketCategoryTabs({
   }
 
   return (
-    <div className="animate-rise-delay-1 mt-5 flex flex-wrap gap-2 py-1">
-      <Link
-        href={hrefFor()}
-        prefetch
-        aria-current={!displaySlug ? "page" : undefined}
-        onClick={(event) => {
-          if (
-            event.metaKey ||
-            event.ctrlKey ||
-            event.shiftKey ||
-            event.altKey ||
-            event.button !== 0
-          ) {
-            return;
-          }
-          event.preventDefault();
-          go();
-        }}
-        className={tabClass(!displaySlug, pending && pendingSlug === null)}
+    <div className="animate-rise-delay-1 mt-5 -mx-4 px-4 sm:mx-0 sm:px-0">
+      <div
+        className="flex gap-2 overflow-x-auto overscroll-x-contain py-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        style={{ WebkitOverflowScrolling: "touch" }}
       >
-        {allLabel}
-      </Link>
-      {categories.map((cat) => (
         <Link
-          key={cat.id}
-          href={hrefFor(cat.slug)}
+          href={hrefFor()}
           prefetch
-          aria-current={displaySlug === cat.slug ? "page" : undefined}
+          aria-current={!displaySlug ? "page" : undefined}
           onClick={(event) => {
             if (
               event.metaKey ||
@@ -94,16 +75,40 @@ export function MarketCategoryTabs({
               return;
             }
             event.preventDefault();
-            go(cat.slug);
+            go();
           }}
-          className={tabClass(
-            displaySlug === cat.slug,
-            pending && pendingSlug === cat.slug,
-          )}
+          className={`shrink-0 ${tabClass(!displaySlug, pending && pendingSlug === null)}`}
         >
-          {cat.label}
+          {allLabel}
         </Link>
-      ))}
+        {categories.map((cat) => (
+          <Link
+            key={cat.id}
+            href={hrefFor(cat.slug)}
+            prefetch
+            aria-current={displaySlug === cat.slug ? "page" : undefined}
+            onClick={(event) => {
+              if (
+                event.metaKey ||
+                event.ctrlKey ||
+                event.shiftKey ||
+                event.altKey ||
+                event.button !== 0
+              ) {
+                return;
+              }
+              event.preventDefault();
+              go(cat.slug);
+            }}
+            className={`shrink-0 ${tabClass(
+              displaySlug === cat.slug,
+              pending && pendingSlug === cat.slug,
+            )}`}
+          >
+            {cat.label}
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }

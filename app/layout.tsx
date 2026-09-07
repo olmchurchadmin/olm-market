@@ -7,6 +7,7 @@ import { NotificationsBanner } from "@/components/notifications-banner";
 import { NotificationsProvider } from "@/components/notifications-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { SiteNoticeBanner } from "@/components/site-notice-banner";
 import { getCurrentProfile } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
 import "./globals.css";
@@ -50,6 +51,7 @@ export default async function RootLayout({
           <ConfirmDialogProvider>
             <NotificationsProvider enabled={Boolean(profile)}>
               <SiteHeader profile={profile} />
+              <SiteNoticeBanner />
               <NotificationsBanner />
               <div className="flex-1">{children}</div>
               <SiteFooter />

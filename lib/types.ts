@@ -43,6 +43,20 @@ export type Category = {
   sort_order: number;
 };
 
+export type SiteBanner = {
+  id: number;
+  enabled: boolean;
+  body_ko: string;
+  body_en: string;
+  cta_label_ko: string;
+  cta_label_en: string;
+  cta_url: string;
+  image_path: string | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  updated_at: string;
+};
+
 export type Listing = {
   id: string;
   seller_id: string;

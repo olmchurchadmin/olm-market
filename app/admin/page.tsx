@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdminBannerPanel } from "@/components/admin-banner-panel";
 import { AdminCategoriesPanel } from "@/components/admin-categories-panel";
 import {
   AdminComplaintsPanel,
@@ -12,7 +13,7 @@ import type { AdminTab } from "@/components/admin-tabs";
 import { requireAdmin } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
-import type { AdminStats, Category, Listing } from "@/lib/types";
+import type { AdminStats, Category, Listing, SiteBanner } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,8 @@ function parseTab(raw: string | undefined): AdminTab {
     raw === "complaints" ||
     raw === "orders" ||
     raw === "listings" ||
-    raw === "categories"
+    raw === "categories" ||
+    raw === "banner"
   ) {
     return raw;
   }
@@ -67,6 +69,7 @@ export default async function AdminPage({
     categoryDeleted?: string;
     categoryUpdated?: string;
     categoryReordered?: string;
+    bannerSaved?: string;
     tab?: string;
     range?: string;
   }>;
@@ -84,6 +87,7 @@ export default async function AdminPage({
     categoryDeleted,
     categoryUpdated,
     categoryReordered,
+    bannerSaved,
     tab: tabParam,
     range: rangeParam,
   } = await searchParams;
@@ -119,6 +123,7 @@ export default async function AdminPage({
   let orders: unknown[] | null = null;
   let allListings: unknown[] | null = null;
   let categories: unknown[] | null = null;
+  let siteBanner: SiteBanner | null = null;
 
   if (tab === "stats") {
     const [
@@ -212,6 +217,15 @@ export default async function AdminPage({
       .select("id, slug, name_ko, name_en, sort_order")
       .order("sort_order", { ascending: true });
     categories = data;
+  } else if (tab === "banner") {
+    const { data } = await supabase
+      .from("site_banner")
+      .select(
+        "id, enabled, body_ko, body_en, cta_label_ko, cta_label_en, cta_url, image_path, starts_at, ends_at, updated_at",
+      )
+      .eq("id", 1)
+      .maybeSingle();
+    siteBanner = (data as SiteBanner | null) ?? null;
   }
 
   const [{ count: openComplaintCount }, { count: activeTradeCount }] =
@@ -360,6 +374,11 @@ export default async function AdminPage({
           {t.admin.categoryReorderedFlash}
         </p>
       ) : null}
+      {bannerSaved ? (
+        <p className="mt-6 rounded-md border border-brand/20 bg-brand/5 px-3 py-2 text-sm text-brand">
+          {t.admin.bannerSavedFlash}
+        </p>
+      ) : null}
 
       {tab === "listings" ? (
         <AdminListingsPanel
@@ -454,6 +473,8 @@ export default async function AdminPage({
           categories={(categories || []) as Category[]}
         />
       ) : null}
+
+      {tab === "banner" ? <AdminBannerPanel banner={siteBanner} /> : null}
         </AdminShell>
       </div>
     </main>
