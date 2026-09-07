@@ -31,8 +31,8 @@ export function SiteNoticeBannerClient({
   if (!visible || !body) return null;
 
   return (
-    <aside className="border-y border-black/10 bg-[#fff4e8]">
-      <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-1.5 sm:gap-3 sm:px-6 sm:py-2">
+    <aside className="border-b border-black/10 bg-[#fff4e8]">
+      <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2.5 sm:gap-3 sm:px-6 sm:py-3">
         <p className="min-w-0 flex-1 text-sm leading-snug text-foreground">
           {body}
         </p>
