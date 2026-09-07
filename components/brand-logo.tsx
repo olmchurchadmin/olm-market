@@ -20,7 +20,7 @@ export function BrandLogo({
         width={194}
         height={150}
         priority={priority}
-        className="h-11 w-auto max-w-[min(100%,160px)] object-contain object-left sm:h-12 sm:max-w-[180px]"
+        className="h-14 w-auto max-w-[min(100%,300px)] object-contain object-left sm:h-16 sm:max-w-[360px]"
       />
     </Link>
   );
