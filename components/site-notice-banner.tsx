@@ -1,8 +1,7 @@
-import Link from "next/link";
-import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
+import { getI18n } from "@/lib/i18n/server";
 import type { SiteBanner } from "@/lib/types";
-import { siteBannerImageUrl } from "@/lib/utils";
+import { SiteNoticeBannerClient } from "@/components/site-notice-banner-client";
 
 function isBannerLive(banner: SiteBanner, now: number) {
   if (!banner.enabled) return false;
@@ -26,16 +25,11 @@ export async function SiteNoticeBanner() {
   );
   if (!configured) return null;
 
-  const [{ locale, t }, supabase] = await Promise.all([
-    getI18n(),
-    createClient(),
-  ]);
+  const [{ locale }, supabase] = await Promise.all([getI18n(), createClient()]);
 
   const { data, error } = await supabase
     .from("site_banner")
-    .select(
-      "id, enabled, body_ko, body_en, cta_label_ko, cta_label_en, cta_url, image_path, starts_at, ends_at, updated_at",
-    )
+    .select("id, enabled, body_ko, body_en, starts_at, ends_at, updated_at")
     .eq("id", 1)
     .maybeSingle();
 
@@ -47,38 +41,10 @@ export async function SiteNoticeBanner() {
     (locale === "en"
       ? banner.body_en.trim() || banner.body_ko.trim()
       : banner.body_ko.trim() || banner.body_en.trim()) || "";
-  const ctaLabel =
-    locale === "en"
-      ? banner.cta_label_en.trim() || banner.cta_label_ko.trim()
-      : banner.cta_label_ko.trim() || banner.cta_label_en.trim();
-  const ctaUrl = banner.cta_url.trim();
-  const imageUrl = siteBannerImageUrl(banner.image_path);
-  const hasCta = Boolean(ctaLabel && ctaUrl);
+
+  if (!body) return null;
 
   return (
-    <aside className="border-b border-brand/15 bg-[#eef2fb]">
-      <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:gap-4 sm:px-6">
-        {imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={imageUrl}
-            alt=""
-            className="size-12 shrink-0 rounded-md object-cover sm:size-14"
-          />
-        ) : null}
-        <p className="min-w-0 flex-1 text-sm leading-snug text-foreground sm:text-[15px]">
-          {body}
-        </p>
-        {hasCta ? (
-          <Link
-            href={ctaUrl}
-            className="shrink-0 rounded-md bg-brand px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-soft sm:text-sm"
-          >
-            {ctaLabel}
-          </Link>
-        ) : null}
-        <span className="sr-only">{t.admin.bannerTab}</span>
-      </div>
-    </aside>
+    <SiteNoticeBannerClient body={body} updatedAt={banner.updated_at} />
   );
 }

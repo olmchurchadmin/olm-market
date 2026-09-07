@@ -4,26 +4,42 @@ import { useMemo, useState } from "react";
 import { useI18n } from "@/components/locale-provider";
 import { saveSiteBannerAction } from "@/lib/actions/site-banner";
 import type { SiteBanner } from "@/lib/types";
-import { siteBannerImageUrl } from "@/lib/utils";
 
-function toDatetimeLocalValue(iso: string | null | undefined) {
+function toDateInputValue(iso: string | null | undefined) {
   if (!iso) return "";
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "";
   const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+function formatDisplayDate(yyyyMmDd: string, locale: string) {
+  if (!yyyyMmDd) return "";
+  const [y, m, d] = yyyyMmDd.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  return date.toLocaleDateString(locale === "en" ? "en-US" : "ko-KR", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    weekday: "short",
+  });
+}
+
+function addDays(base: Date, days: number) {
+  const next = new Date(base);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+function toYmd(date: Date) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
 export function AdminBannerPanel({ banner }: { banner: SiteBanner | null }) {
-  const { t } = useI18n();
-  const existingUrl = siteBannerImageUrl(banner?.image_path);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [clearImage, setClearImage] = useState(false);
-
-  const shownImage = useMemo(() => {
-    if (clearImage) return null;
-    return previewUrl || existingUrl;
-  }, [clearImage, previewUrl, existingUrl]);
+  const { t, locale } = useI18n();
+  const [startsOn, setStartsOn] = useState(toDateInputValue(banner?.starts_at));
+  const [endsOn, setEndsOn] = useState(toDateInputValue(banner?.ends_at));
 
   const status = useMemo(() => {
     if (!banner?.enabled) return t.admin.bannerStatusOff;
@@ -34,6 +50,48 @@ export function AdminBannerPanel({ banner }: { banner: SiteBanner | null }) {
     if (end != null && now > end) return t.admin.bannerStatusExpired;
     return t.admin.bannerStatusLive;
   }, [banner, t.admin]);
+
+  const scheduleSummary = useMemo(() => {
+    if (!startsOn && !endsOn) return t.admin.bannerScheduleAlways;
+    if (startsOn && !endsOn) {
+      return t.admin.bannerScheduleFrom.replace(
+        "{start}",
+        formatDisplayDate(startsOn, locale),
+      );
+    }
+    if (!startsOn && endsOn) {
+      return t.admin.bannerScheduleUntil.replace(
+        "{end}",
+        formatDisplayDate(endsOn, locale),
+      );
+    }
+    return t.admin.bannerScheduleRange
+      .replace("{start}", formatDisplayDate(startsOn, locale))
+      .replace("{end}", formatDisplayDate(endsOn, locale));
+  }, [startsOn, endsOn, locale, t.admin]);
+
+  function applyPreset(kind: "always" | "today" | "week" | "month") {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (kind === "always") {
+      setStartsOn("");
+      setEndsOn("");
+      return;
+    }
+    if (kind === "today") {
+      const ymd = toYmd(today);
+      setStartsOn(ymd);
+      setEndsOn(ymd);
+      return;
+    }
+    if (kind === "week") {
+      setStartsOn(toYmd(today));
+      setEndsOn(toYmd(addDays(today, 6)));
+      return;
+    }
+    setStartsOn(toYmd(today));
+    setEndsOn(toYmd(addDays(today, 29)));
+  }
 
   return (
     <section className="mt-8">
@@ -78,111 +136,56 @@ export function AdminBannerPanel({ banner }: { banner: SiteBanner | null }) {
           </label>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="block space-y-1.5 text-sm font-medium">
-            {t.admin.bannerCtaLabelKo}
-            <input
-              name="cta_label_ko"
-              defaultValue={banner?.cta_label_ko || ""}
-              className="w-full rounded-md border border-brand/15 bg-white px-3 py-2 text-sm font-normal outline-none focus:border-brand"
-            />
-          </label>
-          <label className="block space-y-1.5 text-sm font-medium">
-            {t.admin.bannerCtaLabelEn}
-            <input
-              name="cta_label_en"
-              defaultValue={banner?.cta_label_en || ""}
-              className="w-full rounded-md border border-brand/15 bg-white px-3 py-2 text-sm font-normal outline-none focus:border-brand"
-            />
-          </label>
-        </div>
-
-        <label className="block space-y-1.5 text-sm font-medium">
-          {t.admin.bannerCtaUrl}
-          <input
-            name="cta_url"
-            type="url"
-            placeholder="https://"
-            defaultValue={banner?.cta_url || ""}
-            className="w-full rounded-md border border-brand/15 bg-white px-3 py-2 text-sm font-normal outline-none focus:border-brand"
-          />
-        </label>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="block space-y-1.5 text-sm font-medium">
-            {t.admin.bannerStartsAt}
-            <input
-              name="starts_at"
-              type="datetime-local"
-              defaultValue={toDatetimeLocalValue(banner?.starts_at)}
-              className="w-full rounded-md border border-brand/15 bg-white px-3 py-2 text-sm font-normal outline-none focus:border-brand"
-            />
-          </label>
-          <label className="block space-y-1.5 text-sm font-medium">
-            {t.admin.bannerEndsAt}
-            <input
-              name="ends_at"
-              type="datetime-local"
-              defaultValue={toDatetimeLocalValue(banner?.ends_at)}
-              className="w-full rounded-md border border-brand/15 bg-white px-3 py-2 text-sm font-normal outline-none focus:border-brand"
-            />
-          </label>
-        </div>
-        <p className="text-xs text-ink-muted">{t.admin.bannerScheduleHint}</p>
-
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-foreground">
-            {t.admin.bannerImage}
-          </p>
-          {shownImage ? (
-            <div className="relative h-28 w-full max-w-md overflow-hidden rounded-md border border-brand/10 bg-neutral-50">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={shownImage}
-                alt=""
-                className="h-full w-full object-cover"
-              />
-            </div>
-          ) : (
-            <p className="text-xs text-ink-muted">{t.admin.bannerImageEmpty}</p>
-          )}
-          <input
-            type="file"
-            name="image"
-            accept="image/*"
-            className="block w-full text-sm text-ink-muted file:mr-3 file:rounded-md file:border-0 file:bg-brand file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white"
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              if (previewUrl) URL.revokeObjectURL(previewUrl);
-              if (file) {
-                setClearImage(false);
-                setPreviewUrl(URL.createObjectURL(file));
-              } else {
-                setPreviewUrl(null);
-              }
-            }}
-          />
-          {existingUrl && !clearImage ? (
-            <label className="inline-flex items-center gap-2 text-xs text-ink-muted">
+        <fieldset className="space-y-3">
+          <legend className="text-sm font-medium text-foreground">
+            {t.admin.bannerScheduleLabel}
+          </legend>
+          <div className="flex flex-wrap gap-2">
+            {(
+              [
+                ["always", t.admin.bannerPresetAlways],
+                ["today", t.admin.bannerPresetToday],
+                ["week", t.admin.bannerPresetWeek],
+                ["month", t.admin.bannerPresetMonth],
+              ] as const
+            ).map(([kind, label]) => (
+              <button
+                key={kind}
+                type="button"
+                onClick={() => applyPreset(kind)}
+                className="rounded-md border border-brand/15 bg-white px-2.5 py-1.5 text-xs font-medium text-foreground hover:bg-brand/5"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block space-y-1.5 text-sm font-medium">
+              {t.admin.bannerStartsAt}
               <input
-                type="checkbox"
-                name="clear_image"
-                checked={clearImage}
-                onChange={(e) => {
-                  setClearImage(e.target.checked);
-                  if (e.target.checked && previewUrl) {
-                    URL.revokeObjectURL(previewUrl);
-                    setPreviewUrl(null);
-                  }
-                }}
-                className="accent-[var(--brand)]"
+                name="starts_on"
+                type="date"
+                value={startsOn}
+                onChange={(e) => setStartsOn(e.target.value)}
+                className="w-full rounded-md border border-brand/15 bg-white px-3 py-2 text-sm font-normal outline-none focus:border-brand"
               />
-              {t.admin.bannerClearImage}
             </label>
-          ) : clearImage ? (
-            <input type="hidden" name="clear_image" value="on" />
-          ) : null}
-        </div>
+            <label className="block space-y-1.5 text-sm font-medium">
+              {t.admin.bannerEndsAt}
+              <input
+                name="ends_on"
+                type="date"
+                value={endsOn}
+                onChange={(e) => setEndsOn(e.target.value)}
+                className="w-full rounded-md border border-brand/15 bg-white px-3 py-2 text-sm font-normal outline-none focus:border-brand"
+              />
+            </label>
+          </div>
+          <p className="rounded-md bg-brand/5 px-3 py-2 text-xs text-foreground">
+            {scheduleSummary}
+          </p>
+          <p className="text-xs text-ink-muted">{t.admin.bannerScheduleHint}</p>
+        </fieldset>
 
         <button
           type="submit"
