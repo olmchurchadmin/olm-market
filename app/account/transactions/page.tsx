@@ -195,6 +195,7 @@ export default async function AccountTransactionsPage({
               const homePickup = listing?.pickup_method === "seller_location";
               const canConfirmPickup =
                 !homePickup && order.status === "ready_for_pickup";
+              const isCompleted = order.status === "completed";
               return (
                 <li
                   key={order.id}
@@ -229,11 +230,13 @@ export default async function AccountTransactionsPage({
                         </p>
                       )}
                       <p className="text-sm text-ink-muted">
-                        {formatPrice(order.price_cents, locale)} ·{" "}
-                        {orderStatusLabel(order.status, t.status)}
+                        {formatPrice(order.price_cents, locale)}
                         {!homePickup
                           ? ` · ${t.market.pickupChurch}`
                           : ` · ${t.market.pickupSeller}`}
+                        {!isCompleted
+                          ? ` · ${orderStatusLabel(order.status, t.status)}`
+                          : null}
                       </p>
                     </div>
                     {canConfirmPickup ? (
@@ -241,6 +244,10 @@ export default async function AccountTransactionsPage({
                         orderId={order.id}
                         action="pickup"
                       />
+                    ) : isCompleted ? (
+                      <span className="inline-flex shrink-0 items-center rounded-md bg-brand/10 px-2.5 py-1.5 text-xs font-semibold text-brand">
+                        {t.status.completed}
+                      </span>
                     ) : null}
                   </div>
                 </li>

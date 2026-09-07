@@ -258,6 +258,10 @@ const ko = {
       "성당에서 픽업(현금 결제)을 마치셨나요? 확인하면 판매자와 관리자에게 알림이 갑니다.",
     confirmPickupCta: "픽업 확인",
     markAllReadCta: "알림 모두 확인",
+    deleteAllNotificationsCta: "모두 삭제",
+    deleteAllNotificationsTitle: "알림 모두 삭제",
+    deleteAllNotificationsMessage:
+      "모든 알림을 삭제할까요? 삭제 후 복구할 수 없습니다.",
     pickupShareCta: "픽업 주소 보내기",
     pickupShareAgainCta: "픽업 주소 다시 보내기",
     pickupShareHint:
@@ -877,6 +881,10 @@ const en: Dictionary = {
       "Did you pick up and pay cash at church? Seller and admin will be notified.",
     confirmPickupCta: "Confirm pickup",
     markAllReadCta: "Mark all read",
+    deleteAllNotificationsCta: "Delete all",
+    deleteAllNotificationsTitle: "Delete all notifications",
+    deleteAllNotificationsMessage:
+      "Delete every notification? This cannot be undone.",
     pickupShareCta: "Send pickup address",
     pickupShareAgainCta: "Send pickup address again",
     pickupShareHint:

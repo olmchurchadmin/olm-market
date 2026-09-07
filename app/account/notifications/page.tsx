@@ -1,5 +1,6 @@
 import { BellIcon } from "@heroicons/react/24/outline";
 import { AccountShell } from "@/components/account-shell";
+import { DeleteAllNotificationsButton } from "@/components/delete-all-notifications-button";
 import { DeleteNotificationButton } from "@/components/delete-notification-button";
 import { MarkAllReadButton } from "@/components/mark-all-read-button";
 import { NotificationDetailRows } from "@/components/notification-detail-rows";
@@ -48,7 +49,12 @@ export default async function AccountNotificationsPage() {
             <BellIcon className="size-6" aria-hidden />
             {t.account.notifications}
           </h2>
-          <MarkAllReadButton />
+          <div className="flex flex-wrap items-center gap-2">
+            <MarkAllReadButton />
+            <DeleteAllNotificationsButton
+              hasNotifications={Boolean(notifications?.length)}
+            />
+          </div>
         </div>
         <ul className="mt-4 space-y-3">
           {(notifications || []).length ? (

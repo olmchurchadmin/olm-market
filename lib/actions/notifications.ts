@@ -138,3 +138,20 @@ export async function deleteNotificationsAction(
 
   return { ok: true, data: await getUserAlertsData() };
 }
+
+export async function deleteAllNotificationsAction(): Promise<DeleteResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "Unauthorized" };
+
+  const { error } = await supabase
+    .from("notifications")
+    .delete()
+    .eq("user_id", user.id);
+
+  if (error) return { ok: false, error: error.message };
+
+  return { ok: true, data: await getUserAlertsData() };
+}
