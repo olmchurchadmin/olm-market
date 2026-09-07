@@ -364,10 +364,11 @@ const ko = {
     noCategoriesSearch: "검색 결과가 없습니다.",
     bannerTab: "알림배너",
     bannerBlurb:
-      "헤더 바로 아래에 표시되는 텍스트 알림입니다. 문구와 노출 기간만 설정하세요.",
+      "헤더 바로 아래에 표시되는 텍스트 알림입니다. 한글 문구와 노출 기간만 설정하세요.",
     bannerEnabled: "배너 표시",
-    bannerBodyKo: "문구 (한국어)",
+    bannerBodyKo: "알림 문구",
     bannerBodyEn: "문구 (영어)",
+    bannerBodyHint: "한글만 입력하면 영어 설정에서는 자동 번역되어 표시됩니다.",
     bannerCtaLabelKo: "CTA 버튼 문구 (한국어)",
     bannerCtaLabelEn: "CTA 버튼 문구 (영어)",
     bannerCtaUrl: "CTA 링크 URL",
@@ -975,10 +976,12 @@ const en: Dictionary = {
     noCategoriesSearch: "No matching categories.",
     bannerTab: "Alert banner",
     bannerBlurb:
-      "Text-only notice shown directly under the header. Set the copy and date range.",
+      "Text-only notice shown directly under the header. Enter Korean copy and a date range.",
     bannerEnabled: "Show banner",
-    bannerBodyKo: "Message (Korean)",
+    bannerBodyKo: "Alert message",
     bannerBodyEn: "Message (English)",
+    bannerBodyHint:
+      "Enter Korean only; English locale shows an automatic translation.",
     bannerCtaLabelKo: "CTA label (Korean)",
     bannerCtaLabelEn: "CTA label (English)",
     bannerCtaUrl: "CTA link URL",

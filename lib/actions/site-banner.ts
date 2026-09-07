@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getI18n } from "@/lib/i18n/server";
+import { translateKoreanSentenceToEnglish } from "@/lib/i18n/translate-ko-en";
 import { createClient } from "@/lib/supabase/server";
 
 async function requireAdminClient() {
@@ -44,11 +45,13 @@ export async function saveSiteBannerAction(formData: FormData) {
 
   const enabled = formData.get("enabled") === "on";
   const bodyKo = String(formData.get("body_ko") || "").trim();
-  const bodyEn = String(formData.get("body_en") || "").trim();
-  const startsAt = parseDateInput(String(formData.get("starts_on") || ""), "start");
+  const startsAt = parseDateInput(
+    String(formData.get("starts_on") || ""),
+    "start",
+  );
   const endsAt = parseDateInput(String(formData.get("ends_on") || ""), "end");
 
-  if (enabled && !bodyKo && !bodyEn) {
+  if (enabled && !bodyKo) {
     redirect(
       `/admin?tab=banner&error=${encodeURIComponent(t.errors.bannerTextRequired)}`,
     );
@@ -59,6 +62,8 @@ export async function saveSiteBannerAction(formData: FormData) {
       `/admin?tab=banner&error=${encodeURIComponent(t.errors.bannerScheduleInvalid)}`,
     );
   }
+
+  const bodyEn = bodyKo ? await translateKoreanSentenceToEnglish(bodyKo) : "";
 
   const { data: current } = await supabase
     .from("site_banner")

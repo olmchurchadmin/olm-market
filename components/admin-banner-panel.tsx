@@ -115,26 +115,18 @@ export function AdminBannerPanel({ banner }: { banner: SiteBanner | null }) {
           {t.admin.bannerEnabled}
         </label>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="block space-y-1.5 text-sm font-medium">
-            {t.admin.bannerBodyKo}
-            <textarea
-              name="body_ko"
-              rows={3}
-              defaultValue={banner?.body_ko || ""}
-              className="w-full rounded-md border border-brand/15 bg-white px-3 py-2 text-sm font-normal outline-none focus:border-brand"
-            />
-          </label>
-          <label className="block space-y-1.5 text-sm font-medium">
-            {t.admin.bannerBodyEn}
-            <textarea
-              name="body_en"
-              rows={3}
-              defaultValue={banner?.body_en || ""}
-              className="w-full rounded-md border border-brand/15 bg-white px-3 py-2 text-sm font-normal outline-none focus:border-brand"
-            />
-          </label>
-        </div>
+        <label className="block space-y-1.5 text-sm font-medium">
+          {t.admin.bannerBodyKo}
+          <textarea
+            name="body_ko"
+            rows={3}
+            defaultValue={banner?.body_ko || ""}
+            className="w-full rounded-md border border-brand/15 bg-white px-3 py-2 text-sm font-normal outline-none focus:border-brand"
+          />
+          <span className="block text-xs font-normal text-ink-muted">
+            {t.admin.bannerBodyHint}
+          </span>
+        </label>
 
         <fieldset className="space-y-3">
           <legend className="text-sm font-medium text-foreground">

@@ -117,6 +117,14 @@ function cleanEnglishLabel(raw: string) {
     .slice(0, 60);
 }
 
+function cleanEnglishSentence(raw: string) {
+  return raw
+    .replace(/\s+/g, " ")
+    .replace(/^["'\s]+|["'\s]+$/g, "")
+    .trim()
+    .slice(0, 500);
+}
+
 /** Title Case so category labels always start with a capital letter. */
 function toTitleCase(label: string) {
   return cleanEnglishLabel(label)
@@ -126,6 +134,11 @@ function toTitleCase(label: string) {
       return part[0].toUpperCase() + part.slice(1).toLowerCase();
     })
     .join("");
+}
+
+function sentenceCase(text: string) {
+  if (!text) return "";
+  return text[0].toUpperCase() + text.slice(1);
 }
 
 function looksUsableEnglish(text: string) {
@@ -177,6 +190,45 @@ export async function translateKoreanToEnglish(text: string): Promise<string> {
     return toTitleCase(romanized.replace(/-/g, " "));
   }
   return toTitleCase(trimmed);
+}
+
+/**
+ * Translate free-form Korean notice text for English locale display.
+ * Keeps natural sentence casing (not category Title Case).
+ */
+export async function translateKoreanSentenceToEnglish(
+  text: string,
+): Promise<string> {
+  const trimmed = text.trim();
+  if (!trimmed) return "";
+
+  if (/^[\x00-\x7F]+$/.test(trimmed) && /[a-zA-Z]/.test(trimmed)) {
+    return sentenceCase(cleanEnglishSentence(trimmed));
+  }
+
+  try {
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(trimmed)}&langpair=ko|en`;
+    const res = await fetch(url, {
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    if (res.ok) {
+      const data = (await res.json()) as {
+        responseData?: { translatedText?: string };
+      };
+      const translated = cleanEnglishSentence(
+        data.responseData?.translatedText || "",
+      );
+      if (looksUsableEnglish(translated)) {
+        return sentenceCase(translated);
+      }
+    }
+  } catch {
+    // Fall through.
+  }
+
+  // Prefer showing Korean over a broken romanization for full sentences.
+  return trimmed;
 }
 
 export function slugifyEnglishLabel(label: string) {
