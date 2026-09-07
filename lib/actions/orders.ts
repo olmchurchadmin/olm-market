@@ -20,7 +20,7 @@ function scheduleOrderNotify(
   });
 }
 
-export async function buyListingAction(listingId: string) {
+export async function buyListingAction(listingId: string, quantity = 1) {
   const { t } = await getI18n();
   const supabase = await createClient();
   const {
@@ -31,8 +31,11 @@ export async function buyListingAction(listingId: string) {
     return { ok: false as const, error: t.errors.loginRequired };
   }
 
+  const qty = Math.min(99, Math.max(1, Math.floor(Number(quantity) || 1)));
+
   const { data, error } = await supabase.rpc("buy_listing", {
     p_listing_id: listingId,
+    p_quantity: qty,
   });
 
   if (error || !data) {

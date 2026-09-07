@@ -56,6 +56,7 @@ export type Listing = {
   item_condition?: ItemCondition;
   quantity_total?: number;
   quantity_remaining?: number;
+  is_featured?: boolean;
   cover_image_path: string | null;
   created_at: string;
   updated_at: string;
@@ -78,6 +79,7 @@ export type Order = {
   seller_id: string;
   status: OrderStatus;
   price_cents: number;
+  quantity?: number;
   reserved_at: string;
   dropoff_at: string | null;
   completed_at: string | null;

@@ -471,3 +471,45 @@ export async function deleteListingAction(formData: FormData) {
   revalidatePath("/me");
   redirect(isAdmin ? "/admin?tab=listings&deleted=1" : "/account/transactions?deleted=1");
 }
+
+export async function toggleListingFeaturedAction(formData: FormData) {
+  const { supabase, user } = await requireSeller();
+  const { t } = await getI18n();
+  const listingId = String(formData.get("listing_id") || "");
+  if (!listingId) throw new Error(t.errors.listingNotFound);
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profile?.role !== "admin") {
+    throw new Error(t.errors.cannotEdit);
+  }
+
+  const { data: existing, error: loadError } = await supabase
+    .from("listings")
+    .select("id, is_featured")
+    .eq("id", listingId)
+    .maybeSingle();
+
+  if (loadError || !existing) {
+    throw new Error(t.errors.listingNotFound);
+  }
+
+  const nextFeatured = !Boolean(existing.is_featured);
+  const { error } = await supabase
+    .from("listings")
+    .update({ is_featured: nextFeatured })
+    .eq("id", listingId);
+
+  if (error) {
+    throw new Error(error.message || t.errors.updateFailed);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/market");
+  revalidatePath(`/market/${listingId}`);
+  revalidatePath("/admin");
+}

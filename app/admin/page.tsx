@@ -91,7 +91,7 @@ export default async function AdminPage({
   const range = parseRange(rangeParam);
   const supabase = await createClient();
 
-  // Badges only need counts â€” always cheap, parallel with the active-tab payload.
+  // Badges only need counts — always cheap, parallel with the active-tab payload.
   const badgePromise = Promise.all([
     supabase
       .from("complaints")
@@ -202,6 +202,7 @@ export default async function AdminPage({
         "*, seller:profiles!listings_seller_id_fkey(email, full_name, nickname)",
       )
       .neq("status", "cancelled")
+      .order("is_featured", { ascending: false })
       .order("created_at", { ascending: false })
       .limit(100);
     allListings = data;
@@ -266,7 +267,7 @@ export default async function AdminPage({
         price_cents: order.price_cents,
         created_at: order.created_at,
       },
-      title: listing?.title || "â€”",
+      title: listing?.title || "—",
       homePickup: listing?.pickup_method === "seller_location",
       buyer: buyer
         ? {

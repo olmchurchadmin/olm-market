@@ -19,6 +19,7 @@ import {
 import { DeleteComplaintButton } from "@/components/delete-complaint-button";
 import { DeleteCompletedOrderButton } from "@/components/delete-completed-order-button";
 import { DeleteListingButton } from "@/components/delete-listing-button";
+import { FeatureListingButton } from "@/components/feature-listing-button";
 import { ResolveComplaintButton } from "@/components/resolve-complaint-button";
 import { useI18n } from "@/components/locale-provider";
 import type { Listing } from "@/lib/types";
@@ -186,6 +187,7 @@ export function AdminListingsPanel({ listings }: { listings: ListingRow[] }) {
                           {listing.pickup_method === "seller_location"
                             ? t.market.pickupSeller
                             : t.market.pickupChurch}
+                          {listing.is_featured ? ` · ${t.market.featured}` : ""}
                         </p>
                         <p className="mt-1 text-xs text-ink-muted">
                           {t.admin.seller}: {formatPersonName(seller, "—")}
@@ -193,6 +195,10 @@ export function AdminListingsPanel({ listings }: { listings: ListingRow[] }) {
                         </p>
                       </div>
                       <div className="flex flex-wrap gap-2">
+                        <FeatureListingButton
+                          listingId={listing.id}
+                          featured={Boolean(listing.is_featured)}
+                        />
                         <Link
                           href={`/sell/${listing.id}/edit`}
                           className="inline-flex items-center gap-1 rounded-md border border-brand/15 bg-white px-2.5 py-1 text-xs font-medium text-foreground hover:bg-brand/5"

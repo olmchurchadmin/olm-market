@@ -1,7 +1,7 @@
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BuyButton } from "@/components/buy-button";
+import { ListingBuyPanel } from "@/components/listing-buy-panel";
 import { ListingGallery } from "@/components/listing-gallery";
 import { getSessionUser } from "@/lib/auth";
 import { categoryLabel } from "@/lib/i18n/categories";
@@ -10,7 +10,6 @@ import { createClient } from "@/lib/supabase/server";
 import {
   formatListingPublicId,
   formatPrice,
-  itemConditionLabel,
   listingQuantityRemaining,
   listingQuantityTotal,
   listingStatusBadgeClass,
@@ -52,10 +51,6 @@ export default async function ListingDetailPage({
     user?.id !== listing.seller_id;
   const isOwnListing = Boolean(user && user.id === listing.seller_id);
   const statusLabel = listingStatusLabel(listing.status, t.status);
-  const conditionLabel = itemConditionLabel(
-    listing.item_condition,
-    t.condition,
-  );
   const pickupMethod =
     listing.pickup_method === "seller_location" ? "seller_location" : "church";
   const pickupLabel =
@@ -115,15 +110,6 @@ export default async function ListingDetailPage({
             {t.market.donation}:{" "}
             {t.market.donationValue.replace("{percent}", String(donationPercent))}
           </p>
-          <p className="mt-1 text-sm text-ink-muted">
-            {t.market.condition}: {conditionLabel}
-          </p>
-          <p className="mt-1 text-sm text-ink-muted">
-            {t.market.quantity}:{" "}
-            {t.market.quantityRemainingOf
-              .replace("{remaining}", String(remaining))
-              .replace("{total}", String(total))}
-          </p>
           {listing.status === "available" ? (
             <p className="mt-1 text-sm text-ink-muted">
               {t.market.status}: {statusLabel}
@@ -143,36 +129,46 @@ export default async function ListingDetailPage({
             {listing.description || t.market.noDescription}
           </p>
 
-          <div className="mt-8 space-y-3 border-t border-brand/10 pt-6">
-            {listing.status === "available" && remaining > 0 ? (
-              <>
-                {!user ? (
-                  <Link
-                    href={`/login?next=/market/${listing.id}`}
-                    className="inline-flex rounded-md bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-soft"
-                  >
-                    {t.market.loginToBuy}
-                  </Link>
-                ) : (
-                  <BuyButton listingId={listing.id} disabled={!canBuy} />
-                )}
-                <p className="text-xs leading-relaxed text-ink-muted">
-                  {buyHint}
+          {listing.status === "available" && remaining > 0 ? (
+            <ListingBuyPanel
+              listingId={listing.id}
+              condition={listing.item_condition}
+              unitPriceCents={listing.price_cents}
+              remaining={remaining}
+              total={total}
+              canBuy={canBuy}
+              isLoggedIn={Boolean(user)}
+              loginHref={`/login?next=/market/${listing.id}`}
+              buyHint={buyHint}
+            />
+          ) : statusAction ? (
+            <div className="mt-8 space-y-3 border-t border-brand/10 pt-6">
+              <div className="space-y-3 text-sm">
+                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                  <span className="text-ink-muted">{t.market.condition}:</span>
+                  <span className="font-semibold text-foreground">
+                    {listing.item_condition === "new"
+                      ? t.condition.new
+                      : t.condition.used}
+                  </span>
+                </div>
+                <p className="text-ink-muted">
+                  {t.market.quantity}:{" "}
+                  {t.market.quantityAvailableSold
+                    .replace("{available}", String(remaining))
+                    .replace("{sold}", String(Math.max(0, total - remaining)))}
                 </p>
-              </>
-            ) : statusAction ? (
-              <>
-                <span
-                  className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${listingStatusBadgeClass(listing.status)}`}
-                >
-                  {statusAction.label}
-                </span>
-                <p className="max-w-md text-xs leading-relaxed text-ink-muted">
-                  {statusAction.hint}
-                </p>
-              </>
-            ) : null}
-          </div>
+              </div>
+              <span
+                className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${listingStatusBadgeClass(listing.status)}`}
+              >
+                {statusAction.label}
+              </span>
+              <p className="max-w-md text-xs leading-relaxed text-ink-muted">
+                {statusAction.hint}
+              </p>
+            </div>
+          ) : null}
         </div>
       </div>
     </main>

@@ -6,6 +6,7 @@ import { categoryLabel } from "@/lib/i18n/categories";
 import { getI18n } from "@/lib/i18n/server";
 import {
   fetchMarketListingsPage,
+  MARKET_FEATURED_LIMIT,
   sanitizeMarketSearch,
 } from "@/lib/market/listings-query";
 import { createClient } from "@/lib/supabase/server";
@@ -38,13 +39,22 @@ export async function MarketBrowse({
   }
 
   const supabase = await createClient();
-  const [{ data: categories }, firstPage] = await Promise.all([
+  const [{ data: categories }, featuredPage, firstPage] = await Promise.all([
     supabase.from("categories").select("*").order("sort_order"),
     fetchMarketListingsPage({
       category,
       q: queryText || undefined,
       page: 1,
+      pageSize: MARKET_FEATURED_LIMIT,
       status: "active",
+      featured: "only",
+    }),
+    fetchMarketListingsPage({
+      category,
+      q: queryText || undefined,
+      page: 1,
+      status: "active",
+      featured: "exclude",
     }),
   ]);
 
@@ -104,6 +114,7 @@ export async function MarketBrowse({
           category={category}
           q={queryText || undefined}
           status="active"
+          initialFeatured={featuredPage.items}
           initialItems={firstPage.items}
           total={firstPage.total}
         />

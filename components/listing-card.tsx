@@ -24,7 +24,6 @@ export function ListingCard({ listing }: { listing: Listing }) {
     listing.status === "at_church";
   const remaining = listingQuantityRemaining(listing);
   const total = listingQuantityTotal(listing);
-  const showQuantity = total > 1 || remaining !== total;
 
   return (
     <Link
@@ -44,6 +43,11 @@ export function ListingCard({ listing }: { listing: Listing }) {
             {t.market.noImage}
           </div>
         )}
+        {listing.is_featured ? (
+          <span className="absolute top-2 left-2 rounded-full bg-amber-500 px-2 py-0.5 text-[9px] font-semibold tracking-wide text-white uppercase shadow-sm sm:text-[10px]">
+            {t.market.featured}
+          </span>
+        ) : null}
       </div>
       <div className="space-y-0.5 p-2.5 sm:space-y-1 sm:p-3.5">
         <div className="flex items-start justify-between gap-2">
@@ -66,9 +70,9 @@ export function ListingCard({ listing }: { listing: Listing }) {
         </p>
         <p className="truncate text-[10px] text-ink-muted sm:text-xs">
           {itemConditionLabel(listing.item_condition, t.condition)}
-          {showQuantity
-            ? ` · ${t.market.quantityRemaining.replace("{remaining}", String(remaining))}`
-            : ""}
+          {` · ${t.market.quantityAvailableSold
+            .replace("{available}", String(remaining))
+            .replace("{sold}", String(Math.max(0, total - remaining)))}`}
         </p>
         <p className="truncate text-[10px] text-ink-muted sm:text-xs">
           {listing.pickup_method === "seller_location"
