@@ -91,7 +91,7 @@ export default async function AdminPage({
   const range = parseRange(rangeParam);
   const supabase = await createClient();
 
-  // Badges only need counts — always cheap, parallel with the active-tab payload.
+  // Badges only need counts - always cheap, parallel with the active-tab payload.
   const badgePromise = Promise.all([
     supabase
       .from("complaints")
@@ -267,7 +267,7 @@ export default async function AdminPage({
         price_cents: order.price_cents,
         created_at: order.created_at,
       },
-      title: listing?.title || "—",
+      title: listing?.title || "-",
       homePickup: listing?.pickup_method === "seller_location",
       buyer: buyer
         ? {
