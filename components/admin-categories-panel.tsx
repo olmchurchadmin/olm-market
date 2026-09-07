@@ -71,7 +71,7 @@ export function AdminCategoriesPanel({
 
       <form
         action={createCategoryAction}
-        className="mt-5 grid gap-3 rounded-lg border border-brand/10 bg-white/70 p-4 sm:grid-cols-[1fr_auto]"
+        className="mt-5 grid gap-3 rounded-lg border border-brand/10 bg-white/70 p-4 sm:grid-cols-[1fr_auto] sm:items-end"
       >
         <label className="block space-y-1.5">
           <span className="text-sm font-medium text-foreground">
@@ -81,22 +81,16 @@ export function AdminCategoriesPanel({
             name="name_ko"
             required
             maxLength={40}
-            placeholder="예) 음료수"
             className="w-full rounded-md border border-brand/15 bg-white px-3 py-2 text-sm"
           />
-          <span className="block text-xs font-normal text-ink-muted">
-            {t.admin.categoryNameHint}
-          </span>
         </label>
-        <div className="flex items-end">
-          <button
-            type="submit"
-            className="inline-flex w-full items-center justify-center gap-1.5 rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-soft sm:w-auto"
-          >
-            <PlusIcon className="size-4" aria-hidden />
-            {t.admin.categoryAdd}
-          </button>
-        </div>
+        <button
+          type="submit"
+          className="inline-flex h-[38px] w-full items-center justify-center gap-1.5 rounded-md bg-brand px-4 text-sm font-semibold text-white hover:bg-brand-soft sm:w-auto"
+        >
+          <PlusIcon className="size-4" aria-hidden />
+          {t.admin.categoryAdd}
+        </button>
       </form>
 
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
@@ -142,9 +136,7 @@ export function AdminCategoriesPanel({
                         {item.name_ko}
                       </p>
                       <p className="truncate text-xs text-ink-muted">
-                        {[item.name_en?.trim(), item.slug]
-                          .filter(Boolean)
-                          .join(" · ")}
+                        {item.slug}
                       </p>
                     </div>
                     <button
@@ -189,7 +181,7 @@ export function AdminCategoriesPanel({
                   {isEditing ? (
                     <form
                       action={updateCategoryAction}
-                      className="mt-3 grid gap-3 border-t border-brand/10 pt-3 sm:grid-cols-[1fr_auto]"
+                      className="mt-3 grid gap-3 border-t border-brand/10 pt-3 sm:grid-cols-[1fr_auto] sm:items-end"
                     >
                       <input type="hidden" name="category_id" value={item.id} />
                       <label className="block space-y-1.5">
@@ -204,21 +196,18 @@ export function AdminCategoriesPanel({
                           onChange={(e) => setEditKo(e.target.value)}
                           className="w-full rounded-md border border-brand/15 bg-white px-3 py-2 text-sm"
                         />
-                        <span className="block text-xs font-normal text-ink-muted">
-                          {t.admin.categoryNameHint}
-                        </span>
                       </label>
-                      <div className="flex items-end gap-2">
+                      <div className="flex h-[38px] items-center gap-2">
                         <button
                           type="submit"
-                          className="rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-soft"
+                          className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-soft"
                         >
                           {t.admin.categorySave}
                         </button>
                         <button
                           type="button"
                           onClick={() => setEditingId(null)}
-                          className="rounded-md border border-brand/15 bg-white px-3 py-2.5 text-sm font-medium text-foreground hover:bg-neutral-100"
+                          className="rounded-md border border-brand/15 bg-white px-3 py-2 text-sm font-medium text-foreground hover:bg-neutral-100"
                         >
                           {t.common.cancel}
                         </button>
