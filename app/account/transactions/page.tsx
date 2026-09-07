@@ -193,8 +193,10 @@ export default async function AccountTransactionsPage({
                 : order.listings;
               const thumb = listingImageUrl(listing?.cover_image_path);
               const homePickup = listing?.pickup_method === "seller_location";
-              const canConfirmPickup =
-                !homePickup && order.status === "ready_for_pickup";
+              const canConfirmPickup = homePickup
+                ? order.status === "awaiting_dropoff" ||
+                  order.status === "ready_for_pickup"
+                : order.status === "ready_for_pickup";
               const isCompleted = order.status === "completed";
               return (
                 <li
@@ -243,6 +245,7 @@ export default async function AccountTransactionsPage({
                       <OrderTradeConfirmButton
                         orderId={order.id}
                         action="pickup"
+                        homePickup={homePickup}
                       />
                     ) : isCompleted ? (
                       <span className="inline-flex shrink-0 items-center rounded-md bg-brand/10 px-2.5 py-1.5 text-xs font-semibold text-brand">

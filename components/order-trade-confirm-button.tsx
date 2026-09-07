@@ -13,9 +13,11 @@ import {
 export function OrderTradeConfirmButton({
   orderId,
   action,
+  homePickup = false,
 }: {
   orderId: string;
   action: "dropoff" | "pickup";
+  homePickup?: boolean;
 }) {
   const router = useRouter();
   const confirm = useConfirm();
@@ -32,7 +34,9 @@ export function OrderTradeConfirmButton({
       }
     : {
         title: t.account.confirmPickupTitle,
-        message: t.account.confirmPickupMessage,
+        message: homePickup
+          ? t.account.confirmPickupHomeMessage
+          : t.account.confirmPickupMessage,
         confirmLabel: t.account.confirmPickupCta,
         label: t.account.confirmPickupCta,
       };
