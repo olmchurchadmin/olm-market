@@ -7,52 +7,32 @@ export function SiteFooter() {
   const { t } = useI18n();
   const year = new Date().getFullYear();
   const copyright = t.siteFooter.copyright.replace("{year}", String(year));
+  const telHref = `tel:${t.siteFooter.contact.replace(/\D/g, "")}`;
 
   return (
     <footer className="mt-auto border-t border-black/6 bg-[color-mix(in_oklab,var(--background)_55%,white)] pb-6 sm:pb-8">
-      <div className="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:grid-cols-2 sm:px-6 sm:py-10 lg:grid-cols-4">
-        <div>
-          <p className="text-xs font-semibold tracking-wide text-ink-muted uppercase">
-            {t.siteFooter.managerLabel}
-          </p>
-          <p className="mt-1.5 text-sm text-foreground">
-            {t.siteFooter.manager}
-          </p>
-        </div>
-        <div>
-          <p className="text-xs font-semibold tracking-wide text-ink-muted uppercase">
-            {t.siteFooter.contactLabel}
-          </p>
-          <p className="mt-1.5 text-sm text-foreground">
-            <a
-              href={`tel:${t.siteFooter.contact.replace(/\D/g, "")}`}
-              className="hover:underline"
-            >
-              {t.siteFooter.contact}
-            </a>
-          </p>
-        </div>
-        <div>
-          <p className="text-xs font-semibold tracking-wide text-ink-muted uppercase">
-            {t.siteFooter.emailLabel}
-          </p>
-          <p className="mt-1.5 text-sm text-foreground">
-            <a
-              href={`mailto:${t.siteFooter.email}`}
-              className="break-all hover:underline"
-            >
-              {t.siteFooter.email}
-            </a>
-          </p>
-        </div>
-        <div>
-          <p className="text-xs font-semibold tracking-wide text-ink-muted uppercase">
-            {t.siteFooter.addressLabel}
-          </p>
-          <p className="mt-1.5 text-sm whitespace-nowrap text-foreground">
-            {t.siteFooter.address}
-          </p>
-        </div>
+      <div className="mx-auto max-w-6xl space-y-1.5 px-4 py-8 text-sm text-foreground sm:px-6 sm:py-10">
+        <p>
+          {t.siteFooter.managerLabel}: {t.siteFooter.manager}
+        </p>
+        <p>
+          {t.siteFooter.emailLabel}:{" "}
+          <a
+            href={`mailto:${t.siteFooter.email}`}
+            className="break-all hover:underline"
+          >
+            {t.siteFooter.email}
+          </a>
+        </p>
+        <p>
+          {t.siteFooter.contactLabel}:{" "}
+          <a href={telHref} className="hover:underline">
+            {t.siteFooter.contact}
+          </a>
+        </p>
+        <p className="whitespace-nowrap">
+          {t.siteFooter.addressLabel}: {t.siteFooter.address}
+        </p>
       </div>
       <div className="border-t border-black/6">
         <div className="mx-auto max-w-6xl px-4 pt-4 pb-2 text-center sm:px-6">

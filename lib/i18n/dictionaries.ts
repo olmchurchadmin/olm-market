@@ -31,7 +31,7 @@ const ko = {
     footer: "Church Market · 성당 온라인 장터",
   },
   siteFooter: {
-    contactLabel: "전화",
+    contactLabel: "전화번호",
     contact: "732-356-1037",
     managerLabel: "담당자",
     manager: "대건회",
@@ -574,7 +574,7 @@ const en: Dictionary = {
   siteFooter: {
     contactLabel: "Phone",
     contact: "732-356-1037",
-    managerLabel: "Contact",
+    managerLabel: "Manager",
     manager: "대건회",
     emailLabel: "Email",
     email: "olmchurchadmin@gmail.com",
