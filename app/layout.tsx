@@ -8,6 +8,7 @@ import { NotificationsProvider } from "@/components/notifications-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { SiteNoticeBanner } from "@/components/site-notice-banner";
+import { TradeStatusBar } from "@/components/trade-status-bar";
 import { getCurrentProfile } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
 import "./globals.css";
@@ -55,6 +56,7 @@ export default async function RootLayout({
               <NotificationsBanner />
               <div className="flex-1">{children}</div>
               <SiteFooter />
+              <TradeStatusBar />
               <NotificationToast />
             </NotificationsProvider>
           </ConfirmDialogProvider>

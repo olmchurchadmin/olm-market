@@ -16,7 +16,7 @@ export function NotificationToast() {
     <div
       role="status"
       aria-live="polite"
-      className="fixed inset-x-3 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[70] mx-auto w-auto max-w-sm overflow-hidden rounded-lg border border-black/8 bg-white shadow-[0_16px_40px_rgba(26,28,31,0.18)] sm:inset-x-auto sm:right-4 sm:left-auto sm:w-[min(20rem,calc(100vw-2rem))]"
+      className="fixed inset-x-3 bottom-[max(1rem,calc(var(--trade-dock-h,0px)+0.75rem))] z-[70] mx-auto w-auto max-w-sm overflow-hidden rounded-lg border border-black/8 bg-white shadow-[0_16px_40px_rgba(26,28,31,0.18)] sm:inset-x-auto sm:right-4 sm:left-auto sm:w-[min(20rem,calc(100vw-2rem))]"
     >
       <div className="flex items-start gap-2.5 px-3.5 py-3">
         <BellAlertIcon
