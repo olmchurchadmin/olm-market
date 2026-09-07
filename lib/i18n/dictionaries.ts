@@ -140,7 +140,7 @@ const ko = {
     quantity: "수량",
     quantityHint: "같은 물건을 여러 개 올릴 수 있습니다. 판매될 때마다 남은 수량이 줄어듭니다.",
     condition: "물건 상태",
-    conditionNew: "새물건",
+    conditionNew: "새 물건",
     conditionUsed: "중고",
     deleteTitle: "물품 삭제",
     deleteMessage: "이 물품을 삭제할까요? 삭제 후 되돌릴 수 없습니다.",
@@ -537,7 +537,7 @@ const ko = {
     completed: "거래 완료",
   },
   condition: {
-    new: "새물건",
+    new: "새 물건",
     used: "중고",
   },
   common: {

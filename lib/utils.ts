@@ -96,7 +96,7 @@ export function itemConditionLabel(
 ) {
   const key = condition === "new" ? "new" : "used";
   if (dict) return dict[key];
-  return key === "new" ? "새물건" : "중고";
+  return key === "new" ? "새 물건" : "중고";
 }
 
 export function listingQuantityRemaining(
