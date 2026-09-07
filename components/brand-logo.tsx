@@ -17,10 +17,10 @@ export function BrandLogo({
       <Image
         src="/logo-olm.png"
         alt="나눔장터"
-        width={194}
-        height={150}
+        width={900}
+        height={281}
         priority={priority}
-        className="h-14 w-auto max-w-[min(100%,300px)] object-contain object-left sm:h-16 sm:max-w-[360px]"
+        className="h-16 w-auto max-w-[min(100%,380px)] object-contain object-left sm:h-20 sm:max-w-[460px]"
       />
     </Link>
   );
