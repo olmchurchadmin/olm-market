@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { getI18n } from "@/lib/i18n/server";
 import { notifyListingCreated, notifyAdminListingChange } from "@/lib/notifications/dispatch";
 import { createClient } from "@/lib/supabase/server";
-import type { PickupMethod } from "@/lib/types";
+import type { ItemCondition, PickupMethod } from "@/lib/types";
 
 async function requireSeller() {
   const supabase = await createClient();
@@ -35,6 +35,14 @@ async function parseListingFields(formData: FormData) {
     pickupRaw === "seller_location" ? "seller_location" : "church";
   const pickupAddress = String(formData.get("pickup_address") || "").trim();
   const pickupPhone = String(formData.get("pickup_phone") || "").trim();
+  const conditionRaw = String(formData.get("item_condition") || "used");
+  const itemCondition: ItemCondition =
+    conditionRaw === "new" ? "new" : "used";
+  const quantityRaw = Number(formData.get("quantity") || 1);
+  const quantityTotal = Math.min(
+    99,
+    Math.max(1, Math.floor(Number.isFinite(quantityRaw) ? quantityRaw : 1)),
+  );
   const files = formData
     .getAll("images")
     .filter((f): f is File => f instanceof File && f.size > 0);
@@ -55,6 +63,8 @@ async function parseListingFields(formData: FormData) {
     pickupMethod,
     pickupAddress,
     pickupPhone,
+    itemCondition,
+    quantityTotal,
     files,
   };
 }
@@ -127,6 +137,8 @@ export async function createListingAction(formData: FormData) {
     pickupMethod,
     pickupAddress,
     pickupPhone,
+    itemCondition,
+    quantityTotal,
     files,
   } = await parseListingFields(formData);
 
@@ -140,6 +152,9 @@ export async function createListingAction(formData: FormData) {
       price_cents: priceCents,
       donation_percent: donationPercent,
       pickup_method: pickupMethod,
+      item_condition: itemCondition,
+      quantity_total: quantityTotal,
+      quantity_remaining: quantityTotal,
       status: "available",
     })
     .select("id")
@@ -207,6 +222,8 @@ export async function updateListingAction(formData: FormData) {
     pickupMethod,
     pickupAddress,
     pickupPhone,
+    itemCondition,
+    quantityTotal,
     files,
   } = await parseListingFields(formData);
 
@@ -214,7 +231,9 @@ export async function updateListingAction(formData: FormData) {
     await Promise.all([
       supabase
         .from("listings")
-        .select("id, seller_id, status, cover_image_path")
+        .select(
+          "id, seller_id, status, cover_image_path, quantity_total, quantity_remaining",
+        )
         .eq("id", listingId)
         .maybeSingle(),
       supabase.from("profiles").select("role").eq("id", user.id).maybeSingle(),
@@ -232,6 +251,17 @@ export async function updateListingAction(formData: FormData) {
     throw new Error(t.errors.cannotEditActive);
   }
 
+  const prevTotal = Math.max(1, Number(existing.quantity_total) || 1);
+  const prevRemaining = Math.max(
+    0,
+    Number(existing.quantity_remaining) || prevTotal,
+  );
+  const soldCount = Math.max(0, prevTotal - prevRemaining);
+  if (quantityTotal < soldCount) {
+    throw new Error(t.sell.quantityTooLow);
+  }
+  const nextRemaining = quantityTotal - soldCount;
+
   let updateQuery = supabase
     .from("listings")
     .update({
@@ -241,10 +271,15 @@ export async function updateListingAction(formData: FormData) {
       price_cents: priceCents,
       donation_percent: donationPercent,
       pickup_method: pickupMethod,
+      item_condition: itemCondition,
+      quantity_total: quantityTotal,
+      quantity_remaining: nextRemaining,
       // Admins can patch active listings without forcing them back to available.
       ...(isAdmin && existing.status !== "available" && existing.status !== "cancelled"
         ? {}
-        : { status: "available" }),
+        : {
+            status: nextRemaining > 0 ? "available" : existing.status,
+          }),
     })
     .eq("id", listingId);
   if (!isAdmin) {

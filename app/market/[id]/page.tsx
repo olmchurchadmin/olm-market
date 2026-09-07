@@ -10,6 +10,9 @@ import { createClient } from "@/lib/supabase/server";
 import {
   formatListingPublicId,
   formatPrice,
+  itemConditionLabel,
+  listingQuantityRemaining,
+  listingQuantityTotal,
   listingStatusBadgeClass,
   listingStatusLabel,
   publicSellerLabel,
@@ -41,10 +44,18 @@ export default async function ListingDetailPage({
     (a: { sort_order: number }, b: { sort_order: number }) =>
       a.sort_order - b.sort_order,
   );
+  const remaining = listingQuantityRemaining(listing);
+  const total = listingQuantityTotal(listing);
   const canBuy =
-    listing.status === "available" && user?.id !== listing.seller_id;
+    listing.status === "available" &&
+    remaining > 0 &&
+    user?.id !== listing.seller_id;
   const isOwnListing = Boolean(user && user.id === listing.seller_id);
   const statusLabel = listingStatusLabel(listing.status, t.status);
+  const conditionLabel = itemConditionLabel(
+    listing.item_condition,
+    t.condition,
+  );
   const pickupMethod =
     listing.pickup_method === "seller_location" ? "seller_location" : "church";
   const pickupLabel =
@@ -104,6 +115,15 @@ export default async function ListingDetailPage({
             {t.market.donation}:{" "}
             {t.market.donationValue.replace("{percent}", String(donationPercent))}
           </p>
+          <p className="mt-1 text-sm text-ink-muted">
+            {t.market.condition}: {conditionLabel}
+          </p>
+          <p className="mt-1 text-sm text-ink-muted">
+            {t.market.quantity}:{" "}
+            {t.market.quantityRemainingOf
+              .replace("{remaining}", String(remaining))
+              .replace("{total}", String(total))}
+          </p>
           {listing.status === "available" ? (
             <p className="mt-1 text-sm text-ink-muted">
               {t.market.status}: {statusLabel}
@@ -124,7 +144,7 @@ export default async function ListingDetailPage({
           </p>
 
           <div className="mt-8 space-y-3 border-t border-brand/10 pt-6">
-            {listing.status === "available" ? (
+            {listing.status === "available" && remaining > 0 ? (
               <>
                 {!user ? (
                   <Link

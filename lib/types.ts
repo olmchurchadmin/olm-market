@@ -6,6 +6,7 @@ export type ListingStatus =
   | "sold"
   | "cancelled";
 export type PickupMethod = "church" | "seller_location";
+export type ItemCondition = "new" | "used";
 export type OrderStatus =
   | "reserved"
   | "awaiting_dropoff"
@@ -52,6 +53,9 @@ export type Listing = {
   status: ListingStatus;
   pickup_method?: PickupMethod;
   donation_percent?: number;
+  item_condition?: ItemCondition;
+  quantity_total?: number;
+  quantity_remaining?: number;
   cover_image_path: string | null;
   created_at: string;
   updated_at: string;

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { FileUploadField } from "@/components/ui/file-upload-field";
 import { DonationPercentField } from "@/components/donation-percent-field";
+import { ListingStockFields } from "@/components/listing-stock-fields";
 import { PickupMethodField } from "@/components/pickup-method-field";
 import { SelectField } from "@/components/ui/select-field";
 import { updateListingAction } from "@/lib/actions/listings";
@@ -10,7 +11,7 @@ import { getCurrentProfile, getSessionUser } from "@/lib/auth";
 import { categoryLabel } from "@/lib/i18n/categories";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
-import type { PickupMethod } from "@/lib/types";
+import type { ItemCondition, PickupMethod } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -60,6 +61,10 @@ export default async function EditListingPage({
       a.sort_order - b.sort_order,
   );
   const pickupMethod = (listing.pickup_method || "church") as PickupMethod;
+  const itemCondition = (
+    listing.item_condition === "new" ? "new" : "used"
+  ) as ItemCondition;
+  const quantityTotal = Math.max(1, Number(listing.quantity_total) || 1);
   const cancelHref = isAdmin ? "/admin?tab=listings" : "/account/transactions";
 
   return (
@@ -97,6 +102,11 @@ export default async function EditListingPage({
             value: cat.id,
             label: categoryLabel(cat, locale),
           }))}
+        />
+
+        <ListingStockFields
+          defaultQuantity={quantityTotal}
+          defaultCondition={itemCondition}
         />
 
         <DonationPercentField

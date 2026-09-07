@@ -90,6 +90,40 @@ export function listingStatusBadgeClass(status: string) {
   }
 }
 
+export function itemConditionLabel(
+  condition: string | null | undefined,
+  dict?: Dictionary["condition"],
+) {
+  const key = condition === "new" ? "new" : "used";
+  if (dict) return dict[key];
+  return key === "new" ? "새물건" : "중고";
+}
+
+export function listingQuantityRemaining(
+  listing: {
+    quantity_remaining?: number | null;
+    quantity_total?: number | null;
+  } | null | undefined,
+) {
+  const remaining = listing?.quantity_remaining;
+  if (typeof remaining === "number" && Number.isFinite(remaining)) {
+    return Math.max(0, Math.floor(remaining));
+  }
+  return 1;
+}
+
+export function listingQuantityTotal(
+  listing: {
+    quantity_total?: number | null;
+  } | null | undefined,
+) {
+  const total = listing?.quantity_total;
+  if (typeof total === "number" && Number.isFinite(total) && total >= 1) {
+    return Math.floor(total);
+  }
+  return 1;
+}
+
 /** Short public posting id derived from the listing UUID (first 8 hex chars). */
 export function formatListingPublicId(id: string) {
   const hex = id.replace(/-/g, "").slice(0, 8).toUpperCase();

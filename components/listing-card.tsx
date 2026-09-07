@@ -6,7 +6,10 @@ import { categoryLabel } from "@/lib/i18n/categories";
 import type { Listing } from "@/lib/types";
 import {
   formatPrice,
+  itemConditionLabel,
   listingImageUrl,
+  listingQuantityRemaining,
+  listingQuantityTotal,
   listingStatusBadgeClass,
   listingStatusLabel,
   publicSellerLabel,
@@ -19,6 +22,9 @@ export function ListingCard({ listing }: { listing: Listing }) {
     listing.status === "sold" ||
     listing.status === "reserved" ||
     listing.status === "at_church";
+  const remaining = listingQuantityRemaining(listing);
+  const total = listingQuantityTotal(listing);
+  const showQuantity = total > 1 || remaining !== total;
 
   return (
     <Link
@@ -57,6 +63,12 @@ export function ListingCard({ listing }: { listing: Listing }) {
         </h3>
         <p className="text-sm font-semibold text-foreground sm:text-base">
           {formatPrice(listing.price_cents, locale)}
+        </p>
+        <p className="truncate text-[10px] text-ink-muted sm:text-xs">
+          {itemConditionLabel(listing.item_condition, t.condition)}
+          {showQuantity
+            ? ` · ${t.market.quantityRemaining.replace("{remaining}", String(remaining))}`
+            : ""}
         </p>
         <p className="truncate text-[10px] text-ink-muted sm:text-xs">
           {listing.pickup_method === "seller_location"

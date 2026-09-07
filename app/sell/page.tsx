@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createListingAction } from "@/lib/actions/listings";
 import { DonationPercentField } from "@/components/donation-percent-field";
+import { ListingStockFields } from "@/components/listing-stock-fields";
 import { FileUploadField } from "@/components/ui/file-upload-field";
 import { PickupMethodField } from "@/components/pickup-method-field";
 import { SelectField } from "@/components/ui/select-field";
@@ -49,6 +50,8 @@ export default async function SellPage() {
             label: categoryLabel(cat, locale),
           }))}
         />
+
+        <ListingStockFields />
 
         <DonationPercentField />
 

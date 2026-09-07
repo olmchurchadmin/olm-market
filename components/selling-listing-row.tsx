@@ -7,7 +7,10 @@ import { useI18n } from "@/components/locale-provider";
 import type { Listing } from "@/lib/types";
 import {
   formatPrice,
+  itemConditionLabel,
   listingImageUrl,
+  listingQuantityRemaining,
+  listingQuantityTotal,
   listingStatusLabel,
 } from "@/lib/utils";
 
@@ -16,6 +19,8 @@ export function SellingListingRow({ listing }: { listing: Listing }) {
   const thumb = listingImageUrl(listing.cover_image_path);
   const canManage =
     listing.status === "available" || listing.status === "cancelled";
+  const remaining = listingQuantityRemaining(listing);
+  const total = listingQuantityTotal(listing);
 
   return (
     <li className="flex gap-3 rounded-md border border-brand/10 bg-white/70 p-3">
@@ -46,7 +51,11 @@ export function SellingListingRow({ listing }: { listing: Listing }) {
         </Link>
         <p className="text-sm text-ink-muted">
           {formatPrice(listing.price_cents, locale)} ·{" "}
-          {listingStatusLabel(listing.status, t.status)}
+          {itemConditionLabel(listing.item_condition, t.condition)} ·{" "}
+          {t.market.quantityRemainingOf
+            .replace("{remaining}", String(remaining))
+            .replace("{total}", String(total))}{" "}
+          · {listingStatusLabel(listing.status, t.status)}
         </p>
 
         {canManage ? (
