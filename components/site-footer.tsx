@@ -10,16 +10,16 @@ export function SiteFooter() {
 
   return (
     <footer className="mt-auto border-t border-black/6 bg-[color-mix(in_oklab,var(--background)_55%,white)] pb-6 sm:pb-8">
-      <div className="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:grid-cols-2 sm:px-6 sm:py-10 lg:grid-cols-4">
-        <div>
+      <div className="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:grid-cols-2 sm:px-6 sm:py-10 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,0.8fr)_minmax(0,1.2fr)_minmax(0,0.9fr)]">
+        <div className="min-w-0">
           <p className="text-xs font-semibold tracking-wide text-ink-muted uppercase">
             {t.siteFooter.addressLabel}
           </p>
-          <p className="mt-1.5 text-sm whitespace-nowrap text-foreground">
+          <p className="mt-1.5 text-sm break-words text-foreground">
             {t.siteFooter.address}
           </p>
         </div>
-        <div>
+        <div className="min-w-0">
           <p className="text-xs font-semibold tracking-wide text-ink-muted uppercase">
             {t.siteFooter.managerLabel}
           </p>
@@ -27,7 +27,7 @@ export function SiteFooter() {
             {t.siteFooter.manager}
           </p>
         </div>
-        <div>
+        <div className="min-w-0">
           <p className="text-xs font-semibold tracking-wide text-ink-muted uppercase">
             {t.siteFooter.emailLabel}
           </p>
@@ -40,7 +40,7 @@ export function SiteFooter() {
             </a>
           </p>
         </div>
-        <div>
+        <div className="min-w-0">
           <p className="text-xs font-semibold tracking-wide text-ink-muted uppercase">
             {t.siteFooter.contactLabel}
           </p>
