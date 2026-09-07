@@ -24,7 +24,7 @@ export function AdminCategoriesPanel({
 }: {
   categories: CategoryRow[];
 }) {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
   const confirm = useConfirm();
   const [items, setItems] = useState(categories);
   const [dragId, setDragId] = useState<string | null>(null);
@@ -148,14 +148,9 @@ export function AdminCategoriesPanel({
                     <Bars3Icon className="size-5" aria-hidden />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-foreground">
-                      {locale === "en"
-                        ? item.name_en || item.name_ko
-                        : item.name_ko}
-                    </p>
+                    <p className="font-medium text-foreground">{item.name_ko}</p>
                     <p className="truncate text-xs text-ink-muted">
-                      {item.name_ko}
-                      {item.name_en ? ` · ${item.name_en}` : ""} · {item.slug}
+                      {[item.name_en?.trim(), item.slug].filter(Boolean).join(" · ")}
                     </p>
                   </div>
                   <button
