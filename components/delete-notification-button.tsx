@@ -9,14 +9,23 @@ import { deleteNotificationsAction } from "@/lib/actions/notifications";
 /**
  * Trash icon that slides open a Cancel / Confirm pair before actually deleting.
  */
-export function DeleteNotificationButton({ id }: { id: string }) {
+export function DeleteNotificationButton({
+  id,
+  ids,
+  ariaLabel,
+}: {
+  id?: string;
+  ids?: string[];
+  ariaLabel?: string;
+}) {
   const { t } = useI18n();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [hidden, setHidden] = useState(false);
+  const targetIds = ids?.length ? ids : id ? [id] : [];
 
-  if (hidden) return null;
+  if (hidden || !targetIds.length) return null;
 
   return (
     <div className="flex shrink-0 items-center gap-1 overflow-hidden">
@@ -41,7 +50,7 @@ export function DeleteNotificationButton({ id }: { id: string }) {
           onClick={async () => {
             setPending(true);
             setHidden(true);
-            const result = await deleteNotificationsAction([id]);
+            const result = await deleteNotificationsAction(targetIds);
             if (!result.ok) {
               setHidden(false);
               setOpen(false);
@@ -61,7 +70,7 @@ export function DeleteNotificationButton({ id }: { id: string }) {
         disabled={pending}
         onClick={() => setOpen(!open)}
         className="rounded-md p-1.5 text-ink-muted hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
-        aria-label={t.alerts.deleteAria}
+        aria-label={ariaLabel || t.alerts.deleteAria}
       >
         <TrashIcon className="size-4" aria-hidden />
       </button>

@@ -521,6 +521,7 @@ export async function notifyOrderEvent(input: OrderNotifyInput) {
 
     const basePayload = {
       order_id: order.id,
+      listing_id: order.listing_id,
       event: input.event,
       listing_title: title,
       price_cents: order.price_cents,
@@ -573,6 +574,7 @@ export async function notifyOrderEvent(input: OrderNotifyInput) {
 
   const payload = {
     order_id: order.id,
+    listing_id: order.listing_id,
     event: input.event,
     listing_title: title,
     price_cents: order.price_cents,
@@ -661,6 +663,7 @@ export async function notifyPickupDetails(input: {
 
   const basePayload = {
     order_id: order.id,
+    listing_id: order.listing_id,
     event: "pickup_details",
     listing_title: title,
     price_cents: order.price_cents,
