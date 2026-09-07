@@ -2,6 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import {
+  slugifyEnglishLabel,
+  translateKoreanToEnglish,
+} from "@/lib/i18n/translate-ko-en";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 
@@ -25,20 +29,18 @@ async function requireAdminClient() {
   return supabase;
 }
 
-function slugifyCategory(nameEn: string, nameKo: string) {
-  const fromEn = nameEn
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 40);
-  if (fromEn) return fromEn;
-  return `cat-${Date.now().toString(36)}`;
+async function englishForCategory(nameKo: string) {
+  return translateKoreanToEnglish(nameKo);
+}
+
+function slugFromEnglish(nameEn: string) {
+  const slug = slugifyEnglishLabel(nameEn);
+  return slug || `cat-${Date.now().toString(36)}`;
 }
 
 export async function createCategoryAction(formData: FormData) {
   const { t } = await getI18n();
   const nameKo = String(formData.get("name_ko") || "").trim();
-  const nameEn = String(formData.get("name_en") || "").trim();
 
   if (!nameKo) {
     redirect(
@@ -46,6 +48,7 @@ export async function createCategoryAction(formData: FormData) {
     );
   }
 
+  const nameEn = await englishForCategory(nameKo);
   const supabase = await requireAdminClient();
   const { data: maxRow } = await supabase
     .from("categories")
@@ -55,7 +58,7 @@ export async function createCategoryAction(formData: FormData) {
     .maybeSingle();
 
   const sortOrder = (maxRow?.sort_order ?? 0) + 1;
-  let slug = slugifyCategory(nameEn, nameKo);
+  const slug = slugFromEnglish(nameEn);
 
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const candidate = attempt === 0 ? slug : `${slug}-${attempt + 1}`;
@@ -131,7 +134,6 @@ export async function updateCategoryAction(formData: FormData) {
   const { t } = await getI18n();
   const categoryId = String(formData.get("category_id") || "").trim();
   const nameKo = String(formData.get("name_ko") || "").trim();
-  const nameEn = String(formData.get("name_en") || "").trim();
 
   if (!categoryId) {
     redirect(
@@ -144,25 +146,39 @@ export async function updateCategoryAction(formData: FormData) {
     );
   }
 
+  const nameEn = await englishForCategory(nameKo);
+  const baseSlug = slugFromEnglish(nameEn);
   const supabase = await requireAdminClient();
-  const { error } = await supabase
-    .from("categories")
-    .update({
-      name_ko: nameKo,
-      name_en: nameEn || null,
-    })
-    .eq("id", categoryId);
 
-  if (error) {
-    redirect(
-      `/admin?tab=categories&error=${encodeURIComponent(error.message || t.errors.categoryUpdateFailed)}`,
-    );
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const candidate = attempt === 0 ? baseSlug : `${baseSlug}-${attempt + 1}`;
+    const { error } = await supabase
+      .from("categories")
+      .update({
+        name_ko: nameKo,
+        name_en: nameEn || null,
+        slug: candidate,
+      })
+      .eq("id", categoryId);
+
+    if (!error) {
+      revalidatePath("/admin");
+      revalidatePath("/");
+      revalidatePath("/sell");
+      redirect("/admin?tab=categories&categoryUpdated=1");
+    }
+
+    // Same slug as this row is fine; only retry on conflict with another row.
+    if (!error.message?.toLowerCase().includes("duplicate")) {
+      redirect(
+        `/admin?tab=categories&error=${encodeURIComponent(error.message || t.errors.categoryUpdateFailed)}`,
+      );
+    }
   }
 
-  revalidatePath("/admin");
-  revalidatePath("/");
-  revalidatePath("/sell");
-  redirect("/admin?tab=categories&categoryUpdated=1");
+  redirect(
+    `/admin?tab=categories&error=${encodeURIComponent(t.errors.categoryUpdateFailed)}`,
+  );
 }
 
 export async function reorderCategoriesAction(formData: FormData) {

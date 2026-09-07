@@ -22,7 +22,8 @@ const categoryNamesEnByKo: Record<string, string> = {
   생활용품: "Household",
   "유아/아동": "Kids",
   스포츠용품: "Sports equipment",
-  기타: "Other",
+  음료수: "Drinks",
+  음료: "Drinks",
 };
 
 export function categoryLabel(

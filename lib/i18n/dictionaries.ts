@@ -343,8 +343,9 @@ const ko = {
     deleteComplaintConfirm: "삭제",
     categoriesTab: "카테고리",
     categoriesBlurb: "홈 장터 상단 필터에 표시되는 카테고리를 추가·삭제·순서 변경합니다.",
-    categoryNameKo: "한국어 이름",
+    categoryNameKo: "카테고리 이름",
     categoryNameEn: "영어 이름",
+    categoryNameHint: "한글만 입력하세요. 영어 표시명·슬러그는 자동 번역됩니다.",
     categoryAdd: "카테고리 추가",
     categoryAddedFlash: "카테고리를 추가했습니다.",
     categoryDeletedFlash: "카테고리를 삭제했습니다.",
@@ -916,8 +917,10 @@ const en: Dictionary = {
     categoriesTab: "Categories",
     categoriesBlurb:
       "Add, remove, and reorder categories shown in the market filters.",
-    categoryNameKo: "Korean name",
+    categoryNameKo: "Category name",
     categoryNameEn: "English name",
+    categoryNameHint:
+      "Enter the Korean name; English label and slug are filled in automatically.",
     categoryAdd: "Add category",
     categoryAddedFlash: "Category added.",
     categoryDeletedFlash: "Category deleted.",
