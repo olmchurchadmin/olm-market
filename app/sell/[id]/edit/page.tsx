@@ -1,10 +1,11 @@
 import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { FileUploadField } from "@/components/ui/file-upload-field";
 import { DonationPercentField } from "@/components/donation-percent-field";
 import { ListingStockFields } from "@/components/listing-stock-fields";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { PickupMethodField } from "@/components/pickup-method-field";
+import { FileUploadField } from "@/components/ui/file-upload-field";
 import { SelectField } from "@/components/ui/select-field";
 import { updateListingAction } from "@/lib/actions/listings";
 import { getCurrentProfile, getSessionUser } from "@/lib/auth";
@@ -138,12 +139,9 @@ export default async function EditListingPage({
         />
 
         <div className="flex flex-wrap gap-3">
-          <button
-            type="submit"
-            className="rounded-md bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-soft"
-          >
+          <PendingSubmitButton pendingLabel={t.common.loading}>
             {t.sell.save}
-          </button>
+          </PendingSubmitButton>
           <Link
             href={cancelHref}
             className="rounded-md border border-brand/15 bg-white px-5 py-3 text-sm font-medium text-foreground hover:bg-brand/5"

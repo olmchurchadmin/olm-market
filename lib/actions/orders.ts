@@ -10,6 +10,7 @@ import { notifyOrderEvent } from "@/lib/notifications/dispatch";
 function scheduleOrderNotify(
   orderId: string,
   event: "buy" | "dropoff" | "completed",
+  paths: Array<string | [string, "layout" | "page"]> = [],
 ) {
   after(async () => {
     try {
@@ -17,8 +18,25 @@ function scheduleOrderNotify(
     } catch (error) {
       console.error(`[notifyOrderEvent:${event}]`, error);
     }
+    for (const path of paths) {
+      if (Array.isArray(path)) {
+        revalidatePath(path[0], path[1]);
+      } else {
+        revalidatePath(path);
+      }
+    }
   });
 }
+
+const TRADE_REVALIDATE_PATHS: Array<string | [string, "layout" | "page"]> = [
+  ["/", "layout"],
+  "/",
+  "/market",
+  "/me",
+  "/account/transactions",
+  "/account/notifications",
+  "/admin",
+];
 
 export async function buyListingAction(listingId: string, quantity = 1) {
   const { t } = await getI18n();
@@ -45,15 +63,10 @@ export async function buyListingAction(listingId: string, quantity = 1) {
     };
   }
 
-  scheduleOrderNotify(data.id, "buy");
-
-  revalidatePath("/", "layout");
-  revalidatePath("/");
-  revalidatePath("/market");
-  revalidatePath(`/market/${listingId}`);
-  revalidatePath("/me");
-  revalidatePath("/account/transactions");
-  revalidatePath("/admin");
+  scheduleOrderNotify(data.id, "buy", [
+    ...TRADE_REVALIDATE_PATHS,
+    `/market/${listingId}`,
+  ]);
   return { ok: true as const, orderId: data.id as string };
 }
 
@@ -75,14 +88,7 @@ export async function confirmDropoffAction(orderId: string) {
   if (error || !data) {
     return { ok: false as const, error: error?.message || t.errors.actionFailed };
   }
-  scheduleOrderNotify(orderId, "dropoff");
-  revalidatePath("/", "layout");
-  revalidatePath("/admin");
-  revalidatePath("/me");
-  revalidatePath("/account/transactions");
-  revalidatePath("/account/notifications");
-  revalidatePath("/");
-  revalidatePath("/market");
+  scheduleOrderNotify(orderId, "dropoff", TRADE_REVALIDATE_PATHS);
   return { ok: true as const };
 }
 
@@ -96,14 +102,7 @@ export async function confirmPickupAction(orderId: string) {
   if (error || !data) {
     return { ok: false as const, error: error?.message || t.errors.actionFailed };
   }
-  scheduleOrderNotify(orderId, "completed");
-  revalidatePath("/", "layout");
-  revalidatePath("/admin");
-  revalidatePath("/me");
-  revalidatePath("/account/transactions");
-  revalidatePath("/account/notifications");
-  revalidatePath("/");
-  revalidatePath("/market");
+  scheduleOrderNotify(orderId, "completed", TRADE_REVALIDATE_PATHS);
   return { ok: true as const };
 }
 
@@ -117,13 +116,7 @@ export async function adminCompleteTradeAction(orderId: string) {
   if (error || !data) {
     return { ok: false as const, error: error?.message || t.errors.actionFailed };
   }
-  scheduleOrderNotify(orderId, "completed");
-  revalidatePath("/admin");
-  revalidatePath("/me");
-  revalidatePath("/account/transactions");
-  revalidatePath("/account/notifications");
-  revalidatePath("/");
-  revalidatePath("/market");
+  scheduleOrderNotify(orderId, "completed", TRADE_REVALIDATE_PATHS);
   return { ok: true as const };
 }
 

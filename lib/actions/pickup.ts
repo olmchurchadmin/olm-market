@@ -55,9 +55,9 @@ export async function sharePickupDetailsAction(input: {
     } catch (err) {
       console.error("[notifyPickupDetails]", err);
     }
+    revalidatePath("/account/transactions");
+    revalidatePath("/account/notifications");
   });
 
-  revalidatePath("/account/transactions");
-  revalidatePath("/account/notifications");
   return { ok: true as const };
 }

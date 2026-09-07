@@ -1,12 +1,13 @@
-import { createClient } from "@/lib/supabase/server";
-import { createListingAction } from "@/lib/actions/listings";
 import { DonationPercentField } from "@/components/donation-percent-field";
 import { ListingStockFields } from "@/components/listing-stock-fields";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { FileUploadField } from "@/components/ui/file-upload-field";
 import { PickupMethodField } from "@/components/pickup-method-field";
 import { SelectField } from "@/components/ui/select-field";
+import { createListingAction } from "@/lib/actions/listings";
 import { categoryLabel } from "@/lib/i18n/categories";
 import { getI18n } from "@/lib/i18n/server";
+import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -72,12 +73,9 @@ export default async function SellPage() {
           hint={t.sell.photosHint}
         />
 
-        <button
-          type="submit"
-          className="rounded-md bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-soft"
-        >
+        <PendingSubmitButton pendingLabel={t.common.loading}>
           {t.sell.submit}
-        </button>
+        </PendingSubmitButton>
       </form>
     </main>
   );

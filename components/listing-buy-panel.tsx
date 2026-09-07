@@ -124,7 +124,6 @@ export function ListingBuyPanel({
                   return;
                 }
                 requestTradeDockRefresh();
-                router.refresh();
                 router.push("/account/transactions");
               });
             }}

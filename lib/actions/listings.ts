@@ -102,28 +102,36 @@ async function uploadListingImages(
   files: File[],
   startOrder = 0,
 ) {
-  const uploadedPaths: string[] = [];
-  for (let i = 0; i < Math.min(files.length, 6); i += 1) {
-    const file = files[i];
-    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-    const safeExt = ["jpg", "jpeg", "png", "webp"].includes(ext) ? ext : "jpg";
-    const path = `${userId}/${listingId}/${startOrder + i}-${crypto.randomUUID()}.${safeExt}`;
-    const { error: uploadError } = await supabase.storage
-      .from("listing-images")
-      .upload(path, file, {
-        upsert: false,
-        contentType: file.type || "image/jpeg",
-      });
-    if (!uploadError) {
-      uploadedPaths.push(path);
-      await supabase.from("listing_images").insert({
+  const slice = files.slice(0, 6);
+  const uploaded = await Promise.all(
+    slice.map(async (file, i) => {
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      const safeExt = ["jpg", "jpeg", "png", "webp"].includes(ext) ? ext : "jpg";
+      const path = `${userId}/${listingId}/${startOrder + i}-${crypto.randomUUID()}.${safeExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from("listing-images")
+        .upload(path, file, {
+          upsert: false,
+          contentType: file.type || "image/jpeg",
+        });
+      if (uploadError) return null;
+      return { path, sort_order: startOrder + i };
+    }),
+  );
+
+  const rows = uploaded.filter(
+    (row): row is { path: string; sort_order: number } => Boolean(row),
+  );
+  if (rows.length) {
+    await supabase.from("listing_images").insert(
+      rows.map((row) => ({
         listing_id: listingId,
-        storage_path: path,
-        sort_order: startOrder + i,
-      });
-    }
+        storage_path: row.path,
+        sort_order: row.sort_order,
+      })),
+    );
   }
-  return uploadedPaths;
+  return rows.map((row) => row.path);
 }
 
 export async function createListingAction(formData: FormData) {
@@ -198,12 +206,13 @@ export async function createListingAction(formData: FormData) {
     } catch (error) {
       console.error("[notifyListingCreated]", error);
     }
+    revalidatePath("/");
+    revalidatePath("/market");
+    revalidatePath(`/market/${listing.id}`);
+    revalidatePath("/account/transactions");
+    revalidatePath("/me");
   });
 
-  revalidatePath("/");
-  revalidatePath("/market");
-  revalidatePath("/account/transactions");
-  revalidatePath("/me");
   redirect(`/market/${listing.id}`);
 }
 
@@ -361,15 +370,23 @@ export async function updateListingAction(formData: FormData) {
       } catch (error) {
         console.error("[notifyAdminListingChange:updated]", error);
       }
+      revalidatePath("/");
+      revalidatePath("/market");
+      revalidatePath(`/market/${listingId}`);
+      revalidatePath("/account/transactions");
+      revalidatePath("/admin");
+      revalidatePath("/me");
+    });
+  } else {
+    after(() => {
+      revalidatePath("/");
+      revalidatePath("/market");
+      revalidatePath(`/market/${listingId}`);
+      revalidatePath("/account/transactions");
+      revalidatePath("/me");
     });
   }
 
-  revalidatePath("/");
-  revalidatePath("/market");
-  revalidatePath(`/market/${listingId}`);
-  revalidatePath("/account/transactions");
-  revalidatePath("/admin");
-  revalidatePath("/me");
   redirect(isAdmin ? `/admin?tab=listings` : `/market/${listingId}`);
 }
 
@@ -460,15 +477,24 @@ export async function deleteListingAction(formData: FormData) {
       } catch (error) {
         console.error("[notifyAdminListingChange:deleted]", error);
       }
+      revalidatePath("/");
+      revalidatePath("/market");
+      revalidatePath(`/market/${listingId}`);
+      revalidatePath("/account/transactions");
+      revalidatePath("/admin");
+      revalidatePath("/me");
+    });
+  } else {
+    after(() => {
+      revalidatePath("/");
+      revalidatePath("/market");
+      revalidatePath(`/market/${listingId}`);
+      revalidatePath("/account/transactions");
+      revalidatePath("/admin");
+      revalidatePath("/me");
     });
   }
 
-  revalidatePath("/");
-  revalidatePath("/market");
-  revalidatePath(`/market/${listingId}`);
-  revalidatePath("/account/transactions");
-  revalidatePath("/admin");
-  revalidatePath("/me");
   redirect(isAdmin ? "/admin?tab=listings&deleted=1" : "/account/transactions?deleted=1");
 }
 

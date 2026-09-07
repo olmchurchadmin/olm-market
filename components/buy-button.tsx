@@ -52,7 +52,6 @@ export function BuyButton({
               return;
             }
             requestTradeDockRefresh();
-            router.refresh();
             router.push("/account/transactions");
           });
         }}

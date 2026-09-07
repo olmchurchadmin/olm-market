@@ -8,6 +8,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { AccountShell } from "@/components/account-shell";
 import { DeleteAccountButton } from "@/components/delete-account-button";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 import {
   updatePasswordAction,
   updateProfileAction,
@@ -140,12 +141,12 @@ export default async function AccountProfilePage({
             </span>
           </label>
 
-          <button
-            type="submit"
-            className="rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-soft"
+          <PendingSubmitButton
+            pendingLabel={t.common.loading}
+            className="rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-soft disabled:cursor-wait disabled:opacity-70"
           >
             {t.account.saveProfile}
-          </button>
+          </PendingSubmitButton>
         </form>
       </section>
 
@@ -181,12 +182,12 @@ export default async function AccountProfilePage({
               className="w-full rounded-md border border-brand/15 bg-white px-3 py-2"
             />
           </label>
-          <button
-            type="submit"
-            className="mt-3 rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-soft"
+          <PendingSubmitButton
+            pendingLabel={t.common.loading}
+            className="mt-3 rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-soft disabled:cursor-wait disabled:opacity-70"
           >
             {t.account.changePasswordCta}
-          </button>
+          </PendingSubmitButton>
         </form>
       </section>
 
