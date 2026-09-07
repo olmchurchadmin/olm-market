@@ -265,7 +265,7 @@ const ko = {
     confirmDropoffCta: "드롭오프 확인",
     confirmPickupTitle: "픽업 확인",
     confirmPickupMessage:
-      "성당에서 픽업(현금 결제)을 마치셨나요? 확인하면 판매자와 관리자에게 알림이 갑니다.",
+      "픽업·결제를 마치셨나요? 확인하면 거래가 완료되고 판매자와 관리자에게 알림이 갑니다.",
     confirmPickupHomeMessage:
       "판매자 위치에서 픽업·결제를 마치셨나요? 확인하면 거래가 완료되고 판매자와 관리자에게 알림이 갑니다.",
     confirmPickupCta: "픽업 확인",
@@ -900,7 +900,7 @@ const en: Dictionary = {
     confirmDropoffCta: "Confirm dropoff",
     confirmPickupTitle: "Confirm pickup",
     confirmPickupMessage:
-      "Did you pick up and pay cash at church? Seller and admin will be notified.",
+      "Did you finish pickup and payment? The trade will be marked complete and the seller and admin will be notified.",
     confirmPickupHomeMessage:
       "Did you pick up and pay at the seller's location? The trade will be marked complete and the seller and admin will be notified.",
     confirmPickupCta: "Confirm pickup",
