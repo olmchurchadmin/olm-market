@@ -51,7 +51,7 @@ export function ListingBuyPanel({
   const showQuantity = total > 1;
 
   return (
-    <div className="space-y-5 border-t border-brand/10 pt-6">
+    <div className="mt-8 space-y-5">
       <div className="space-y-3 text-sm">
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
           <span className="text-ink-muted">{t.market.condition}:</span>

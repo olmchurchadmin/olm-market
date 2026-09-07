@@ -142,7 +142,7 @@ export default async function ListingDetailPage({
               buyHint={buyHint}
             />
           ) : statusAction ? (
-            <div className="mt-8 space-y-3 border-t border-brand/10 pt-6">
+            <div className="mt-8 space-y-3">
               <div className="space-y-3 text-sm">
                 <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                   <span className="text-ink-muted">{t.market.condition}:</span>
