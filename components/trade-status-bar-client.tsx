@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { OrderTradeConfirmButton } from "@/components/order-trade-confirm-button";
 import { useI18n } from "@/components/locale-provider";
@@ -15,15 +16,21 @@ const DOCK_HEIGHT_VAR = "--trade-dock-h";
 
 export function TradeStatusBarClient({ items }: { items: TradeDockItem[] }) {
   const { locale, t } = useI18n();
+  const pathname = usePathname();
+  const hideOnAdmin = pathname?.startsWith("/admin");
 
   useEffect(() => {
+    if (hideOnAdmin || !items.length) {
+      document.documentElement.style.removeProperty(DOCK_HEIGHT_VAR);
+      return;
+    }
     document.documentElement.style.setProperty(DOCK_HEIGHT_VAR, "5.75rem");
     return () => {
       document.documentElement.style.removeProperty(DOCK_HEIGHT_VAR);
     };
-  }, []);
+  }, [hideOnAdmin, items.length]);
 
-  if (!items.length) return null;
+  if (!items.length || hideOnAdmin) return null;
 
   const primary = items[0]!;
   const extra = items.length - 1;
@@ -59,8 +66,8 @@ export function TradeStatusBarClient({ items }: { items: TradeDockItem[] }) {
           paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))",
         }}
       >
-        <div className="mx-auto flex max-w-5xl items-center gap-3 px-3 py-2.5 sm:px-4">
-          <div className="relative size-12 shrink-0 overflow-hidden rounded-md bg-[linear-gradient(135deg,#dfe8e2,#f7f3ea)]">
+        <div className="mx-auto flex w-full max-w-6xl items-center gap-3 px-4 py-2.5 sm:gap-4 sm:px-6 sm:py-3">
+          <div className="relative size-12 shrink-0 overflow-hidden rounded-md bg-[linear-gradient(135deg,#dfe8e2,#f7f3ea)] sm:size-14">
             {thumb ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -72,26 +79,26 @@ export function TradeStatusBarClient({ items }: { items: TradeDockItem[] }) {
           </div>
 
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold tracking-wide text-brand uppercase">
+            <p className="text-[11px] font-semibold tracking-wide text-brand uppercase sm:text-xs">
               {roleLabel}
               {extra > 0
                 ? ` · ${t.account.tradeDockMore.replace("{count}", String(extra))}`
                 : null}
             </p>
-            <p className="truncate text-sm font-semibold text-foreground">
+            <p className="truncate text-sm font-semibold text-foreground sm:text-base">
               {primary.title}
               <span className="font-medium text-ink-muted">
                 {" "}
                 · {formatPrice(primary.priceCents, locale)}
               </span>
             </p>
-            <p className="truncate text-xs text-ink-muted">
+            <p className="truncate text-xs text-ink-muted sm:text-sm">
               {statusLine} · {pickupLine}
               {hint ? ` · ${hint}` : null}
             </p>
           </div>
 
-          <div className="flex shrink-0 flex-col items-end gap-1.5 sm:flex-row sm:items-center">
+          <div className="flex shrink-0 flex-col items-end gap-1.5 sm:flex-row sm:items-center sm:gap-3">
             {primary.action === "dropoff" ? (
               <OrderTradeConfirmButton
                 orderId={primary.orderId}
@@ -108,18 +115,17 @@ export function TradeStatusBarClient({ items }: { items: TradeDockItem[] }) {
             {primary.action === "share_pickup" ? (
               <Link
                 href="/account/transactions"
-                className="inline-flex items-center rounded-md border border-brand/20 bg-brand px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-brand-soft"
+                className="inline-flex items-center rounded-md border border-brand/20 bg-brand px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-brand-soft sm:px-3 sm:py-2 sm:text-sm"
               >
                 {t.account.pickupShareCta}
               </Link>
-            ) : (
-              <Link
-                href="/account/transactions"
-                className="text-[11px] font-medium text-ink-muted underline-offset-2 hover:text-foreground hover:underline"
-              >
-                {t.account.tradeDockViewAll}
-              </Link>
-            )}
+            ) : null}
+            <Link
+              href="/account/transactions"
+              className="text-[11px] font-medium text-ink-muted underline-offset-2 hover:text-foreground hover:underline sm:text-xs"
+            >
+              {t.account.tradeDockViewAll}
+            </Link>
           </div>
         </div>
       </div>

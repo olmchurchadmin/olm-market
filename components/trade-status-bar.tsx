@@ -5,7 +5,7 @@ import { buildTradeDockItems } from "@/lib/trade-status";
 
 export async function TradeStatusBar() {
   const profile = await getCurrentProfile();
-  if (!profile || profile.role === "admin") return null;
+  if (!profile) return null;
 
   const supabase = await createClient();
   const [{ data: sellingOrders }, { data: buyingOrders }] = await Promise.all([

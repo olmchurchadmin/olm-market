@@ -165,9 +165,7 @@ export default async function AccountNotificationsPage() {
                           {index > 0 ? (
                             <span
                               className={`h-px w-4 ${
-                                step.done || step.current
-                                  ? "bg-brand/50"
-                                  : "bg-brand/15"
+                                step.done ? "bg-brand/50" : "bg-brand/15"
                               }`}
                               aria-hidden
                             />
@@ -177,15 +175,17 @@ export default async function AccountNotificationsPage() {
                               step.done
                                 ? "bg-brand/15 font-medium text-brand"
                                 : step.current
-                                  ? "bg-brand/10 font-medium text-brand"
+                                  ? "border border-brand/25 bg-white font-medium text-ink-muted"
                                   : "bg-black/[0.04] text-ink-muted"
                             }`}
                           >
                             <span
                               className={`size-1.5 rounded-full ${
-                                step.done || step.current
+                                step.done
                                   ? "bg-brand"
-                                  : "bg-ink-muted/40"
+                                  : step.current
+                                    ? "bg-brand/35"
+                                    : "bg-ink-muted/40"
                               }`}
                               aria-hidden
                             />
