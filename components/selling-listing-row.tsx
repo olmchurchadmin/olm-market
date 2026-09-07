@@ -51,10 +51,12 @@ export function SellingListingRow({ listing }: { listing: Listing }) {
         </Link>
         <p className="text-sm text-ink-muted">
           {formatPrice(listing.price_cents, locale)} ·{" "}
-          {itemConditionLabel(listing.item_condition, t.condition)} ·{" "}
-          {t.market.quantityRemainingOf
-            .replace("{remaining}", String(remaining))
-            .replace("{total}", String(total))}{" "}
+          {itemConditionLabel(listing.item_condition, t.condition)}
+          {total > 1
+            ? ` · ${t.market.quantityRemainingOf
+                .replace("{remaining}", String(remaining))
+                .replace("{total}", String(total))}`
+            : ""}{" "}
           · {listingStatusLabel(listing.status, t.status)}
         </p>
 

@@ -70,9 +70,11 @@ export function ListingCard({ listing }: { listing: Listing }) {
         </p>
         <p className="truncate text-[10px] text-ink-muted sm:text-xs">
           {itemConditionLabel(listing.item_condition, t.condition)}
-          {` · ${t.market.quantityAvailableSold
-            .replace("{available}", String(remaining))
-            .replace("{sold}", String(Math.max(0, total - remaining)))}`}
+          {total > 1
+            ? ` · ${t.market.quantityAvailableSold
+                .replace("{available}", String(remaining))
+                .replace("{sold}", String(Math.max(0, total - remaining)))}`
+            : ""}
         </p>
         <p className="truncate text-[10px] text-ink-muted sm:text-xs">
           {listing.pickup_method === "seller_location"

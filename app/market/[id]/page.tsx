@@ -152,12 +152,17 @@ export default async function ListingDetailPage({
                       : t.condition.used}
                   </span>
                 </div>
-                <p className="text-ink-muted">
-                  {t.market.quantity}:{" "}
-                  {t.market.quantityAvailableSold
-                    .replace("{available}", String(remaining))
-                    .replace("{sold}", String(Math.max(0, total - remaining)))}
-                </p>
+                {total > 1 ? (
+                  <p className="text-ink-muted">
+                    {t.market.quantity}:{" "}
+                    {t.market.quantityAvailableSold
+                      .replace("{available}", String(remaining))
+                      .replace(
+                        "{sold}",
+                        String(Math.max(0, total - remaining)),
+                      )}
+                  </p>
+                ) : null}
               </div>
               <span
                 className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${listingStatusBadgeClass(listing.status)}`}

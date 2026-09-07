@@ -48,6 +48,7 @@ export function ListingBuyPanel({
   const stockLabel = t.market.quantityAvailableSold
     .replace("{available}", String(remaining))
     .replace("{sold}", String(sold));
+  const showQuantity = total > 1;
 
   return (
     <div className="space-y-5 border-t border-brand/10 pt-6">
@@ -59,23 +60,25 @@ export function ListingBuyPanel({
           </span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-          <label className="inline-flex items-center gap-2 text-ink-muted">
-            <span>{t.market.quantity}:</span>
-            <input
-              type="number"
-              min={1}
-              max={maxQty}
-              value={safeQty}
-              disabled={!canBuy || remaining < 1}
-              onChange={(e) => setQty(Number(e.target.value) || 1)}
-              className="w-16 rounded-md border border-brand/20 bg-white px-2 py-1.5 text-center text-sm font-medium text-foreground outline-none focus:border-brand disabled:opacity-50"
-            />
-          </label>
-          <span className="text-ink-muted">{stockLabel}</span>
-        </div>
+        {showQuantity ? (
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <label className="inline-flex items-center gap-2 text-ink-muted">
+              <span>{t.market.quantity}:</span>
+              <input
+                type="number"
+                min={1}
+                max={maxQty}
+                value={safeQty}
+                disabled={!canBuy || remaining < 1}
+                onChange={(e) => setQty(Number(e.target.value) || 1)}
+                className="w-16 rounded-md border border-brand/20 bg-white px-2 py-1.5 text-center text-sm font-medium text-foreground outline-none focus:border-brand disabled:opacity-50"
+              />
+            </label>
+            <span className="text-ink-muted">{stockLabel}</span>
+          </div>
+        ) : null}
 
-        {safeQty > 1 ? (
+        {showQuantity && safeQty > 1 ? (
           <p className="text-sm font-semibold text-foreground">
             {lineTotal}
           </p>
