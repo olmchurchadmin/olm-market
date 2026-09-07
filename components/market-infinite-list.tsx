@@ -245,8 +245,8 @@ export function MarketInfiniteList({
   }
 
   return (
-    <div className="relative overflow-visible">
-      <div className="pointer-events-none absolute inset-y-0 right-1 z-20 sm:right-0">
+    <div className="relative overflow-x-clip">
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-20">
         <div
           className={`sticky top-20 flex justify-end pt-2 transition-opacity duration-150 ease-out sm:top-24 ${
             ringVisible ? "pointer-events-auto opacity-100" : "opacity-0"

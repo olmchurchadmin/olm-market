@@ -29,7 +29,14 @@
   --font-display: var(--font-display), sans-serif;
 }
 
+html {
+  overflow-x: clip;
+  max-width: 100%;
+}
+
 body {
+  overflow-x: clip;
+  max-width: 100%;
   background:
     radial-gradient(1100px 480px at 6% -8%, rgba(36, 59, 143, 0.06), transparent 55%),
     radial-gradient(900px 420px at 94% 0%, rgba(255, 255, 255, 0.65), transparent 48%),
@@ -37,6 +44,15 @@ body {
   background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-body), sans-serif;
+}
+
+/* Prevent iOS Safari zoom-on-focus from shifting the layout sideways. */
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }
 
 button:not(:disabled),

@@ -78,10 +78,10 @@ export function DonationPercentField({
             *
           </span>
         </legend>
-        <p className="text-xs text-ink-muted">{t.sell.donationHint}</p>
+        <p className="text-xs break-words text-ink-muted">{t.sell.donationHint}</p>
 
         <div
-          className="grid grid-cols-4 gap-2"
+          className="grid w-full min-w-0 grid-cols-4 gap-1.5 sm:gap-2"
           role="radiogroup"
           aria-label={t.sell.donationPercent}
         >
@@ -94,7 +94,7 @@ export function DonationPercentField({
                 role="radio"
                 aria-checked={selected}
                 onClick={() => setPercent(option)}
-                className={`rounded-md px-2 py-2.5 text-sm font-semibold tabular-nums transition ${
+                className={`min-w-0 rounded-md px-1 py-2.5 text-sm font-semibold tabular-nums transition sm:px-2 ${
                   selected
                     ? "bg-brand text-white shadow-sm"
                     : "border border-black/8 bg-white text-foreground hover:border-brand/30 hover:bg-brand/5"

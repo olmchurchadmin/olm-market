@@ -45,7 +45,7 @@ export default async function RootLayout({
       lang={locale}
       className={`${inter.variable} ${notoSansKr.variable} h-full`}
     >
-      <body className="flex min-h-full flex-col antialiased">
+      <body className="flex min-h-full min-w-0 flex-col overflow-x-clip antialiased">
         <LocaleProvider locale={locale} dictionary={t}>
           <ConfirmDialogProvider>
             <NotificationsProvider enabled={Boolean(profile)}>

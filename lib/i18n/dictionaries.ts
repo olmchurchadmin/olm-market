@@ -33,6 +33,7 @@ const ko = {
   siteFooter: {
     contactLabel: "전화번호",
     contact: "732-356-1037",
+    contactCta: "문의",
     managerLabel: "담당자",
     manager: "대건회",
     emailLabel: "이메일",
@@ -601,6 +602,7 @@ const en: Dictionary = {
   siteFooter: {
     contactLabel: "Phone",
     contact: "732-356-1037",
+    contactCta: "Contact",
     managerLabel: "Manager",
     manager: "대건회",
     emailLabel: "Email",

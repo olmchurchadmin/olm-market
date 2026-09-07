@@ -19,7 +19,7 @@ export default async function SellPage() {
     .order("sort_order");
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
+    <main className="mx-auto w-full min-w-0 max-w-2xl px-4 py-10 sm:px-6">
       <h1 className="font-[family-name:var(--font-display)] text-4xl text-foreground">
         {t.sell.title}
       </h1>

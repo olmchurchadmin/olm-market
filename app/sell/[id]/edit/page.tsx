@@ -68,7 +68,7 @@ export default async function EditListingPage({
   const cancelHref = isAdmin ? "/admin?tab=listings" : "/account/transactions";
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
+    <main className="mx-auto w-full min-w-0 max-w-2xl px-4 py-10 sm:px-6">
       <h1 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-4xl text-foreground">
         <PencilSquareIcon className="size-8" aria-hidden />
         {t.sell.editTitle}
