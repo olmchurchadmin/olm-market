@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ListingBuyPanel } from "@/components/listing-buy-panel";
 import { ListingGallery } from "@/components/listing-gallery";
+import { WatchlistButton } from "@/components/watchlist-button";
 import { getSessionUser } from "@/lib/auth";
 import { categoryLabel } from "@/lib/i18n/categories";
 import { getI18n } from "@/lib/i18n/server";
@@ -50,6 +51,18 @@ export default async function ListingDetailPage({
     remaining > 0 &&
     user?.id !== listing.seller_id;
   const isOwnListing = Boolean(user && user.id === listing.seller_id);
+
+  let initialWatched = false;
+  if (user && !isOwnListing) {
+    const { data: watched } = await supabase
+      .from("watchlist")
+      .select("listing_id")
+      .eq("user_id", user.id)
+      .eq("listing_id", listing.id)
+      .maybeSingle();
+    initialWatched = Boolean(watched);
+  }
+
   const statusLabel = listingStatusLabel(listing.status, t.status);
   const pickupMethod =
     listing.pickup_method === "seller_location" ? "seller_location" : "church";
@@ -140,6 +153,8 @@ export default async function ListingDetailPage({
               isLoggedIn={Boolean(user)}
               loginHref={`/login?next=/market/${listing.id}`}
               buyHint={buyHint}
+              initialWatched={initialWatched}
+              showWatchlist={!isOwnListing}
             />
           ) : statusAction ? (
             <div className="mt-8 space-y-3">
@@ -172,6 +187,23 @@ export default async function ListingDetailPage({
               <p className="max-w-md text-xs leading-relaxed text-ink-muted">
                 {statusAction.hint}
               </p>
+              {!isOwnListing ? (
+                <WatchlistButton
+                  listingId={listing.id}
+                  initialWatched={initialWatched}
+                  isLoggedIn={Boolean(user)}
+                  loginHref={`/login?next=/market/${listing.id}`}
+                />
+              ) : null}
+            </div>
+          ) : !isOwnListing && listing.status !== "cancelled" ? (
+            <div className="mt-8">
+              <WatchlistButton
+                listingId={listing.id}
+                initialWatched={initialWatched}
+                isLoggedIn={Boolean(user)}
+                loginHref={`/login?next=/market/${listing.id}`}
+              />
             </div>
           ) : null}
         </div>

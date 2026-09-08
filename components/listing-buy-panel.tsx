@@ -7,6 +7,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useConfirm } from "@/components/confirm-dialog";
 import { useI18n } from "@/components/locale-provider";
 import { requestTradeDockRefresh } from "@/components/trade-status-bar-client";
+import { WatchlistButton } from "@/components/watchlist-button";
 import { buyListingAction } from "@/lib/actions/orders";
 import { formatPrice, itemConditionLabel } from "@/lib/utils";
 
@@ -20,6 +21,8 @@ export function ListingBuyPanel({
   isLoggedIn,
   loginHref,
   buyHint,
+  initialWatched = false,
+  showWatchlist = true,
 }: {
   listingId: string;
   condition?: string | null;
@@ -30,6 +33,8 @@ export function ListingBuyPanel({
   isLoggedIn: boolean;
   loginHref: string;
   buyHint: string;
+  initialWatched?: boolean;
+  showWatchlist?: boolean;
 }) {
   const router = useRouter();
   const confirm = useConfirm();
@@ -86,55 +91,66 @@ export function ListingBuyPanel({
         ) : null}
       </div>
 
-      {!isLoggedIn ? (
-        <Link
-          href={loginHref}
-          className="inline-flex rounded-md bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-soft"
-        >
-          {t.market.loginToBuy}
-        </Link>
-      ) : (
-        <div className="space-y-2">
-          <button
-            type="button"
-            disabled={!canBuy || pending || remaining < 1}
-            onClick={async () => {
-              const ok = await confirm({
-                title: t.buy.confirmTitle,
-                message: t.buy.confirmMessage,
-                confirmLabel: t.buy.confirmCta,
-                cancelLabel: t.common.cancel,
-              });
-              if (!ok) return;
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-start">
+        {!isLoggedIn ? (
+          <Link
+            href={loginHref}
+            className="inline-flex items-center justify-center rounded-md bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-soft"
+          >
+            {t.market.loginToBuy}
+          </Link>
+        ) : (
+          <div className="space-y-2">
+            <button
+              type="button"
+              disabled={!canBuy || pending || remaining < 1}
+              onClick={async () => {
+                const ok = await confirm({
+                  title: t.buy.confirmTitle,
+                  message: t.buy.confirmMessage,
+                  confirmLabel: t.buy.confirmCta,
+                  cancelLabel: t.common.cancel,
+                });
+                if (!ok) return;
 
-              setError(null);
-              startTransition(async () => {
-                const result = await buyListingAction(listingId, safeQty);
-                if (!result.ok) {
-                  if (
-                    result.error === t.errors.loginRequired ||
-                    result.error.includes("로그인") ||
-                    result.error.toLowerCase().includes("log in") ||
-                    result.error.toLowerCase().includes("sign in")
-                  ) {
-                    router.push(loginHref);
+                setError(null);
+                startTransition(async () => {
+                  const result = await buyListingAction(listingId, safeQty);
+                  if (!result.ok) {
+                    if (
+                      result.error === t.errors.loginRequired ||
+                      result.error.includes("로그인") ||
+                      result.error.toLowerCase().includes("log in") ||
+                      result.error.toLowerCase().includes("sign in")
+                    ) {
+                      router.push(loginHref);
+                      return;
+                    }
+                    setError(result.error);
                     return;
                   }
-                  setError(result.error);
-                  return;
-                }
-                requestTradeDockRefresh();
-                router.push("/account/transactions");
-              });
-            }}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-brand px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-soft disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-          >
-            <ShoppingBagIcon className="size-5" aria-hidden />
-            {pending ? t.buy.working : t.buy.cta}
-          </button>
-          {error ? <p className="text-sm text-red-700">{error}</p> : null}
-        </div>
-      )}
+                  requestTradeDockRefresh();
+                  router.push("/account/transactions");
+                });
+              }}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-brand px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-soft disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+            >
+              <ShoppingBagIcon className="size-5" aria-hidden />
+              {pending ? t.buy.working : t.buy.cta}
+            </button>
+            {error ? <p className="text-sm text-red-700">{error}</p> : null}
+          </div>
+        )}
+
+        {showWatchlist ? (
+          <WatchlistButton
+            listingId={listingId}
+            initialWatched={initialWatched}
+            isLoggedIn={isLoggedIn}
+            loginHref={loginHref}
+          />
+        ) : null}
+      </div>
 
       <p className="text-xs leading-relaxed text-ink-muted">{buyHint}</p>
     </div>

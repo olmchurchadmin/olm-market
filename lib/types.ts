@@ -79,6 +79,13 @@ export type Listing = {
   seller?: PublicSeller | PublicSeller[] | null;
 };
 
+export type WatchlistEntry = {
+  user_id: string;
+  listing_id: string;
+  created_at: string;
+  listings?: Listing | Listing[] | null;
+};
+
 export type ListingImage = {
   id: string;
   listing_id: string;
