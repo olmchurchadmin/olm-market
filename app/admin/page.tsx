@@ -41,20 +41,6 @@ function parseRange(raw: string | undefined): StatsRange {
   return "all";
 }
 
-function startOfRange(range: StatsRange): Date | null {
-  if (range === "all") return null;
-  const now = new Date();
-  if (range === "week") {
-    const d = new Date(now);
-    const day = d.getDay();
-    const diff = (day + 6) % 7; // Monday start
-    d.setHours(0, 0, 0, 0);
-    d.setDate(d.getDate() - diff);
-    return d;
-  }
-  return new Date(now.getFullYear(), now.getMonth(), 1);
-}
-
 export default async function AdminPage({
   searchParams,
 }: {
@@ -107,7 +93,7 @@ export default async function AdminPage({
       .in("status", ["awaiting_dropoff", "ready_for_pickup"]),
   ]);
 
-  let statsByRange: Record<StatsRange, AdminStats> | null = null;
+  let initialStats: AdminStats | null = null;
   let members:
     | {
         id: string;
@@ -126,54 +112,8 @@ export default async function AdminPage({
   let siteBanner: SiteBanner | null = null;
 
   if (tab === "stats") {
-    const [
-      { data: weekStats },
-      { data: monthStats },
-      { data: allStats },
-      { data: completedSales },
-    ] = await Promise.all([
-      supabase.rpc("admin_stats", { p_range: "week" }),
-      supabase.rpc("admin_stats", { p_range: "month" }),
-      supabase.rpc("admin_stats", { p_range: "all" }),
-      // Fallback donation totals if admin_stats hasn't been migrated yet.
-      supabase
-        .from("orders")
-        .select("price_cents, completed_at, listings(donation_percent)")
-        .eq("status", "completed")
-        .limit(500),
-    ]);
-
-    const week = (weekStats || {}) as AdminStats;
-    const month = (monthStats || {}) as AdminStats;
-    const all = (allStats || {}) as AdminStats;
-
-    function donationFallback(target: StatsRange): number {
-      const since = startOfRange(target);
-      return (completedSales || []).reduce((sum, row) => {
-        if (since && (!row.completed_at || new Date(row.completed_at) < since)) {
-          return sum;
-        }
-        const listing = Array.isArray(row.listings)
-          ? row.listings[0]
-          : row.listings;
-        const percent = Math.min(
-          100,
-          Math.max(30, Math.round(listing?.donation_percent ?? 100)),
-        );
-        return sum + Math.floor((Number(row.price_cents) * percent) / 100);
-      }, 0);
-    }
-
-    function withDonation(stats: AdminStats, target: StatsRange): AdminStats {
-      if (typeof stats.donation_cents === "number") return stats;
-      return { ...stats, donation_cents: donationFallback(target) };
-    }
-
-    statsByRange = {
-      all: withDonation(all, "all"),
-      week: withDonation(week, "week"),
-      month: withDonation(month, "month"),
-    };
+    const { data } = await supabase.rpc("admin_stats", { p_range: range });
+    initialStats = (data || {}) as AdminStats;
   } else if (tab === "members") {
     const { data } = await supabase
       .from("profiles")
@@ -401,8 +341,8 @@ export default async function AdminPage({
         />
       ) : null}
 
-      {tab === "stats" && statsByRange ? (
-        <AdminStatsPanel statsByRange={statsByRange} initialRange={range} />
+      {tab === "stats" && initialStats ? (
+        <AdminStatsPanel initialStats={initialStats} initialRange={range} />
       ) : null}
 
       {tab === "members" ? (

@@ -203,7 +203,7 @@ const ko = {
       "판매 등록, 거래 성립, 성당 도착, 거래 완료 알림은 저장한 이메일과 사이트 내 알림으로 전달됩니다.",
     displayName: "이름",
     displayNamePlaceholder: "장터·거래 알림에 표시할 이름",
-    displayNameHint: "장터·알림에는 이름과 본명이 함께 표시됩니다. (예: 이호용 프란치스코)",
+    displayNameHint: "장터·알림에는 이름과 본명이 함께 표시됩니다. (예: 홍길동 프란치스코)",
     legalName: "본명",
     legalNamePlaceholder: "성당에서 쓰는 이름",
     legalNameHint: "성당에서 쓰는 본명입니다. 이름 뒤에 함께 표시됩니다.",
@@ -852,7 +852,7 @@ const en: Dictionary = {
     displayName: "Name",
     displayNamePlaceholder: "Name shown on the market and in trade alerts",
     displayNameHint:
-      'Shown on the market and in alerts as "Name Church-name" (e.g. Hoyong Francis).',
+      'Shown on the market and in alerts as "Name Church-name" (e.g. Hong Gildong Francis).',
     legalName: "Church name",
     legalNamePlaceholder: "Name used at church",
     legalNameHint: "Your parish name; shown after your display name.",

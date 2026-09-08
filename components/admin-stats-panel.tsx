@@ -6,7 +6,10 @@ import { useState, useTransition } from "react";
 import { SalesDonationRing } from "@/components/admin-sales-donation-ring";
 import { useConfirm } from "@/components/confirm-dialog";
 import { useI18n } from "@/components/locale-provider";
-import { resetAdminStatsAction } from "@/lib/actions/admin-stats";
+import {
+  loadAdminStatsRangeAction,
+  resetAdminStatsAction,
+} from "@/lib/actions/admin-stats";
 import type { AdminStats } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
 
@@ -43,24 +46,25 @@ function formatResetDate(iso: string | null | undefined, locale: string) {
 }
 
 export function AdminStatsPanel({
-  statsByRange,
+  initialStats,
   initialRange,
 }: {
-  statsByRange: Record<StatsRange, AdminStats>;
+  initialStats: AdminStats;
   initialRange: StatsRange;
 }) {
   const { locale, t } = useI18n();
   const router = useRouter();
   const confirm = useConfirm();
   const [range, setRange] = useState<StatsRange>(initialRange);
+  const [cache, setCache] = useState<Partial<Record<StatsRange, AdminStats>>>({
+    [initialRange]: initialStats,
+  });
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
-  const stats = statsByRange[range];
+  const [rangePending, startRangeTransition] = useTransition();
+  const stats = cache[range] || initialStats;
   const resetLabel = formatResetDate(
-    stats.stats_reset_at ??
-      statsByRange.all.stats_reset_at ??
-      statsByRange.week.stats_reset_at ??
-      statsByRange.month.stats_reset_at,
+    stats.stats_reset_at ?? cache.all?.stats_reset_at,
     locale,
   );
 
@@ -72,8 +76,16 @@ export function AdminStatsPanel({
 
   function selectRange(next: StatsRange) {
     setRange(next);
-    // Update the URL without triggering a Next.js RSC refetch.
     window.history.replaceState(null, "", `/admin?tab=stats&range=${next}`);
+    if (cache[next]) return;
+    startRangeTransition(async () => {
+      const result = await loadAdminStatsRangeAction(next);
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      setCache((prev) => ({ ...prev, [next]: result.stats }));
+    });
   }
 
   return (
@@ -128,8 +140,9 @@ export function AdminStatsPanel({
             <button
               key={item.key}
               type="button"
+              disabled={rangePending}
               onClick={() => selectRange(item.key)}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition disabled:opacity-60 ${
                 active
                   ? "bg-brand text-white shadow-sm"
                   : "bg-white text-foreground ring-1 ring-brand/10 hover:bg-neutral-100"
@@ -141,7 +154,11 @@ export function AdminStatsPanel({
         })}
       </div>
 
-      <div className="mt-5 grid gap-4 lg:grid-cols-2">
+      <div
+        className={`mt-5 grid gap-4 lg:grid-cols-2 ${
+          rangePending && !cache[range] ? "opacity-60" : ""
+        }`}
+      >
         <SalesDonationRing
           salesCents={stats.gmv_cents ?? 0}
           donationCents={stats.donation_cents ?? 0}
