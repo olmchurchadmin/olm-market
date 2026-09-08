@@ -44,8 +44,8 @@ export function AdminTabs({
       label: t.admin.complaints,
       badge: openComplaints > 0 ? openComplaints : undefined,
     },
-    { key: "categories", label: t.admin.categoriesTab },
     { key: "banner", label: t.admin.bannerTab },
+    { key: "categories", label: t.admin.categoriesTab },
   ];
 
   return (
