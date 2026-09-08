@@ -54,6 +54,9 @@ export type SiteBanner = {
   image_path: string | null;
   starts_at: string | null;
   ends_at: string | null;
+  dismiss_days?: number;
+  bg_color?: string;
+  text_color?: string;
   updated_at: string;
 };
 

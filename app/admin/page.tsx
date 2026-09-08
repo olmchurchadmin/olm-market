@@ -161,7 +161,7 @@ export default async function AdminPage({
     const { data } = await supabase
       .from("site_banner")
       .select(
-        "id, enabled, body_ko, body_en, cta_label_ko, cta_label_en, cta_url, image_path, starts_at, ends_at, updated_at",
+        "id, enabled, body_ko, body_en, cta_label_ko, cta_label_en, cta_url, image_path, starts_at, ends_at, dismiss_days, bg_color, text_color, updated_at",
       )
       .eq("id", 1)
       .maybeSingle();

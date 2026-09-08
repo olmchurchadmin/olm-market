@@ -59,7 +59,9 @@ export async function SiteNoticeBanner() {
 
   const { data, error } = await supabase
     .from("site_banner")
-    .select("id, enabled, body_ko, body_en, starts_at, ends_at, updated_at")
+    .select(
+      "id, enabled, body_ko, body_en, starts_at, ends_at, updated_at, dismiss_days, bg_color, text_color",
+    )
     .eq("id", 1)
     .maybeSingle();
 
@@ -71,6 +73,14 @@ export async function SiteNoticeBanner() {
   if (!body) return null;
 
   return (
-    <SiteNoticeBannerClient body={body} updatedAt={banner.updated_at} />
+    <SiteNoticeBannerClient
+      body={body}
+      updatedAt={banner.updated_at}
+      dismissDays={
+        typeof banner.dismiss_days === "number" ? banner.dismiss_days : 7
+      }
+      bgColor={banner.bg_color?.trim() || "#ffc83d"}
+      textColor={banner.text_color?.trim() || "#000000"}
+    />
   );
 }

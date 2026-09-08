@@ -179,6 +179,54 @@ export function AdminBannerPanel({ banner }: { banner: SiteBanner | null }) {
           <p className="text-xs text-ink-muted">{t.admin.bannerScheduleHint}</p>
         </fieldset>
 
+        <label className="block space-y-1.5 text-sm font-medium">
+          {t.admin.bannerDismissDays}
+          <input
+            name="dismiss_days"
+            type="number"
+            min={1}
+            max={365}
+            defaultValue={
+              typeof banner?.dismiss_days === "number" ? banner.dismiss_days : 7
+            }
+            className="w-full max-w-[12rem] rounded-md border border-brand/15 bg-white px-3 py-2 text-sm font-normal outline-none focus:border-brand"
+          />
+          <span className="block text-xs font-normal text-ink-muted">
+            {t.admin.bannerDismissDaysHint}
+          </span>
+        </label>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="block space-y-1.5 text-sm font-medium">
+            {t.admin.bannerBgColor}
+            <div className="flex items-center gap-2">
+              <input
+                name="bg_color"
+                type="color"
+                defaultValue={banner?.bg_color?.trim() || "#ffc83d"}
+                className="h-10 w-14 cursor-pointer rounded-md border border-brand/15 bg-white p-1"
+              />
+              <span className="text-xs font-normal text-ink-muted">
+                {t.admin.bannerColorHint}
+              </span>
+            </div>
+          </label>
+          <label className="block space-y-1.5 text-sm font-medium">
+            {t.admin.bannerTextColor}
+            <div className="flex items-center gap-2">
+              <input
+                name="text_color"
+                type="color"
+                defaultValue={banner?.text_color?.trim() || "#000000"}
+                className="h-10 w-14 cursor-pointer rounded-md border border-brand/15 bg-white p-1"
+              />
+              <span className="text-xs font-normal text-ink-muted">
+                {t.admin.bannerColorHint}
+              </span>
+            </div>
+          </label>
+        </div>
+
         <button
           type="submit"
           className="rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-soft"

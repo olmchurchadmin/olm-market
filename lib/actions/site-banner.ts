@@ -66,6 +66,24 @@ export async function saveSiteBannerAction(formData: FormData) {
     );
   }
 
+  const dismissDaysRaw = Number.parseInt(
+    String(formData.get("dismiss_days") || "7"),
+    10,
+  );
+  const dismissDays = Number.isFinite(dismissDaysRaw)
+    ? Math.max(1, Math.min(365, dismissDaysRaw))
+    : 7;
+
+  const hexColor = (raw: string, fallback: string) => {
+    const value = raw.trim().toLowerCase();
+    return /^#[0-9a-f]{6}$/.test(value) ? value : fallback;
+  };
+  const bgColor = hexColor(String(formData.get("bg_color") || ""), "#ffc83d");
+  const textColor = hexColor(
+    String(formData.get("text_color") || ""),
+    "#000000",
+  );
+
   const bodyEn = bodyKo ? await translateKoreanSentenceToEnglish(bodyKo) : "";
 
   const { data: current } = await supabase
@@ -89,6 +107,9 @@ export async function saveSiteBannerAction(formData: FormData) {
     image_path: null,
     starts_at: startsAt,
     ends_at: endsAt,
+    dismiss_days: dismissDays,
+    bg_color: bgColor,
+    text_color: textColor,
     updated_at: new Date().toISOString(),
   };
 

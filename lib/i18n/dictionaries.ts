@@ -402,7 +402,7 @@ const ko = {
     noCategoriesSearch: "검색 결과가 없습니다.",
     bannerTab: "알림배너",
     bannerBlurb:
-      "헤더 바로 아래에 표시되는 텍스트 알림입니다. 한글 문구와 노출 기간만 설정하세요.",
+      "헤더 위에 표시되는 텍스트 알림입니다. 문구·기간·닫기 유지일·색상을 설정하세요.",
     bannerEnabled: "배너 표시",
     bannerBodyKo: "알림 문구",
     bannerBodyEn: "문구 (영어)",
@@ -423,6 +423,12 @@ const ko = {
     bannerPresetToday: "오늘만",
     bannerPresetWeek: "오늘부터 7일",
     bannerPresetMonth: "오늘부터 30일",
+    bannerDismissDays: "닫은 뒤 숨김 일수",
+    bannerDismissDaysHint:
+      "사용자가 닫으면 이 기간 동안 다시 보이지 않습니다. (1–365일, 기본 7일). 배너 내용을 다시 저장하면 다시 표시됩니다.",
+    bannerBgColor: "배너 배경 색상",
+    bannerTextColor: "배너 텍스트 색상",
+    bannerColorHint: "색상 선택",
     bannerImage: "배너 이미지",
     bannerImageEmpty: "등록된 이미지가 없습니다.",
     bannerClearImage: "이미지 삭제",
@@ -1056,7 +1062,7 @@ const en: Dictionary = {
     noCategoriesSearch: "No matching categories.",
     bannerTab: "Alert banner",
     bannerBlurb:
-      "Text-only notice shown directly under the header. Enter Korean copy and a date range.",
+      "Text notice shown above the header. Set copy, schedule, dismiss days, and colors.",
     bannerEnabled: "Show banner",
     bannerBodyKo: "Alert message",
     bannerBodyEn: "Message (English)",
@@ -1078,6 +1084,12 @@ const en: Dictionary = {
     bannerPresetToday: "Today only",
     bannerPresetWeek: "Next 7 days",
     bannerPresetMonth: "Next 30 days",
+    bannerDismissDays: "Hide for (days) after dismiss",
+    bannerDismissDaysHint:
+      "After a visitor closes the banner, it stays hidden for this many days (1–365, default 7). Saving new banner content shows it again.",
+    bannerBgColor: "Banner background color",
+    bannerTextColor: "Banner text color",
+    bannerColorHint: "Pick a color",
     bannerImage: "Banner image",
     bannerImageEmpty: "No image uploaded.",
     bannerClearImage: "Remove image",
