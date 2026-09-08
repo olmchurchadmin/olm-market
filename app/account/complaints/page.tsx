@@ -2,6 +2,7 @@ import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
 import { AccountShell } from "@/components/account-shell";
 import { AdminReplyForm } from "@/components/admin-reply-form";
 import { DeleteComplaintButton } from "@/components/delete-complaint-button";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { createComplaintAction } from "@/lib/actions/complaints";
 import { getCurrentProfile } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
@@ -105,12 +106,12 @@ export default async function AccountComplaintsPage({
                 className="w-full rounded-md border border-brand/15 bg-white px-3 py-2"
               />
             </label>
-            <button
-              type="submit"
-              className="rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-soft"
+            <PendingSubmitButton
+              pendingLabel={t.common.loading}
+              className="rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-soft disabled:cursor-wait disabled:opacity-70"
             >
               {t.account.complaintSubmit}
-            </button>
+            </PendingSubmitButton>
           </form>
         ) : null}
 

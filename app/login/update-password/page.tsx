@@ -1,4 +1,5 @@
 import { KeyIcon } from "@heroicons/react/24/outline";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { updatePasswordAction } from "@/lib/actions/auth";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
@@ -61,13 +62,13 @@ export default async function UpdatePasswordPage({
             className="mt-1 w-full rounded-md border border-brand/15 bg-white px-3 py-2 outline-none focus:border-brand"
           />
         </label>
-        <button
-          type="submit"
-          className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-brand-soft"
+        <PendingSubmitButton
+          pendingLabel={t.common.loading}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-brand-soft disabled:cursor-wait disabled:opacity-70"
         >
           <KeyIcon className="size-5" aria-hidden />
           {t.auth.updatePasswordCta}
-        </button>
+        </PendingSubmitButton>
       </form>
     </main>
   );

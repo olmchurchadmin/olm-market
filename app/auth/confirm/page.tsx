@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { confirmEmailAction } from "@/lib/actions/auth";
 import { getI18n } from "@/lib/i18n/server";
 
@@ -56,12 +57,12 @@ export default async function AuthConfirmPage({
           <input type="hidden" name="token_hash" value={tokenHash} />
           <input type="hidden" name="type" value={type} />
           <input type="hidden" name="next" value={next} />
-          <button
-            type="submit"
-            className="inline-flex w-full items-center justify-center rounded-md bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-brand-soft"
+          <PendingSubmitButton
+            pendingLabel={t.common.loading}
+            className="inline-flex w-full items-center justify-center rounded-md bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-brand-soft disabled:cursor-wait disabled:opacity-70"
           >
             {isRecovery ? t.auth.confirmRecoveryCta : t.auth.confirmEmailCta}
-          </button>
+          </PendingSubmitButton>
         </form>
       </div>
     </main>

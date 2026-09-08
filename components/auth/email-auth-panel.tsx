@@ -11,6 +11,7 @@ import {
   UserPlusIcon,
 } from "@heroicons/react/24/outline";
 import { useI18n } from "@/components/locale-provider";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 import {
   requestPasswordResetAction,
   signInWithPasswordAction,
@@ -99,13 +100,13 @@ export function EmailAuthPanel({
               {t.auth.forgotLink}
             </Link>
           </div>
-          <button
-            type="submit"
-            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-brand-soft"
+          <PendingSubmitButton
+            pendingLabel={t.common.loading}
+            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-brand-soft disabled:cursor-wait disabled:opacity-70"
           >
             <KeyIcon className="size-5" aria-hidden />
             {t.auth.signInCta}
-          </button>
+          </PendingSubmitButton>
           <p className="text-center text-sm text-ink-muted">
             {t.auth.needAccount}{" "}
             <Link
@@ -185,13 +186,13 @@ export function EmailAuthPanel({
               </button>
             </span>
           </label>
-          <button
-            type="submit"
-            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-brand-soft"
+          <PendingSubmitButton
+            pendingLabel={t.common.loading}
+            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-brand-soft disabled:cursor-wait disabled:opacity-70"
           >
             <UserPlusIcon className="size-5" aria-hidden />
             {t.auth.signUpCta}
-          </button>
+          </PendingSubmitButton>
           <p className="text-center text-sm text-ink-muted">
             {t.auth.haveAccount}{" "}
             <Link
@@ -218,13 +219,13 @@ export function EmailAuthPanel({
               className="mt-1 w-full rounded-md border border-brand/15 bg-white px-3 py-2 outline-none focus:border-brand"
             />
           </label>
-          <button
-            type="submit"
-            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-brand-soft"
+          <PendingSubmitButton
+            pendingLabel={t.common.loading}
+            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-brand-soft disabled:cursor-wait disabled:opacity-70"
           >
             <EnvelopeIcon className="size-5" aria-hidden />
             {t.auth.sendReset}
-          </button>
+          </PendingSubmitButton>
           <p className="text-center text-sm text-ink-muted">
             <Link
               href={`/login?mode=signin&next=${encodeURIComponent(next)}`}

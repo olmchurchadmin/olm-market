@@ -6,7 +6,7 @@ import {
   PlusIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useConfirm } from "@/components/confirm-dialog";
 import { useI18n } from "@/components/locale-provider";
 import {
@@ -15,6 +15,7 @@ import {
   reorderCategoriesAction,
   updateCategoryAction,
 } from "@/lib/actions/categories";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 import type { Category } from "@/lib/types";
 
 type CategoryRow = Category & { name_en?: string | null };
@@ -30,8 +31,6 @@ export function AdminCategoriesPanel({
   const [dragId, setDragId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editKo, setEditKo] = useState("");
-  const [pending, startTransition] = useTransition();
-  const orderFormRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     setItems(categories);
@@ -84,30 +83,30 @@ export function AdminCategoriesPanel({
             className="w-full rounded-md border border-brand/15 bg-white px-3 py-2 text-sm"
           />
         </label>
-        <button
-          type="submit"
-          className="inline-flex h-[38px] w-full items-center justify-center gap-1.5 rounded-md bg-brand px-4 text-sm font-semibold text-white hover:bg-brand-soft sm:w-auto"
+        <PendingSubmitButton
+          pendingLabel={t.common.loading}
+          className="inline-flex h-[38px] w-full items-center justify-center gap-1.5 rounded-md bg-brand px-4 text-sm font-semibold text-white hover:bg-brand-soft disabled:cursor-wait disabled:opacity-70 sm:w-auto"
         >
           <PlusIcon className="size-4" aria-hidden />
           {t.admin.categoryAdd}
-        </button>
+        </PendingSubmitButton>
       </form>
 
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-ink-muted">{t.admin.categoryDragHint}</p>
-        <form ref={orderFormRef} action={reorderCategoriesAction}>
+        <form action={reorderCategoriesAction}>
           <input
             type="hidden"
             name="ordered_ids"
             value={JSON.stringify(orderedIds)}
           />
-          <button
-            type="submit"
-            disabled={!orderDirty || pending}
+          <PendingSubmitButton
+            pendingLabel={t.common.loading}
+            disabled={!orderDirty}
             className="rounded-md border border-brand/15 bg-white px-3 py-1.5 text-sm font-medium text-foreground hover:bg-brand/5 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {pending ? t.common.loading : t.admin.categorySaveOrder}
-          </button>
+            {t.admin.categorySaveOrder}
+          </PendingSubmitButton>
         </form>
       </div>
 
@@ -198,12 +197,12 @@ export function AdminCategoriesPanel({
                         />
                       </label>
                       <div className="flex h-[38px] items-center gap-2">
-                        <button
-                          type="submit"
-                          className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-soft"
+                        <PendingSubmitButton
+                          pendingLabel={t.common.loading}
+                          className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-soft disabled:cursor-wait disabled:opacity-70"
                         >
                           {t.admin.categorySave}
-                        </button>
+                        </PendingSubmitButton>
                         <button
                           type="button"
                           onClick={() => setEditingId(null)}

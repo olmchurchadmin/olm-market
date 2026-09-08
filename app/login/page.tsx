@@ -2,6 +2,7 @@ import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { EmailAuthPanel } from "@/components/auth/email-auth-panel";
 import { GoogleIcon, KakaoIcon } from "@/components/auth/oauth-icons";
+import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { signInWithOAuth } from "@/lib/actions/auth";
 import { getI18n } from "@/lib/i18n/server";
 
@@ -61,13 +62,13 @@ export default async function LoginPage({
                   await signInWithOAuth("google", next);
                 }}
               >
-                <button
-                  type="submit"
-                  className="inline-flex w-full items-center justify-center gap-2.5 rounded-md border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-foreground transition hover:border-black/20 hover:bg-[#fafafa]"
+                <PendingSubmitButton
+                  pendingLabel={t.common.loading}
+                  className="inline-flex w-full items-center justify-center gap-2.5 rounded-md border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-foreground transition hover:border-black/20 hover:bg-[#fafafa] disabled:cursor-wait disabled:opacity-70"
                 >
                   <GoogleIcon />
                   {t.auth.continueGoogle}
-                </button>
+                </PendingSubmitButton>
               </form>
               <form
                 action={async () => {
@@ -75,13 +76,13 @@ export default async function LoginPage({
                   await signInWithOAuth("kakao", next);
                 }}
               >
-                <button
-                  type="submit"
-                  className="inline-flex w-full items-center justify-center gap-2.5 rounded-md bg-[#FEE500] px-4 py-3 text-sm font-semibold text-[#191600] transition hover:brightness-[0.97]"
+                <PendingSubmitButton
+                  pendingLabel={t.common.loading}
+                  className="inline-flex w-full items-center justify-center gap-2.5 rounded-md bg-[#FEE500] px-4 py-3 text-sm font-semibold text-[#191600] transition hover:brightness-[0.97] disabled:cursor-wait disabled:opacity-70"
                 >
                   <KakaoIcon />
                   {t.auth.continueKakao}
-                </button>
+                </PendingSubmitButton>
               </form>
             </div>
 
