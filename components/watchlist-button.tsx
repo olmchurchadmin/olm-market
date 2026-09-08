@@ -63,7 +63,7 @@ export function WatchlistButton({
   }
 
   if (variant === "icon") {
-    const iconClass = "size-5 drop-shadow-sm sm:size-[1.35rem]";
+    const iconClass = "size-5 sm:size-[1.35rem]";
     const label = watched
       ? t.account.removeFromWatchlist
       : t.account.addToWatchlist;
@@ -75,7 +75,7 @@ export function WatchlistButton({
           onClick={(event) => event.stopPropagation()}
           aria-label={label}
           title={label}
-          className="absolute top-2 right-2 z-10 inline-flex size-8 items-center justify-center rounded-full bg-white/90 text-ink-muted shadow-sm backdrop-blur-sm transition hover:bg-white hover:text-red-500 sm:size-9"
+          className="absolute top-2 right-2 z-10 inline-flex size-8 items-center justify-center rounded-full bg-white/90 text-ink-muted backdrop-blur-sm transition hover:bg-white hover:text-brand sm:size-9"
         >
           <HeartOutline className={iconClass} aria-hidden />
         </Link>
@@ -90,8 +90,8 @@ export function WatchlistButton({
         aria-label={label}
         title={label}
         onClick={runToggle}
-        className={`absolute top-2 right-2 z-10 inline-flex size-8 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur-sm transition hover:bg-white disabled:opacity-60 sm:size-9 ${
-          watched ? "text-red-500" : "text-ink-muted hover:text-red-500"
+        className={`absolute top-2 right-2 z-10 inline-flex size-8 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm transition hover:bg-white disabled:opacity-60 sm:size-9 ${
+          watched ? "text-brand" : "text-ink-muted hover:text-brand"
         }`}
       >
         {watched ? (
@@ -127,7 +127,7 @@ export function WatchlistButton({
       >
         {watched ? (
           <HeartSolid
-            className={`${compact ? "size-4" : "size-5"} text-red-500`}
+            className={`${compact ? "size-4" : "size-5"} text-brand`}
             aria-hidden
           />
         ) : (
