@@ -2,6 +2,7 @@ import { MagnifyingGlassIcon, PlusIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { MarketCategoryTabs } from "@/components/market-category-tabs";
 import { MarketInfiniteList } from "@/components/market-infinite-list";
+import { getSessionUser } from "@/lib/auth";
 import { categoryLabel } from "@/lib/i18n/categories";
 import { getI18n } from "@/lib/i18n/server";
 import {
@@ -38,7 +39,8 @@ export async function MarketBrowse({
   }
 
   const supabase = await createClient();
-  const [{ data: categories }, firstPage] = await Promise.all([
+  const user = await getSessionUser();
+  const [{ data: categories }, firstPage, watchedRows] = await Promise.all([
     supabase.from("categories").select("*").order("sort_order"),
     fetchMarketListingsPage({
       category,
@@ -46,7 +48,15 @@ export async function MarketBrowse({
       page: 1,
       status: "active",
     }),
+    user
+      ? supabase
+          .from("watchlist")
+          .select("listing_id")
+          .eq("user_id", user.id)
+      : Promise.resolve({ data: [] as { listing_id: string }[] }),
   ]);
+
+  const watchedIds = (watchedRows.data || []).map((row) => row.listing_id);
 
   return (
     <main className="mx-auto w-full min-w-0 max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
@@ -106,6 +116,8 @@ export async function MarketBrowse({
           status="active"
           initialItems={firstPage.items}
           total={firstPage.total}
+          watchedIds={watchedIds}
+          currentUserId={user?.id || null}
         />
       </div>
     </main>

@@ -1,4 +1,4 @@
-import { BookmarkIcon } from "@heroicons/react/24/outline";
+import { HeartIcon } from "@heroicons/react/24/outline";
 import { AccountShell } from "@/components/account-shell";
 import { WatchlistRow } from "@/components/watchlist-row";
 import { getCurrentProfile } from "@/lib/auth";
@@ -41,7 +41,7 @@ export default async function AccountWatchlistPage() {
     >
       <section>
         <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-foreground">
-          <BookmarkIcon className="size-6" aria-hidden />
+          <HeartIcon className="size-6" aria-hidden />
           {t.account.watchlist}
         </h2>
         <p className="mt-1 text-sm text-ink-muted">{t.account.watchlistBlurb}</p>

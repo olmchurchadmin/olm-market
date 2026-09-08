@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ListingCard } from "@/components/listing-card";
 import { useI18n } from "@/components/locale-provider";
 import type { Listing } from "@/lib/types";
@@ -92,12 +92,16 @@ export function MarketInfiniteList({
   status,
   initialItems,
   total,
+  watchedIds = [],
+  currentUserId = null,
 }: {
   category?: string;
   q?: string;
   status?: "active" | "sold";
   initialItems: Listing[];
   total: number;
+  watchedIds?: string[];
+  currentUserId?: string | null;
 }) {
   const { t } = useI18n();
   const [items, setItems] = useState(initialItems);
@@ -107,6 +111,8 @@ export function MarketInfiniteList({
   const [progress, setProgress] = useState(0);
   const [seen, setSeen] = useState(1);
   const [ringVisible, setRingVisible] = useState(false);
+  const watchedSet = useMemo(() => new Set(watchedIds), [watchedIds]);
+  const isLoggedIn = Boolean(currentUserId);
 
   const listRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -271,7 +277,12 @@ export function MarketInfiniteList({
       >
         {items.map((listing, index) => (
           <div key={listing.id} data-listing-index={index}>
-            <ListingCard listing={listing} />
+            <ListingCard
+              listing={listing}
+              watched={watchedSet.has(listing.id)}
+              isLoggedIn={isLoggedIn}
+              currentUserId={currentUserId}
+            />
           </div>
         ))}
       </div>
