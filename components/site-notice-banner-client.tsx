@@ -31,9 +31,9 @@ export function SiteNoticeBannerClient({
   if (!visible || !body) return null;
 
   return (
-    <aside className="border-b border-black/6 bg-[#fff4e8]">
+    <aside className="border-b border-black/10 bg-[#ffc83d]">
       <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2.5 sm:gap-3 sm:px-6 sm:py-3">
-        <p className="min-w-0 flex-1 text-sm leading-snug whitespace-pre-line text-foreground">
+        <p className="min-w-0 flex-1 text-sm leading-snug whitespace-pre-line text-black">
           {body}
         </p>
         <button
@@ -46,7 +46,7 @@ export function SiteNoticeBannerClient({
             }
             setVisible(false);
           }}
-          className="shrink-0 rounded-md p-1 text-ink-muted hover:bg-black/5 hover:text-foreground"
+          className="shrink-0 rounded-md p-1 text-black/70 hover:bg-black/10 hover:text-black"
           aria-label={t.admin.bannerDismiss}
         >
           <XMarkIcon className="size-4" aria-hidden />

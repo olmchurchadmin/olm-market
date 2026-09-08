@@ -51,8 +51,8 @@ export default async function RootLayout({
         <LocaleProvider locale={locale} dictionary={t}>
           <ConfirmDialogProvider>
             <NotificationsProvider enabled={Boolean(profile)}>
-              <SiteHeader profile={profile} />
               <SiteNoticeBanner />
+              <SiteHeader profile={profile} />
               <NotificationsBanner />
               <div className="flex-1">{children}</div>
               <SiteFooter />
