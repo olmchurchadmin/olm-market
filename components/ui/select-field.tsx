@@ -1,5 +1,5 @@
-import { ChevronDownIcon } from "@heroicons/react/20/solid";
-import type { SelectHTMLAttributes } from "react";
+import { ChevronDownIcon } from "@heroicons/react/24/outline";
+import type { ReactNode, SelectHTMLAttributes } from "react";
 
 type Option = { value: string; label: string };
 
@@ -8,6 +8,8 @@ type Props = SelectHTMLAttributes<HTMLSelectElement> & {
   options: Option[];
   placeholder?: string;
   requiredMark?: boolean;
+  hint?: ReactNode;
+  selectClassName?: string;
 };
 
 export function SelectField({
@@ -15,24 +17,28 @@ export function SelectField({
   options,
   placeholder = "",
   requiredMark = false,
+  hint,
   className = "",
+  selectClassName = "",
   id,
   ...props
 }: Props) {
   const selectId = id || props.name || "select";
 
   return (
-    <label className="block text-sm font-medium" htmlFor={selectId}>
-      {label}
-      {requiredMark ? (
-        <span className="ml-0.5 text-red-600" aria-hidden>
-          *
-        </span>
-      ) : null}
-      <span className="relative mt-1 block">
+    <label className={`flex flex-col gap-1.5 text-sm font-medium ${className}`} htmlFor={selectId}>
+      <span>
+        {label}
+        {requiredMark ? (
+          <span className="ml-0.5 text-red-600" aria-hidden>
+            *
+          </span>
+        ) : null}
+      </span>
+      <span className="relative block max-w-full">
         <select
           id={selectId}
-          className={`w-full appearance-none rounded-md border border-brand/15 bg-white py-2 pr-10 pl-3 outline-none focus:border-brand ${className}`}
+          className={`w-full appearance-none rounded-md border border-brand/15 bg-white py-2 pr-10 pl-3 text-sm font-normal outline-none focus:border-brand disabled:cursor-not-allowed disabled:opacity-60 ${selectClassName}`}
           {...props}
         >
           {placeholder ? (
@@ -51,6 +57,9 @@ export function SelectField({
           className="pointer-events-none absolute top-1/2 right-3 size-5 -translate-y-1/2 text-ink-muted"
         />
       </span>
+      {hint ? (
+        <span className="text-xs font-normal text-ink-muted">{hint}</span>
+      ) : null}
     </label>
   );
 }

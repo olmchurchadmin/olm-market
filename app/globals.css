@@ -55,6 +55,12 @@ body {
   }
 }
 
+/* Hide native select arrows; SelectField supplies a Heroicons chevron. */
+select {
+  appearance: none;
+  background-image: none;
+}
+
 button:not(:disabled),
 [type="button"]:not(:disabled),
 [type="submit"]:not(:disabled),
