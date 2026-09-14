@@ -49,52 +49,57 @@ export function AdminTabs({
   ];
 
   return (
-    <nav className="flex flex-wrap gap-2 border-b border-brand/10 pb-4">
-      {tabs.map((tab) => {
-        const isActive = shown === tab.key;
-        const isLoading = pending && shown === tab.key && tab.key !== active;
-        return (
-          <Link
-            key={tab.key}
-            href={`/admin?tab=${tab.key}`}
-            prefetch
-            aria-current={isActive ? "page" : undefined}
-            aria-busy={isLoading || undefined}
-            onClick={(event) => {
-              if (!onNavigate) return;
-              if (
-                event.metaKey ||
-                event.ctrlKey ||
-                event.shiftKey ||
-                event.altKey ||
-                event.button !== 0
-              ) {
-                return;
-              }
-              event.preventDefault();
-              onNavigate(tab.key);
-            }}
-            className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition ${
-              isActive
-                ? "bg-brand text-white shadow-sm"
-                : "bg-white text-foreground ring-1 ring-brand/10 hover:bg-neutral-100"
-            } ${isLoading ? "opacity-80" : ""}`}
-          >
-            {tab.label}
-            {tab.badge != null ? (
-              <span
-                className={`inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold ${
-                  isActive
-                    ? "bg-white/25 text-white"
-                    : "bg-red-600 text-white"
-                }`}
-              >
-                {tab.badge > 99 ? "99+" : tab.badge}
-              </span>
-            ) : null}
-          </Link>
-        );
-      })}
+    <nav className="-mx-4 border-b border-brand/10 px-4 pb-4 sm:mx-0 sm:px-0">
+      <div
+        className="flex flex-nowrap gap-2 overflow-x-auto overscroll-x-contain px-0.5 py-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
+        {tabs.map((tab) => {
+          const isActive = shown === tab.key;
+          const isLoading = pending && shown === tab.key && tab.key !== active;
+          return (
+            <Link
+              key={tab.key}
+              href={`/admin?tab=${tab.key}`}
+              prefetch
+              aria-current={isActive ? "page" : undefined}
+              aria-busy={isLoading || undefined}
+              onClick={(event) => {
+                if (!onNavigate) return;
+                if (
+                  event.metaKey ||
+                  event.ctrlKey ||
+                  event.shiftKey ||
+                  event.altKey ||
+                  event.button !== 0
+                ) {
+                  return;
+                }
+                event.preventDefault();
+                onNavigate(tab.key);
+              }}
+              className={`inline-flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium whitespace-nowrap transition ${
+                isActive
+                  ? "bg-brand text-white shadow-sm"
+                  : "bg-white text-foreground ring-1 ring-brand/10 hover:bg-neutral-100"
+              } ${isLoading ? "opacity-80" : ""}`}
+            >
+              {tab.label}
+              {tab.badge != null ? (
+                <span
+                  className={`inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold ${
+                    isActive
+                      ? "bg-white/25 text-white"
+                      : "bg-red-600 text-white"
+                  }`}
+                >
+                  {tab.badge > 99 ? "99+" : tab.badge}
+                </span>
+              ) : null}
+            </Link>
+          );
+        })}
+      </div>
     </nav>
   );
 }
