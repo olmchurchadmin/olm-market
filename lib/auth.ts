@@ -1,7 +1,10 @@
 import { cache } from "react";
 import { isSupabaseConfigured } from "@/lib/env";
+import { isAdminRole, isStaffRole } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/types";
+
+export { isAdminRole, isStaffRole, parseUserRole } from "@/lib/roles";
 
 export const getSessionUser = cache(async () => {
   if (!isSupabaseConfigured()) return null;
@@ -85,10 +88,20 @@ export const getCurrentProfile = cache(async (): Promise<Profile | null> => {
   return normalizeInitialDisplayName(supabase, profile);
 });
 
+export async function requireStaff() {
+  const { redirect } = await import("next/navigation");
+  const profile = await getCurrentProfile();
+  if (!profile || !isStaffRole(profile.role)) {
+    redirect("/");
+  }
+  return profile as Profile;
+}
+
+/** Full admin only (member edit/delete and similar). */
 export async function requireAdmin() {
   const { redirect } = await import("next/navigation");
   const profile = await getCurrentProfile();
-  if (!profile || profile.role !== "admin") {
+  if (!profile || !isAdminRole(profile.role)) {
     redirect("/");
   }
   return profile as Profile;

@@ -10,7 +10,7 @@ import {
 import { AdminShell } from "@/components/admin-shell";
 import { AdminStatsPanel } from "@/components/admin-stats-panel";
 import type { AdminTab } from "@/components/admin-tabs";
-import { requireAdmin } from "@/lib/auth";
+import { requireStaff, isAdminRole } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import type { AdminStats, Category, Listing, SiteBanner } from "@/lib/types";
@@ -62,7 +62,7 @@ export default async function AdminPage({
     edit?: string;
   }>;
 }) {
-  const adminProfile = await requireAdmin();
+  const adminProfile = await requireStaff();
   const { t } = await getI18n();
   const {
     error,
@@ -360,7 +360,10 @@ export default async function AdminPage({
       {tab === "members" ? (
         <AdminMembersPanel
           currentUserId={adminProfile.id}
-          editingMemberId={editParam || null}
+          canManageMembers={isAdminRole(adminProfile.role)}
+          editingMemberId={
+            isAdminRole(adminProfile.role) ? editParam || null : null
+          }
           members={(members || []).map((member) => ({
             id: member.id,
             email: member.email,

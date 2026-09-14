@@ -7,12 +7,14 @@ import type { EmailOtpType } from "@supabase/supabase-js";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { getI18n } from "@/lib/i18n/server";
 import { buildEmailConfirmUrl } from "@/lib/auth-links";
+import { isAdminRole, parseUserRole } from "@/lib/roles";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/notifications/email";
 import {
   confirmEmailHtml,
   passwordResetEmailHtml,
 } from "@/lib/notifications/auth-emails";
+import type { UserRole } from "@/lib/types";
 
 function siteUrl(path = "") {
   const base = process.env.NEXT_PUBLIC_SITE_URL
@@ -514,7 +516,7 @@ export async function adminUpdateMemberAction(formData: FormData) {
     .select("role")
     .eq("id", user.id)
     .maybeSingle();
-  if (adminProfile?.role !== "admin") {
+  if (!isAdminRole(adminProfile?.role)) {
     redirect("/");
   }
 
@@ -536,8 +538,7 @@ export async function adminUpdateMemberAction(formData: FormData) {
   const notificationEmail = String(
     formData.get("notification_email") || "",
   ).trim();
-  const roleRaw = String(formData.get("role") || "").trim();
-  const nextRole = roleRaw === "admin" ? "admin" : "user";
+  const nextRole = parseUserRole(String(formData.get("role") || ""));
 
   if (displayName.length > 40) {
     fail(t.errors.displayNameTooLong);
@@ -563,13 +564,13 @@ export async function adminUpdateMemberAction(formData: FormData) {
     return;
   }
 
-  const currentRole = target.role === "admin" ? "admin" : "user";
-  let role = nextRole;
+  const currentRole = parseUserRole(target.role);
+  let role: UserRole = nextRole;
 
   if (targetId === user.id) {
     // Never let an admin lock themselves out of admin via this form.
     role = currentRole;
-  } else if (currentRole === "admin" && role === "user") {
+  } else if (currentRole === "admin" && role !== "admin") {
     const { count, error: countError } = await supabase
       .from("profiles")
       .select("id", { count: "exact", head: true })
@@ -630,7 +631,7 @@ export async function adminDeleteMemberAction(formData: FormData) {
     .select("role")
     .eq("id", user.id)
     .maybeSingle();
-  if (adminProfile?.role !== "admin") {
+  if (!isAdminRole(adminProfile?.role)) {
     redirect("/");
   }
 
@@ -661,7 +662,7 @@ export async function adminDeleteMemberAction(formData: FormData) {
     .eq("id", targetId)
     .maybeSingle();
 
-  if (!target || target.role === "admin") {
+  if (!target || isAdminRole(target.role)) {
     fail(t.errors.deleteMemberForbidden);
   }
 

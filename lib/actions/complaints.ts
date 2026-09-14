@@ -4,6 +4,7 @@ import { after } from "next/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getI18n } from "@/lib/i18n/server";
+import { isStaffRole } from "@/lib/auth";
 import {
   notifyComplaintCreated,
   notifyComplaintReplied,
@@ -75,7 +76,7 @@ export async function resolveComplaintAction(formData: FormData) {
     .eq("id", user.id)
     .maybeSingle();
 
-  if (profile?.role !== "admin") {
+  if (!isStaffRole(profile?.role)) {
     redirect("/");
   }
 
@@ -130,7 +131,7 @@ export async function deleteComplaintAction(formData: FormData) {
     .eq("id", user.id)
     .maybeSingle();
 
-  if (profile?.role !== "admin") {
+  if (!isStaffRole(profile?.role)) {
     redirect("/");
   }
 
@@ -175,7 +176,7 @@ export async function replyComplaintAction(formData: FormData) {
     .eq("id", user.id)
     .maybeSingle();
 
-  if (profile?.role !== "admin") {
+  if (!isStaffRole(profile?.role)) {
     redirect("/");
   }
 

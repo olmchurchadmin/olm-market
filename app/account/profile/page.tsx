@@ -13,7 +13,7 @@ import {
   updatePasswordAction,
   updateProfileAction,
 } from "@/lib/actions/auth";
-import { getCurrentProfile } from "@/lib/auth";
+import { getCurrentProfile, isStaffRole } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
 import { accountDisplayName } from "@/lib/utils";
 
@@ -191,7 +191,7 @@ export default async function AccountProfilePage({
         </form>
       </section>
 
-      {profile.role !== "admin" ? (
+      {!isStaffRole(profile.role) ? (
         <section className="mt-8 rounded-lg border border-red-200/80 bg-red-50/40 p-5">
           <h2 className="inline-flex items-center gap-2 font-[family-name:var(--font-display)] text-2xl text-red-900">
             <TrashIcon className="size-6" aria-hidden />

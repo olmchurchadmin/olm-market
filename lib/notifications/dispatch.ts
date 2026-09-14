@@ -261,7 +261,7 @@ async function notifyAdmin(
   const { data: admins } = await supabase
     .from("profiles")
     .select("id, email, notification_email")
-    .eq("role", "admin");
+    .in("role", ["admin", "manager"]);
 
   const recipients = new Set<string>();
   for (const admin of admins || []) {
@@ -770,7 +770,7 @@ export async function notifyComplaintCreated(complaintId: string) {
     supabase
       .from("profiles")
       .select(profileSelect)
-      .eq("role", "admin"),
+      .in("role", ["admin", "manager"]),
   ]);
 
   const memberName = displayName(member, "회원");

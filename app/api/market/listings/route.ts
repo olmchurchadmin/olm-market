@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCurrentProfile } from "@/lib/auth";
+import { getCurrentProfile, isStaffRole } from "@/lib/auth";
 import {
   fetchMarketListingsPage,
   MARKET_PAGE_SIZE,
@@ -21,7 +21,7 @@ export async function GET(request: Request) {
 
   if (status === "sold") {
     const profile = await getCurrentProfile();
-    if (profile?.role !== "admin") {
+    if (!isStaffRole(profile?.role)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
   }

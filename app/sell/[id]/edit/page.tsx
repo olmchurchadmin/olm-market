@@ -8,7 +8,7 @@ import { PickupMethodField } from "@/components/pickup-method-field";
 import { FileUploadField } from "@/components/ui/file-upload-field";
 import { SelectField } from "@/components/ui/select-field";
 import { updateListingAction } from "@/lib/actions/listings";
-import { getCurrentProfile, getSessionUser } from "@/lib/auth";
+import { getCurrentProfile, getSessionUser, isStaffRole } from "@/lib/auth";
 import { categoryLabel } from "@/lib/i18n/categories";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
@@ -29,7 +29,7 @@ export default async function EditListingPage({
   }
 
   const profile = await getCurrentProfile();
-  const isAdmin = profile?.role === "admin";
+  const isAdmin = isStaffRole(profile?.role);
   const supabase = await createClient();
   const [{ data: listing }, { data: categories }, { data: pickupContact }] =
     await Promise.all([

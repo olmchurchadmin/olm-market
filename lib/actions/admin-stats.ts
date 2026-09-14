@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getI18n } from "@/lib/i18n/server";
+import { isStaffRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import type { AdminStats } from "@/lib/types";
 
@@ -28,7 +29,7 @@ async function requireAdminClient() {
     .eq("id", user.id)
     .maybeSingle();
 
-  if (profile?.role !== "admin") {
+  if (!isStaffRole(profile?.role)) {
     return {
       ok: false as const,
       error: t.errors.cannotEdit,

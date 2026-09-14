@@ -4,7 +4,7 @@ import { AdminReplyForm } from "@/components/admin-reply-form";
 import { DeleteComplaintButton } from "@/components/delete-complaint-button";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { createComplaintAction } from "@/lib/actions/complaints";
-import { getCurrentProfile } from "@/lib/auth";
+import { getCurrentProfile, isStaffRole } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import { accountDisplayName, formatPersonName } from "@/lib/utils";
@@ -22,7 +22,7 @@ export default async function AccountComplaintsPage({
 
   if (!profile) return null;
 
-  const isAdmin = profile.role === "admin";
+  const isAdmin = isStaffRole(profile.role);
   const supabase = await createClient();
 
   // Admin sees all complaints; regular users see only their own.

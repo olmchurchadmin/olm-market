@@ -10,6 +10,7 @@ import { useI18n } from "@/components/locale-provider";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { SelectField } from "@/components/ui/select-field";
 import { adminUpdateMemberAction } from "@/lib/actions/auth";
+import { parseUserRole } from "@/lib/roles";
 import { accountDisplayName } from "@/lib/utils";
 
 export type EditableMember = {
@@ -31,7 +32,7 @@ export function AdminMemberEditForm({
 }) {
   const { t } = useI18n();
   const isSelf = member.id === currentUserId;
-  const roleValue = member.role === "admin" ? "admin" : "user";
+  const roleValue = parseUserRole(member.role);
 
   return (
     <section className="mt-8 rounded-lg border border-brand/10 bg-white/70 p-5">
@@ -108,6 +109,7 @@ export function AdminMemberEditForm({
           selectClassName="max-w-xs"
           options={[
             { value: "user", label: t.admin.roleUser },
+            { value: "manager", label: t.admin.roleManager },
             { value: "admin", label: t.admin.roleAdmin },
           ]}
           hint={isSelf ? t.errors.cannotDemoteSelf : t.admin.roleHint}

@@ -4,6 +4,7 @@ import { after } from "next/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getI18n } from "@/lib/i18n/server";
+import { isStaffRole } from "@/lib/auth";
 import { notifyListingCreated, notifyAdminListingChange } from "@/lib/notifications/dispatch";
 import { createClient } from "@/lib/supabase/server";
 import type { ItemCondition, PickupMethod } from "@/lib/types";
@@ -248,7 +249,7 @@ export async function updateListingAction(formData: FormData) {
       supabase.from("profiles").select("role").eq("id", user.id).maybeSingle(),
     ]);
 
-  const isAdmin = profile?.role === "admin";
+  const isAdmin = isStaffRole(profile?.role);
   if (loadError || !existing || (existing.seller_id !== user.id && !isAdmin)) {
     throw new Error(t.errors.cannotEdit);
   }
@@ -407,7 +408,7 @@ export async function deleteListingAction(formData: FormData) {
     supabase.from("profiles").select("role").eq("id", user.id).maybeSingle(),
   ]);
 
-  const isAdmin = profile?.role === "admin";
+  const isAdmin = isStaffRole(profile?.role);
   const backTo = isAdmin ? "/admin?tab=listings" : "/account/transactions";
   const withError = (message: string) =>
     `${backTo}${backTo.includes("?") ? "&" : "?"}error=${encodeURIComponent(message)}`;
@@ -510,7 +511,7 @@ export async function toggleListingFeaturedAction(formData: FormData) {
     .eq("id", user.id)
     .maybeSingle();
 
-  if (profile?.role !== "admin") {
+  if (!isStaffRole(profile?.role)) {
     throw new Error(t.errors.cannotEdit);
   }
 

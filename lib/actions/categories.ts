@@ -7,6 +7,7 @@ import {
   translateKoreanToEnglish,
 } from "@/lib/i18n/translate-ko-en";
 import { getI18n } from "@/lib/i18n/server";
+import { isStaffRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 async function requireAdminClient() {
@@ -22,7 +23,7 @@ async function requireAdminClient() {
     .eq("id", user.id)
     .maybeSingle();
 
-  if (profile?.role !== "admin") {
+  if (!isStaffRole(profile?.role)) {
     redirect("/");
   }
 

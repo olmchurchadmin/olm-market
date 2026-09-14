@@ -226,10 +226,12 @@ export function AdminMembersPanel({
   members,
   currentUserId,
   editingMemberId,
+  canManageMembers = false,
 }: {
   members: MemberRow[];
   currentUserId: string;
   editingMemberId?: string | null;
+  canManageMembers?: boolean;
 }) {
   const { locale, t } = useI18n();
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(() => new Set());
@@ -240,9 +242,10 @@ export function AdminMembersPanel({
   }, [members]);
 
   const visibleMembers = members.filter((member) => !hiddenIds.has(member.id));
-  const editingMember = editingMemberId
-    ? members.find((member) => member.id === editingMemberId) || null
-    : null;
+  const editingMember =
+    canManageMembers && editingMemberId
+      ? members.find((member) => member.id === editingMemberId) || null
+      : null;
 
   if (editingMember) {
     return (
@@ -259,6 +262,12 @@ export function AdminMembersPanel({
         }}
       />
     );
+  }
+
+  function roleLabel(role: string) {
+    if (role === "admin") return t.admin.roleAdmin;
+    if (role === "manager") return t.admin.roleManager;
+    return t.admin.roleUser;
   }
 
   return (
@@ -281,6 +290,12 @@ export function AdminMembersPanel({
         );
 
         return (
+          <>
+            {!canManageMembers ? (
+              <p className="mb-3 text-xs text-ink-muted">
+                {t.admin.membersReadOnlyHint}
+              </p>
+            ) : null}
           <div className="overflow-x-auto rounded-lg border border-brand/10 bg-white/70">
             <table className="min-w-full text-left text-sm">
               <thead className="border-b border-brand/10 text-ink-muted">
@@ -299,7 +314,9 @@ export function AdminMembersPanel({
                 {filtered.map((member) => {
                   const label = accountDisplayName(member);
                   const canDelete =
-                    member.id !== currentUserId && member.role !== "admin";
+                    canManageMembers &&
+                    member.id !== currentUserId &&
+                    member.role !== "admin";
                   return (
                     <tr key={member.id} className="border-t border-brand/5">
                       <td className="px-4 py-3">{label}</td>
@@ -308,12 +325,12 @@ export function AdminMembersPanel({
                       </td>
                       <td className="px-4 py-3">{member.phone || "—"}</td>
                       <td className="px-4 py-3">
-                        {member.role === "admin" ? (
+                        {member.role === "admin" || member.role === "manager" ? (
                           <span className="rounded bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand">
-                            admin
+                            {roleLabel(member.role)}
                           </span>
                         ) : (
-                          "user"
+                          roleLabel(member.role)
                         )}
                       </td>
                       <td className="whitespace-nowrap px-4 py-3">
@@ -322,25 +339,27 @@ export function AdminMembersPanel({
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <Link
-                            href={`/admin?tab=members&edit=${member.id}`}
-                            title={t.admin.editMember}
-                            aria-label={`${t.admin.editMember}: ${label}`}
-                            className="inline-flex size-8 items-center justify-center rounded-md border border-brand/15 bg-white text-foreground hover:bg-brand/5"
-                          >
-                            <PencilSquareIcon className="size-4" aria-hidden />
-                          </Link>
-                          {canDelete ? (
-                            <AdminDeleteMemberButton
-                              memberId={member.id}
-                              memberLabel={label}
-                              onDeleteStart={(id) =>
-                                setHiddenIds((prev) => new Set(prev).add(id))
-                              }
-                            />
-                          ) : null}
-                        </div>
+                        {canManageMembers ? (
+                          <div className="flex items-center justify-end gap-1.5">
+                            <Link
+                              href={`/admin?tab=members&edit=${member.id}`}
+                              title={t.admin.editMember}
+                              aria-label={`${t.admin.editMember}: ${label}`}
+                              className="inline-flex size-8 items-center justify-center rounded-md border border-brand/15 bg-white text-foreground hover:bg-brand/5"
+                            >
+                              <PencilSquareIcon className="size-4" aria-hidden />
+                            </Link>
+                            {canDelete ? (
+                              <AdminDeleteMemberButton
+                                memberId={member.id}
+                                memberLabel={label}
+                                onDeleteStart={(id) =>
+                                  setHiddenIds((prev) => new Set(prev).add(id))
+                                }
+                              />
+                            ) : null}
+                          </div>
+                        ) : null}
                       </td>
                     </tr>
                   );
@@ -357,6 +376,7 @@ export function AdminMembersPanel({
               </p>
             ) : null}
           </div>
+          </>
         );
       }}
     </AdminSearchableSection>

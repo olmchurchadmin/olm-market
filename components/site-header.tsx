@@ -1,6 +1,7 @@
 import { BrandLogo } from "@/components/brand-logo";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { SiteNav } from "@/components/site-nav";
+import { isStaffRole } from "@/lib/roles";
 import type { Profile } from "@/lib/types";
 import { accountDisplayName } from "@/lib/utils";
 
@@ -16,7 +17,7 @@ export function SiteHeader({ profile }: { profile: Profile | null }) {
                 ? {
                     displayName: accountDisplayName(profile),
                     email: profile.email,
-                    isAdmin: profile.role === "admin",
+                    isAdmin: isStaffRole(profile.role),
                   }
                 : null
             }
