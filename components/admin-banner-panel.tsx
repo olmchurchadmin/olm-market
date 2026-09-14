@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useI18n } from "@/components/locale-provider";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
+import { DatePickerField } from "@/components/ui/date-picker-field";
 import { saveSiteBannerAction } from "@/lib/actions/site-banner";
 import type { SiteBanner } from "@/lib/types";
 
@@ -153,26 +154,18 @@ export function AdminBannerPanel({ banner }: { banner: SiteBanner | null }) {
             ))}
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block space-y-1.5 text-sm font-medium">
-              {t.admin.bannerStartsAt}
-              <input
-                name="starts_on"
-                type="date"
-                value={startsOn}
-                onChange={(e) => setStartsOn(e.target.value)}
-                className="w-full rounded-md border border-brand/15 bg-white px-3 py-2 text-sm font-normal outline-none focus:border-brand"
-              />
-            </label>
-            <label className="block space-y-1.5 text-sm font-medium">
-              {t.admin.bannerEndsAt}
-              <input
-                name="ends_on"
-                type="date"
-                value={endsOn}
-                onChange={(e) => setEndsOn(e.target.value)}
-                className="w-full rounded-md border border-brand/15 bg-white px-3 py-2 text-sm font-normal outline-none focus:border-brand"
-              />
-            </label>
+            <DatePickerField
+              label={t.admin.bannerStartsAt}
+              name="starts_on"
+              value={startsOn}
+              onChange={setStartsOn}
+            />
+            <DatePickerField
+              label={t.admin.bannerEndsAt}
+              name="ends_on"
+              value={endsOn}
+              onChange={setEndsOn}
+            />
           </div>
           <p className="rounded-md bg-brand/5 px-3 py-2 text-xs text-foreground">
             {scheduleSummary}

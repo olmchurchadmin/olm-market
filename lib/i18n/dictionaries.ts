@@ -659,6 +659,11 @@ const ko = {
     loading: "처리 중…",
     confirm: "확인",
     cancel: "취소",
+    clear: "지우기",
+    today: "오늘",
+    pickDate: "날짜 선택",
+    prevMonth: "이전 달",
+    nextMonth: "다음 달",
   },
 };
 
@@ -1337,6 +1342,11 @@ const en: Dictionary = {
     loading: "Working…",
     confirm: "Confirm",
     cancel: "Cancel",
+    clear: "Clear",
+    today: "Today",
+    pickDate: "Pick a date",
+    prevMonth: "Previous month",
+    nextMonth: "Next month",
   },
 };
 

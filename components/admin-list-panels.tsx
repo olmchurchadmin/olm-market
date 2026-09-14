@@ -330,7 +330,7 @@ export function AdminMembersPanel({
                             {roleLabel(member.role)}
                           </span>
                         ) : member.role === "manager" ? (
-                          <span className="rounded bg-neutral-200 px-2 py-0.5 text-xs font-semibold text-foreground">
+                          <span className="rounded bg-neutral-100 px-2 py-0.5 text-xs font-semibold text-foreground">
                             {roleLabel(member.role)}
                           </span>
                         ) : (
