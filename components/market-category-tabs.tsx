@@ -57,7 +57,7 @@ export function MarketCategoryTabs({
   return (
     <div className="animate-rise-delay-1 mt-5 -mx-4 px-4 sm:mx-0 sm:px-0">
       <div
-        className="flex gap-2 overflow-x-auto overscroll-x-contain py-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex gap-2 overflow-x-auto overscroll-x-contain px-0.5 py-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         style={{ WebkitOverflowScrolling: "touch" }}
       >
         <Link
