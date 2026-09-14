@@ -10,6 +10,7 @@ import {
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AdminDeleteMemberButton } from "@/components/admin-delete-member-button";
+import { AdminMemberEditForm } from "@/components/admin-member-edit-form";
 import { AdminOrderActions } from "@/components/admin-order-actions";
 import { AdminReplyForm } from "@/components/admin-reply-form";
 import {
@@ -49,6 +50,7 @@ type MemberRow = {
   full_name: string | null;
   nickname: string | null;
   phone: string | null;
+  notification_email?: string | null;
   role: string;
   created_at: string;
 };
@@ -223,9 +225,11 @@ export function AdminListingsPanel({ listings }: { listings: ListingRow[] }) {
 export function AdminMembersPanel({
   members,
   currentUserId,
+  editingMemberId,
 }: {
   members: MemberRow[];
   currentUserId: string;
+  editingMemberId?: string | null;
 }) {
   const { locale, t } = useI18n();
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(() => new Set());
@@ -236,6 +240,26 @@ export function AdminMembersPanel({
   }, [members]);
 
   const visibleMembers = members.filter((member) => !hiddenIds.has(member.id));
+  const editingMember = editingMemberId
+    ? members.find((member) => member.id === editingMemberId) || null
+    : null;
+
+  if (editingMember) {
+    return (
+      <AdminMemberEditForm
+        currentUserId={currentUserId}
+        member={{
+          id: editingMember.id,
+          email: editingMember.email,
+          full_name: editingMember.full_name,
+          nickname: editingMember.nickname,
+          phone: editingMember.phone,
+          notification_email: editingMember.notification_email ?? null,
+          role: editingMember.role,
+        }}
+      />
+    );
+  }
 
   return (
     <AdminSearchableSection
@@ -267,7 +291,7 @@ export function AdminMembersPanel({
                   <th className="px-4 py-3 font-medium">{t.admin.role}</th>
                   <th className="px-4 py-3 font-medium">{t.admin.joined}</th>
                   <th className="px-4 py-3 font-medium">
-                    <span className="sr-only">{t.admin.deleteMember}</span>
+                    <span className="sr-only">{t.admin.editMember}</span>
                   </th>
                 </tr>
               </thead>
@@ -297,16 +321,26 @@ export function AdminMembersPanel({
                           locale === "en" ? "en-US" : "ko-KR",
                         )}
                       </td>
-                      <td className="px-4 py-3 text-right">
-                        {canDelete ? (
-                          <AdminDeleteMemberButton
-                            memberId={member.id}
-                            memberLabel={label}
-                            onDeleteStart={(id) =>
-                              setHiddenIds((prev) => new Set(prev).add(id))
-                            }
-                          />
-                        ) : null}
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <Link
+                            href={`/admin?tab=members&edit=${member.id}`}
+                            title={t.admin.editMember}
+                            aria-label={`${t.admin.editMember}: ${label}`}
+                            className="inline-flex size-8 items-center justify-center rounded-md border border-brand/15 bg-white text-foreground hover:bg-brand/5"
+                          >
+                            <PencilSquareIcon className="size-4" aria-hidden />
+                          </Link>
+                          {canDelete ? (
+                            <AdminDeleteMemberButton
+                              memberId={member.id}
+                              memberLabel={label}
+                              onDeleteStart={(id) =>
+                                setHiddenIds((prev) => new Set(prev).add(id))
+                              }
+                            />
+                          ) : null}
+                        </div>
                       </td>
                     </tr>
                   );

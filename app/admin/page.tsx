@@ -49,6 +49,7 @@ export default async function AdminPage({
     resolved?: string;
     deleted?: string;
     memberDeleted?: string;
+    memberSaved?: string;
     complaintDeleted?: string;
     orderDeleted?: string;
     categoryAdded?: string;
@@ -58,6 +59,7 @@ export default async function AdminPage({
     bannerSaved?: string;
     tab?: string;
     range?: string;
+    edit?: string;
   }>;
 }) {
   const adminProfile = await requireAdmin();
@@ -67,6 +69,7 @@ export default async function AdminPage({
     resolved,
     deleted,
     memberDeleted,
+    memberSaved,
     complaintDeleted,
     orderDeleted,
     categoryAdded,
@@ -76,6 +79,7 @@ export default async function AdminPage({
     bannerSaved,
     tab: tabParam,
     range: rangeParam,
+    edit: editParam,
   } = await searchParams;
   const tab = parseTab(tabParam);
   const range = parseRange(rangeParam);
@@ -101,6 +105,7 @@ export default async function AdminPage({
         full_name: string | null;
         nickname: string | null;
         phone: string | null;
+        notification_email: string | null;
         role: string;
         created_at: string;
       }[]
@@ -117,7 +122,9 @@ export default async function AdminPage({
   } else if (tab === "members") {
     const { data } = await supabase
       .from("profiles")
-      .select("id, email, full_name, nickname, phone, role, created_at")
+      .select(
+        "id, email, full_name, nickname, phone, notification_email, role, created_at",
+      )
       .order("created_at", { ascending: false })
       .limit(100);
     members = data;
@@ -284,6 +291,11 @@ export default async function AdminPage({
           {t.admin.memberDeletedFlash}
         </p>
       ) : null}
+      {memberSaved ? (
+        <p className="mt-6 rounded-md border border-brand/20 bg-brand/5 px-3 py-2 text-sm text-brand">
+          {t.admin.memberSavedFlash}
+        </p>
+      ) : null}
       {complaintDeleted ? (
         <p className="mt-6 rounded-md border border-brand/20 bg-brand/5 px-3 py-2 text-sm text-brand">
           {t.admin.complaintDeletedFlash}
@@ -348,12 +360,14 @@ export default async function AdminPage({
       {tab === "members" ? (
         <AdminMembersPanel
           currentUserId={adminProfile.id}
+          editingMemberId={editParam || null}
           members={(members || []).map((member) => ({
             id: member.id,
             email: member.email,
             full_name: member.full_name,
             nickname: member.nickname,
             phone: member.phone,
+            notification_email: member.notification_email,
             role: member.role,
             created_at: member.created_at,
           }))}

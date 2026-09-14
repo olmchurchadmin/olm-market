@@ -234,8 +234,8 @@ async function deliverToPerson(
 }
 
 /**
- * The admin is not a party to the trade, so they get one digest covering both
- * sides by email rather than in-app rows. Their working view is /admin.
+ * Site-wide admin digest email. Sends to every profile with role=admin
+ * (notification_email || email), plus the shared ADMIN_EMAIL inbox if needed.
  */
 async function notifyAdmin(
   supabase: ReturnType<typeof createServiceClient>,
@@ -246,7 +246,6 @@ async function notifyAdmin(
     orderId: string | null;
   },
 ) {
-  const adminEmail = getAdminEmail();
   const body = options.lines.join("\n\n");
   const html = tradeNotificationEmailHtml({
     title: options.subject,
@@ -259,27 +258,57 @@ async function notifyAdmin(
     role: "admin",
   });
 
-  const result = await sendEmail({
-    to: adminEmail,
-    subject: `[OLM Market] ${options.subject}`,
-    html,
-  });
+  const { data: admins } = await supabase
+    .from("profiles")
+    .select("id, email, notification_email")
+    .eq("role", "admin");
 
-  await recordJob(supabase, {
-    channel: "email",
-    recipient: adminEmail,
-    subject: options.subject,
-    body,
-    payload: options.payload,
-    status: result.ok
-      ? "sent"
-      : result.reason === "pending_credentials"
-        ? "pending_credentials"
-        : "failed",
-    error: result.ok ? null : "error" in result ? result.error : result.reason,
-    related_order_id: options.orderId,
-    sent_at: result.ok ? new Date().toISOString() : null,
-  });
+  const recipients = new Set<string>();
+  for (const admin of admins || []) {
+    const email = notifyEmailFor(admin as ProfileRow);
+    if (email) recipients.add(email.toLowerCase());
+  }
+  const sharedInbox = getAdminEmail().trim().toLowerCase();
+  if (sharedInbox) recipients.add(sharedInbox);
+
+  if (!recipients.size) {
+    await recordJob(supabase, {
+      channel: "email",
+      recipient: sharedInbox || "admin",
+      subject: options.subject,
+      body,
+      payload: options.payload,
+      status: "failed",
+      error: "no_admin_recipients",
+      related_order_id: options.orderId,
+      sent_at: null,
+    });
+    return;
+  }
+
+  for (const adminEmail of recipients) {
+    const result = await sendEmail({
+      to: adminEmail,
+      subject: `[OLM Market] ${options.subject}`,
+      html,
+    });
+
+    await recordJob(supabase, {
+      channel: "email",
+      recipient: adminEmail,
+      subject: options.subject,
+      body,
+      payload: options.payload,
+      status: result.ok
+        ? "sent"
+        : result.reason === "pending_credentials"
+          ? "pending_credentials"
+          : "failed",
+      error: result.ok ? null : "error" in result ? result.error : result.reason,
+      related_order_id: options.orderId,
+      sent_at: result.ok ? new Date().toISOString() : null,
+    });
+  }
 }
 
 const profileSelect = "id, email, notification_email, full_name, nickname";

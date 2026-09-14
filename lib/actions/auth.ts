@@ -501,6 +501,122 @@ export async function deleteAccountAction() {
   redirect("/");
 }
 
+export async function adminUpdateMemberAction(formData: FormData) {
+  const { t } = await getI18n();
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { data: adminProfile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (adminProfile?.role !== "admin") {
+    redirect("/");
+  }
+
+  const targetId = String(formData.get("user_id") || "").trim();
+  const fail = (message: string) =>
+    redirect(
+      `/admin?tab=members&edit=${encodeURIComponent(targetId || "")}&error=${encodeURIComponent(message)}`,
+    );
+
+  if (!targetId) {
+    fail(t.errors.memberNotFound);
+  }
+
+  const displayName = String(
+    formData.get("display_name") || formData.get("nickname") || "",
+  ).trim();
+  const fullName = String(formData.get("full_name") || "").trim();
+  const phone = String(formData.get("phone") || "").trim();
+  const notificationEmail = String(
+    formData.get("notification_email") || "",
+  ).trim();
+  const roleRaw = String(formData.get("role") || "").trim();
+  const nextRole = roleRaw === "admin" ? "admin" : "user";
+
+  if (displayName.length > 40) {
+    fail(t.errors.displayNameTooLong);
+  }
+  if (fullName.length > 80) {
+    fail(t.errors.fullNameTooLong);
+  }
+  if (
+    notificationEmail &&
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(notificationEmail)
+  ) {
+    fail(t.errors.notificationEmailInvalid);
+  }
+
+  const { data: target } = await supabase
+    .from("profiles")
+    .select("id, role")
+    .eq("id", targetId)
+    .maybeSingle();
+
+  if (!target) {
+    fail(t.errors.memberNotFound);
+    return;
+  }
+
+  const currentRole = target.role === "admin" ? "admin" : "user";
+  let role = nextRole;
+
+  if (targetId === user.id) {
+    // Never let an admin lock themselves out of admin via this form.
+    role = currentRole;
+  } else if (currentRole === "admin" && role === "user") {
+    const { count, error: countError } = await supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("role", "admin");
+    if (countError) {
+      fail(countError.message || t.errors.memberSaveFailed);
+    }
+    if ((count || 0) <= 1) {
+      fail(t.errors.cannotDemoteLastAdmin);
+    }
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      nickname: displayName || null,
+      full_name: fullName || null,
+      phone: phone || null,
+      notification_email: notificationEmail || null,
+      role,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", targetId);
+
+  if (error) {
+    fail(error.message || t.errors.memberSaveFailed);
+  }
+
+  if (role !== currentRole) {
+    try {
+      const admin = createServiceClient();
+      const { data: authData } = await admin.auth.admin.getUserById(targetId);
+      await admin.auth.admin.updateUserById(targetId, {
+        app_metadata: {
+          ...(authData.user?.app_metadata || {}),
+          role,
+        },
+      });
+    } catch {
+      // Profile role is source of truth for this app; metadata sync is best-effort.
+    }
+  }
+
+  revalidatePath("/admin");
+  redirect("/admin?tab=members&memberSaved=1");
+}
+
 export async function adminDeleteMemberAction(formData: FormData) {
   const { t } = await getI18n();
   const supabase = await createClient();
