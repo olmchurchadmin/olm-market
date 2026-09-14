@@ -296,62 +296,80 @@ export function AdminMembersPanel({
                 {t.admin.membersReadOnlyHint}
               </p>
             ) : null}
-          <div className="overflow-x-auto rounded-lg border border-brand/10 bg-white/70">
-            <table className="min-w-full text-left text-sm">
-              <thead className="border-b border-brand/10 text-ink-muted">
-                <tr>
-                  <th className="px-4 py-3 font-medium">{t.admin.name}</th>
-                  <th className="px-4 py-3 font-medium">{t.admin.email}</th>
-                  <th className="px-4 py-3 font-medium">{t.admin.phone}</th>
-                  <th className="px-4 py-3 font-medium">{t.admin.role}</th>
-                  <th className="px-4 py-3 font-medium">{t.admin.joined}</th>
-                  <th className="px-4 py-3 font-medium">
-                    <span className="sr-only">{t.admin.editMember}</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((member) => {
-                  const label = accountDisplayName(member);
-                  const canDelete =
-                    canManageMembers &&
-                    member.id !== currentUserId &&
-                    member.role !== "admin";
-                  return (
-                    <tr key={member.id} className="border-t border-brand/5">
-                      <td className="px-4 py-3">{label}</td>
-                      <td className="break-all px-4 py-3">
-                        {member.email || "—"}
-                      </td>
-                      <td className="px-4 py-3">{member.phone || "—"}</td>
-                      <td className="px-4 py-3">
-                        {member.role === "admin" ? (
-                          <span className="rounded bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand">
-                            {roleLabel(member.role)}
-                          </span>
-                        ) : member.role === "manager" ? (
-                          <span className="rounded bg-neutral-100 px-2 py-0.5 text-xs font-semibold text-foreground">
-                            {roleLabel(member.role)}
-                          </span>
-                        ) : (
-                          roleLabel(member.role)
-                        )}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3">
-                        {new Date(member.created_at).toLocaleDateString(
-                          locale === "en" ? "en-US" : "ko-KR",
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
+
+            {!visibleMembers.length ? (
+              <p className="rounded-lg border border-brand/10 bg-white/70 px-4 py-6 text-sm text-ink-muted">
+                {t.admin.noMembers}
+              </p>
+            ) : !filtered.length ? (
+              <p className="rounded-lg border border-brand/10 bg-white/70 px-4 py-6 text-sm text-ink-muted">
+                {t.admin.noSearchResults}
+              </p>
+            ) : (
+              <>
+                <ul className="space-y-3 sm:hidden">
+                  {filtered.map((member) => {
+                    const label = accountDisplayName(member);
+                    const canDelete =
+                      canManageMembers &&
+                      member.id !== currentUserId &&
+                      member.role !== "admin";
+                    return (
+                      <li
+                        key={member.id}
+                        className="rounded-lg border border-brand/10 bg-white/70 p-4"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="font-medium text-foreground">
+                              {label}
+                            </p>
+                            <p className="mt-0.5 break-all text-sm text-ink-muted">
+                              {member.email || "—"}
+                            </p>
+                          </div>
+                          {member.role === "admin" ? (
+                            <span className="shrink-0 rounded bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand">
+                              {roleLabel(member.role)}
+                            </span>
+                          ) : member.role === "manager" ? (
+                            <span className="shrink-0 rounded bg-neutral-100 px-2 py-0.5 text-xs font-semibold text-foreground">
+                              {roleLabel(member.role)}
+                            </span>
+                          ) : (
+                            <span className="shrink-0 text-xs font-medium text-ink-muted">
+                              {roleLabel(member.role)}
+                            </span>
+                          )}
+                        </div>
+                        <dl className="mt-3 grid gap-1.5 text-sm">
+                          <div className="flex justify-between gap-3">
+                            <dt className="text-ink-muted">{t.admin.phone}</dt>
+                            <dd className="text-right text-foreground">
+                              {member.phone || "—"}
+                            </dd>
+                          </div>
+                          <div className="flex justify-between gap-3">
+                            <dt className="text-ink-muted">{t.admin.joined}</dt>
+                            <dd className="whitespace-nowrap text-right text-foreground">
+                              {new Date(member.created_at).toLocaleDateString(
+                                locale === "en" ? "en-US" : "ko-KR",
+                              )}
+                            </dd>
+                          </div>
+                        </dl>
                         {canManageMembers ? (
-                          <div className="flex items-center justify-end gap-1.5">
+                          <div className="mt-3 flex items-center justify-end gap-1.5 border-t border-brand/10 pt-3">
                             <Link
                               href={`/admin?tab=members&edit=${member.id}`}
                               title={t.admin.editMember}
                               aria-label={`${t.admin.editMember}: ${label}`}
                               className="inline-flex size-8 items-center justify-center rounded-md border border-brand/15 bg-white text-foreground hover:bg-brand/5"
                             >
-                              <PencilSquareIcon className="size-4" aria-hidden />
+                              <PencilSquareIcon
+                                className="size-4"
+                                aria-hidden
+                              />
                             </Link>
                             {canDelete ? (
                               <AdminDeleteMemberButton
@@ -364,22 +382,108 @@ export function AdminMembersPanel({
                             ) : null}
                           </div>
                         ) : null}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-            {!visibleMembers.length ? (
-              <p className="px-4 py-6 text-sm text-ink-muted">
-                {t.admin.noMembers}
-              </p>
-            ) : !filtered.length ? (
-              <p className="px-4 py-6 text-sm text-ink-muted">
-                {t.admin.noSearchResults}
-              </p>
-            ) : null}
-          </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+
+                <div className="hidden overflow-x-auto rounded-lg border border-brand/10 bg-white/70 sm:block">
+                  <table className="w-full min-w-[40rem] text-left text-sm">
+                    <thead className="border-b border-brand/10 text-ink-muted">
+                      <tr>
+                        <th className="px-4 py-3 font-medium">{t.admin.name}</th>
+                        <th className="px-4 py-3 font-medium">
+                          {t.admin.email}
+                        </th>
+                        <th className="px-4 py-3 font-medium">
+                          {t.admin.phone}
+                        </th>
+                        <th className="px-4 py-3 font-medium">{t.admin.role}</th>
+                        <th className="px-4 py-3 font-medium">
+                          {t.admin.joined}
+                        </th>
+                        <th className="px-4 py-3 font-medium">
+                          <span className="sr-only">{t.admin.editMember}</span>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filtered.map((member) => {
+                        const label = accountDisplayName(member);
+                        const canDelete =
+                          canManageMembers &&
+                          member.id !== currentUserId &&
+                          member.role !== "admin";
+                        return (
+                          <tr
+                            key={member.id}
+                            className="border-t border-brand/5"
+                          >
+                            <td className="whitespace-nowrap px-4 py-3">
+                              {label}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="block max-w-[16rem] truncate">
+                                {member.email || "—"}
+                              </span>
+                            </td>
+                            <td className="whitespace-nowrap px-4 py-3">
+                              {member.phone || "—"}
+                            </td>
+                            <td className="whitespace-nowrap px-4 py-3">
+                              {member.role === "admin" ? (
+                                <span className="rounded bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand">
+                                  {roleLabel(member.role)}
+                                </span>
+                              ) : member.role === "manager" ? (
+                                <span className="rounded bg-neutral-100 px-2 py-0.5 text-xs font-semibold text-foreground">
+                                  {roleLabel(member.role)}
+                                </span>
+                              ) : (
+                                roleLabel(member.role)
+                              )}
+                            </td>
+                            <td className="whitespace-nowrap px-4 py-3">
+                              {new Date(member.created_at).toLocaleDateString(
+                                locale === "en" ? "en-US" : "ko-KR",
+                              )}
+                            </td>
+                            <td className="px-4 py-3">
+                              {canManageMembers ? (
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <Link
+                                    href={`/admin?tab=members&edit=${member.id}`}
+                                    title={t.admin.editMember}
+                                    aria-label={`${t.admin.editMember}: ${label}`}
+                                    className="inline-flex size-8 items-center justify-center rounded-md border border-brand/15 bg-white text-foreground hover:bg-brand/5"
+                                  >
+                                    <PencilSquareIcon
+                                      className="size-4"
+                                      aria-hidden
+                                    />
+                                  </Link>
+                                  {canDelete ? (
+                                    <AdminDeleteMemberButton
+                                      memberId={member.id}
+                                      memberLabel={label}
+                                      onDeleteStart={(id) =>
+                                        setHiddenIds((prev) =>
+                                          new Set(prev).add(id),
+                                        )
+                                      }
+                                    />
+                                  ) : null}
+                                </div>
+                              ) : null}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
           </>
         );
       }}
@@ -678,7 +782,7 @@ export function AdminOrdersPanel({ trades }: { trades: AdminTradeRow[] }) {
               </div>
             ) : (
               <div className="mt-4 overflow-x-auto rounded-lg border border-brand/10 bg-white/70">
-                <table className="min-w-full text-left text-sm">
+                <table className="w-full min-w-[40rem] text-left text-sm">
                   <thead className="border-b border-brand/10 text-ink-muted">
                     <tr>
                       <th className="px-4 py-3 font-medium">{t.admin.item}</th>
