@@ -26,7 +26,7 @@ export function PickupMethodField({
       </legend>
       <p className="text-xs text-ink-muted">{t.sell.pickupHint}</p>
       <div className="grid gap-2 sm:grid-cols-2">
-        <label className="flex cursor-pointer items-start gap-3 rounded-md border border-black/8 bg-white px-3 py-3 has-[:checked]:border-brand has-[:checked]:bg-brand/5">
+        <label className="flex items-start gap-3 rounded-md border border-black/8 bg-white px-3 py-3 has-[:checked]:border-brand has-[:checked]:bg-brand/5">
           <input
             type="radio"
             name="pickup_method"
@@ -45,7 +45,7 @@ export function PickupMethodField({
             </span>
           </span>
         </label>
-        <label className="flex cursor-pointer items-start gap-3 rounded-md border border-black/8 bg-white px-3 py-3 has-[:checked]:border-brand has-[:checked]:bg-brand/5">
+        <label className="flex items-start gap-3 rounded-md border border-black/8 bg-white px-3 py-3 has-[:checked]:border-brand has-[:checked]:bg-brand/5">
           <input
             type="radio"
             name="pickup_method"

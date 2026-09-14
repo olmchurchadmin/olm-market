@@ -184,7 +184,7 @@ export function FileUploadField({
       {slotsLeft > 0 ? (
         <label
           htmlFor={pickId}
-          className="mt-3 flex cursor-pointer items-center gap-3 rounded-md border border-dashed border-brand/25 bg-white px-4 py-4 transition hover:border-brand/45"
+          className="mt-3 flex items-center gap-3 rounded-md border border-dashed border-brand/25 bg-white px-4 py-4 transition hover:border-brand/45"
         >
           <PhotoIcon className="size-8 shrink-0 text-ink-muted" aria-hidden />
           <span className="min-w-0">

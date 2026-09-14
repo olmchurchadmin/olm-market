@@ -44,7 +44,7 @@ export function ListingStockFields({
           </span>
         </legend>
         <div className="mt-2 flex flex-wrap gap-2">
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-brand/15 bg-white px-3 py-2 has-[:checked]:border-brand has-[:checked]:bg-brand/5">
+          <label className="inline-flex items-center gap-2 rounded-md border border-brand/15 bg-white px-3 py-2 has-[:checked]:border-brand has-[:checked]:bg-brand/5">
             <input
               type="radio"
               name="item_condition"
@@ -55,7 +55,7 @@ export function ListingStockFields({
             />
             <span>{t.sell.conditionNew}</span>
           </label>
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-brand/15 bg-white px-3 py-2 has-[:checked]:border-brand has-[:checked]:bg-brand/5">
+          <label className="inline-flex items-center gap-2 rounded-md border border-brand/15 bg-white px-3 py-2 has-[:checked]:border-brand has-[:checked]:bg-brand/5">
             <input
               type="radio"
               name="item_condition"

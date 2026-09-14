@@ -35,7 +35,7 @@ function ListProgressRing({
     <button
       type="button"
       onClick={onClick}
-      className="relative flex cursor-pointer items-center justify-center overflow-visible rounded-full bg-transparent transition hover:opacity-80"
+      className="relative flex items-center justify-center overflow-visible rounded-full bg-transparent transition hover:opacity-80"
       style={{ width: size, height: size }}
       aria-valuemin={0}
       aria-valuemax={total}

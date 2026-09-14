@@ -201,7 +201,7 @@ export function AdminBannerPanel({ banner }: { banner: SiteBanner | null }) {
                   name="bg_color"
                   type="color"
                   defaultValue={banner?.bg_color?.trim() || "#ffc83d"}
-                  className="h-10 w-14 cursor-pointer rounded-md border border-brand/15 bg-white p-1"
+                  className="h-10 w-14 rounded-md border border-brand/15 bg-white p-1"
                 />
                 <span className="text-xs font-normal text-ink-muted">
                   {t.admin.bannerColorHint}
@@ -215,7 +215,7 @@ export function AdminBannerPanel({ banner }: { banner: SiteBanner | null }) {
                   name="text_color"
                   type="color"
                   defaultValue={banner?.text_color?.trim() || "#000000"}
-                  className="h-10 w-14 cursor-pointer rounded-md border border-brand/15 bg-white p-1"
+                  className="h-10 w-14 rounded-md border border-brand/15 bg-white p-1"
                 />
                 <span className="text-xs font-normal text-ink-muted">
                   {t.admin.bannerColorHint}

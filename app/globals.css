@@ -61,15 +61,21 @@ select {
   background-image: none;
 }
 
+/* Keep the default arrow cursor on interactive controls (no pointer hand). */
+a[href],
 button:not(:disabled),
 [type="button"]:not(:disabled),
 [type="submit"]:not(:disabled),
 [type="reset"]:not(:disabled),
 [role="button"]:not([aria-disabled="true"]),
-a[href],
 label[for],
-summary {
-  cursor: pointer;
+summary,
+select,
+input[type="checkbox"],
+input[type="radio"],
+input[type="color"],
+input[type="file"] {
+  cursor: default;
 }
 
 button:disabled,
