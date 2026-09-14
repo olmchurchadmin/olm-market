@@ -35,10 +35,10 @@ export function SelectField({
           </span>
         ) : null}
       </span>
-      <span className="relative block max-w-full">
+      <span className={`relative block w-full ${selectClassName}`}>
         <select
           id={selectId}
-          className={`w-full appearance-none rounded-md border border-brand/15 bg-white py-2 pr-10 pl-3 text-sm font-normal outline-none focus:border-brand disabled:cursor-not-allowed disabled:opacity-60 ${selectClassName}`}
+          className="w-full appearance-none rounded-md border border-brand/15 bg-white py-2 pr-10 pl-3 text-sm font-normal outline-none focus:border-brand disabled:cursor-not-allowed disabled:opacity-60"
           {...props}
         >
           {placeholder ? (

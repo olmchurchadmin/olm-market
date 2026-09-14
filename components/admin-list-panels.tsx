@@ -325,8 +325,12 @@ export function AdminMembersPanel({
                       </td>
                       <td className="px-4 py-3">{member.phone || "—"}</td>
                       <td className="px-4 py-3">
-                        {member.role === "admin" || member.role === "manager" ? (
+                        {member.role === "admin" ? (
                           <span className="rounded bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand">
+                            {roleLabel(member.role)}
+                          </span>
+                        ) : member.role === "manager" ? (
+                          <span className="rounded bg-neutral-200 px-2 py-0.5 text-xs font-semibold text-foreground">
                             {roleLabel(member.role)}
                           </span>
                         ) : (
