@@ -160,6 +160,13 @@ const ko = {
     forgotSubtitle: "가입한 이메일로 재설정 링크를 보내 드립니다.",
     continueGoogle: "Google로 계속",
     continueKakao: "카카오로 계속",
+    oauthCompleting: "로그인을 완료하는 중입니다",
+    oauthCompletingHint:
+      "인증 화면을 완료하면 장터로 자동 이동합니다. 이 창을 닫거나 다른 버튼을 누르지 마세요.",
+    kakaoCompleting: "카카오 로그인을 완료하는 중입니다",
+    kakaoCompletingHint:
+      "카카오톡에서 확인한 뒤 이 화면으로 돌아오면 자동으로 로그인됩니다. 중복으로 로그인 버튼을 누르지 마세요.",
+    cancelOAuth: "로그인 취소",
     orEmail: "또는 이메일",
     email: "이메일",
     password: "비밀번호",
@@ -835,6 +842,13 @@ const en: Dictionary = {
     forgotSubtitle: "We'll email a reset link to your address.",
     continueGoogle: "Continue with Google",
     continueKakao: "Continue with Kakao",
+    oauthCompleting: "Finishing your login",
+    oauthCompletingHint:
+      "You will return to the market automatically after authentication. Do not close this page or press another button.",
+    kakaoCompleting: "Finishing Kakao login",
+    kakaoCompletingHint:
+      "Confirm in KakaoTalk, then return here to finish automatically. Do not start another login.",
+    cancelOAuth: "Cancel login",
     orEmail: "or email",
     email: "Email",
     password: "Password",

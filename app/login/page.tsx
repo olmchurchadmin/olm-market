@@ -1,9 +1,7 @@
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { EmailAuthPanel } from "@/components/auth/email-auth-panel";
-import { GoogleIcon, KakaoIcon } from "@/components/auth/oauth-icons";
-import { PendingSubmitButton } from "@/components/pending-submit-button";
-import { signInWithOAuth } from "@/lib/actions/auth";
+import { OAuthForm } from "@/components/auth/oauth-form";
 import { getI18n } from "@/lib/i18n/server";
 
 type Mode = "signin" | "signup" | "forgot";
@@ -56,34 +54,8 @@ export default async function LoginPage({
         {mode === "signin" ? (
           <>
             <div className="mt-8 space-y-3">
-              <form
-                action={async () => {
-                  "use server";
-                  await signInWithOAuth("google", next);
-                }}
-              >
-                <PendingSubmitButton
-                  pendingLabel={t.common.loading}
-                  className="inline-flex w-full items-center justify-center gap-2.5 rounded-md border border-black/10 bg-white px-4 py-3 text-sm font-semibold text-foreground transition hover:border-black/20 hover:bg-[#fafafa] disabled:cursor-wait disabled:opacity-70"
-                >
-                  <GoogleIcon />
-                  {t.auth.continueGoogle}
-                </PendingSubmitButton>
-              </form>
-              <form
-                action={async () => {
-                  "use server";
-                  await signInWithOAuth("kakao", next);
-                }}
-              >
-                <PendingSubmitButton
-                  pendingLabel={t.common.loading}
-                  className="inline-flex w-full items-center justify-center gap-2.5 rounded-md bg-[#FEE500] px-4 py-3 text-sm font-semibold text-[#191600] transition hover:brightness-[0.97] disabled:cursor-wait disabled:opacity-70"
-                >
-                  <KakaoIcon />
-                  {t.auth.continueKakao}
-                </PendingSubmitButton>
-              </form>
+              <OAuthForm provider="google" next={next} />
+              <OAuthForm provider="kakao" next={next} />
             </div>
 
             <div className="my-7 flex items-center gap-3 text-[11px] tracking-[0.14em] text-ink-muted uppercase">

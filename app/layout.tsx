@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Noto_Sans_KR } from "next/font/google";
+import { OAuthTransitionGuard } from "@/components/auth/oauth-transition-guard";
 import { ConfirmDialogProvider } from "@/components/confirm-dialog";
 import { LocaleProvider } from "@/components/locale-provider";
 import { NotificationToast } from "@/components/notification-toast";
@@ -49,6 +50,7 @@ export default async function RootLayout({
     >
       <body className="flex min-h-full min-w-0 flex-col overflow-x-clip antialiased">
         <LocaleProvider locale={locale} dictionary={t}>
+          <OAuthTransitionGuard />
           <ConfirmDialogProvider>
             <NotificationsProvider enabled={Boolean(profile)}>
               <SiteNoticeBanner />

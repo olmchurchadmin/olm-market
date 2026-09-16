@@ -35,7 +35,7 @@ export async function signInWithOAuth(
 ) {
   const supabase = await createClient();
   const origin = await originBase();
-  const safeNext = next.startsWith("/") ? next : "/";
+  const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/";
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
@@ -52,7 +52,7 @@ export async function signInWithOAuth(
     const { t } = await getI18n();
     console.error(`[oauth:${provider}]`, error?.message || "missing url");
     redirect(
-      `/login?error=${encodeURIComponent(error?.message || t.errors.authFailed)}&next=${encodeURIComponent(safeNext)}`,
+      `/login?error=${encodeURIComponent(error?.message || t.errors.authFailed)}&next=${encodeURIComponent(safeNext)}&oauthComplete=1`,
     );
   }
   redirect(data.url);

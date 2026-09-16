@@ -3,13 +3,19 @@ import type { EmailOtpType } from "@supabase/supabase-js";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 
+function completedUrl(path: string, base: string) {
+  const url = new URL(path, base);
+  url.searchParams.set("oauthComplete", "1");
+  return url;
+}
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const tokenHash = searchParams.get("token_hash");
   const otpType = searchParams.get("type");
   let next = searchParams.get("next") || "/";
-  if (!next.startsWith("/")) next = "/";
+  if (!next.startsWith("/") || next.startsWith("//")) next = "/";
 
   const supabase = await createClient();
 
@@ -20,9 +26,11 @@ export async function GET(request: Request) {
       const forwardedHost = request.headers.get("x-forwarded-host");
       const isLocal = process.env.NODE_ENV === "development";
       if (!isLocal && forwardedHost) {
-        return NextResponse.redirect(`https://${forwardedHost}${next}`);
+        return NextResponse.redirect(
+          completedUrl(next, `https://${forwardedHost}`),
+        );
       }
-      return NextResponse.redirect(new URL(next, origin));
+      return NextResponse.redirect(completedUrl(next, origin));
     }
     console.error("[auth/callback] exchangeCodeForSession:", error.message);
   }
@@ -43,12 +51,15 @@ export async function GET(request: Request) {
         ? t.errors.emailLinkInvalid
         : t.errors.authFailed;
     return NextResponse.redirect(
-      new URL(`/login?error=${encodeURIComponent(message)}`, origin),
+      completedUrl(`/login?error=${encodeURIComponent(message)}`, origin),
     );
   }
 
   const { t } = await getI18n();
   return NextResponse.redirect(
-    new URL(`/login?error=${encodeURIComponent(t.errors.authFailed)}`, origin),
+    completedUrl(
+      `/login?error=${encodeURIComponent(t.errors.authFailed)}`,
+      origin,
+    ),
   );
 }
