@@ -4,6 +4,7 @@ import { after } from "next/server";
 import { revalidatePath } from "next/cache";
 import { redirect, unstable_rethrow } from "next/navigation";
 import { getI18n } from "@/lib/i18n/server";
+import { buildListingI18n } from "@/lib/i18n/listings";
 import { isStaffRole } from "@/lib/auth";
 import { notifyListingCreated, notifyAdminListingChange } from "@/lib/notifications/dispatch";
 import { createClient } from "@/lib/supabase/server";
@@ -172,6 +173,8 @@ export async function createListingAction(formData: FormData) {
       files,
     } = await parseListingFields(formData);
 
+    const i18n = await buildListingI18n(title, description);
+
     const { data: listing, error } = await supabase
       .from("listings")
       .insert({
@@ -179,6 +182,10 @@ export async function createListingAction(formData: FormData) {
         category_id: categoryId,
         title,
         description,
+        title_ko: i18n.title_ko,
+        title_en: i18n.title_en,
+        description_ko: i18n.description_ko,
+        description_en: i18n.description_en,
         price_cents: priceCents,
         donation_percent: donationPercent,
         pickup_method: pickupMethod,
@@ -307,6 +314,7 @@ export async function updateListingAction(formData: FormData) {
       throw new Error(t.sell.quantityTooLow);
     }
     const nextRemaining = quantityTotal - soldCount;
+    const i18n = await buildListingI18n(title, description);
 
     let updateQuery = supabase
       .from("listings")
@@ -314,6 +322,10 @@ export async function updateListingAction(formData: FormData) {
         category_id: categoryId,
         title,
         description,
+        title_ko: i18n.title_ko,
+        title_en: i18n.title_en,
+        description_ko: i18n.description_ko,
+        description_en: i18n.description_en,
         price_cents: priceCents,
         donation_percent: donationPercent,
         pickup_method: pickupMethod,

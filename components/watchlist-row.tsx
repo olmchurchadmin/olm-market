@@ -9,6 +9,7 @@ import { useI18n } from "@/components/locale-provider";
 import { requestTradeDockRefresh } from "@/components/trade-status-bar-client";
 import { buyListingAction } from "@/lib/actions/orders";
 import { removeFromWatchlistAction } from "@/lib/actions/watchlist";
+import { listingTitle } from "@/lib/i18n/listings";
 import type { Listing } from "@/lib/types";
 import {
   formatPrice,
@@ -22,6 +23,7 @@ export function WatchlistRow({ listing }: { listing: Listing }) {
   const router = useRouter();
   const confirm = useConfirm();
   const { locale, t } = useI18n();
+  const title = listingTitle(listing, locale);
   const [error, setError] = useState<string | null>(null);
   const [pendingBuy, startBuy] = useTransition();
   const [pendingRemove, startRemove] = useTransition();
@@ -58,7 +60,7 @@ export function WatchlistRow({ listing }: { listing: Listing }) {
             href={`/market/${listing.id}`}
             className="font-medium text-foreground hover:underline"
           >
-            {listing.title}
+            {title}
           </Link>
           <p className="mt-0.5 text-sm text-ink-muted">
             {formatPrice(listing.price_cents, locale)}

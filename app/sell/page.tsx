@@ -48,6 +48,9 @@ export default async function SellPage({
             required
             className="mt-1 w-full rounded-md border border-brand/15 bg-white px-3 py-2 outline-none focus:border-brand"
           />
+          <span className="mt-1 block text-xs font-normal text-ink-muted">
+            {t.sell.autoTranslateHint}
+          </span>
         </label>
 
         <SelectField
