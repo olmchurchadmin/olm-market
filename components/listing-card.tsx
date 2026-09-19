@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useI18n } from "@/components/locale-provider";
 import { WatchlistButton } from "@/components/watchlist-button";
 import { categoryLabel } from "@/lib/i18n/categories";
-import { listingTitle } from "@/lib/i18n/listings";
 import type { Listing } from "@/lib/types";
 import {
   formatPrice,
@@ -25,7 +24,6 @@ export function ListingCard({
   currentUserId?: string | null;
 }) {
   const { locale, t } = useI18n();
-  const title = listingTitle(listing, locale);
   const image = listingImageUrl(listing.cover_image_path);
   const soldLike =
     listing.status === "sold" ||
@@ -41,7 +39,7 @@ export function ListingCard({
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={image}
-              alt={title}
+              alt={listing.title}
               className="absolute inset-0 h-full w-full object-cover object-center transition duration-500 group-hover:scale-[1.03]"
             />
           ) : (
@@ -81,7 +79,7 @@ export function ListingCard({
             ) : null}
           </div>
           <h3 className="line-clamp-2 font-[family-name:var(--font-display)] text-sm text-foreground sm:text-base">
-            {title}
+            {listing.title}
           </h3>
           <p className="text-sm font-semibold text-foreground sm:text-base">
             {formatPrice(listing.price_cents, locale)}

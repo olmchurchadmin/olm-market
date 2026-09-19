@@ -47,7 +47,6 @@ export async function MarketBrowse({
       q: queryText || undefined,
       page: 1,
       status: "active",
-      locale,
     }),
     user
       ? supabase

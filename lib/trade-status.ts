@@ -1,6 +1,4 @@
 import type { PickupMethod } from "@/lib/types";
-import type { Locale } from "@/lib/i18n/config";
-import { listingTitle } from "@/lib/i18n/listings";
 
 export type TradeDockAction = "dropoff" | "pickup" | "share_pickup" | "wait";
 
@@ -26,16 +24,12 @@ type OrderRow = {
     | {
         id: string;
         title: string | null;
-        title_ko?: string | null;
-        title_en?: string | null;
         pickup_method: string | null;
         cover_image_path: string | null;
       }
     | {
         id: string;
         title: string | null;
-        title_ko?: string | null;
-        title_en?: string | null;
         pickup_method: string | null;
         cover_image_path: string | null;
       }[]
@@ -85,10 +79,8 @@ function actionPriority(action: TradeDockAction) {
 export function buildTradeDockItems(input: {
   sellingOrders: OrderRow[] | null | undefined;
   buyingOrders: OrderRow[] | null | undefined;
-  locale?: Locale;
 }): TradeDockItem[] {
   const items: TradeDockItem[] = [];
-  const locale = input.locale || "ko";
 
   for (const order of input.sellingOrders || []) {
     const listing = listingOf(order);
@@ -99,7 +91,7 @@ export function buildTradeDockItems(input: {
     items.push({
       orderId: order.id,
       role: "seller",
-      title: listingTitle(listing, locale, "Item"),
+      title: listing?.title?.trim() || "Item",
       priceCents: order.price_cents,
       status: order.status,
       pickupMethod,
@@ -119,7 +111,7 @@ export function buildTradeDockItems(input: {
     items.push({
       orderId: order.id,
       role: "buyer",
-      title: listingTitle(listing, locale, "Item"),
+      title: listing?.title?.trim() || "Item",
       priceCents: order.price_cents,
       status: order.status,
       pickupMethod,

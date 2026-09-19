@@ -5,7 +5,6 @@ import { SellingListingRow } from "@/components/selling-listing-row";
 import { SharePickupDetails } from "@/components/share-pickup-details";
 import { getCurrentProfile } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
-import { listingTitle } from "@/lib/i18n/listings";
 import { createClient } from "@/lib/supabase/server";
 import type { Listing } from "@/lib/types";
 import {
@@ -139,11 +138,11 @@ export default async function AccountTransactionsPage({
                           href={`/market/${listing.id}`}
                           className="font-medium text-foreground hover:underline"
                         >
-                          {listingTitle(listing, locale, t.account.item)}
+                          {listing.title || t.account.item}
                         </Link>
                       ) : (
                         <p className="font-medium">
-                          {listingTitle(listing, locale, t.account.item)}
+                          {listing?.title || t.account.item}
                         </p>
                       )}
                       <p className="text-sm text-ink-muted">
@@ -224,11 +223,11 @@ export default async function AccountTransactionsPage({
                           href={`/market/${listing.id}`}
                           className="font-medium text-foreground hover:underline"
                         >
-                          {listingTitle(listing, locale, t.account.item)}
+                          {listing.title || t.account.item}
                         </Link>
                       ) : (
                         <p className="font-medium">
-                          {listingTitle(listing, locale, t.account.item)}
+                          {listing?.title || t.account.item}
                         </p>
                       )}
                       <p className="text-sm text-ink-muted">

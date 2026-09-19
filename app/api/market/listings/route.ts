@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { getCurrentProfile, isStaffRole } from "@/lib/auth";
-import { getLocale } from "@/lib/i18n/server";
 import {
   fetchMarketListingsPage,
   MARKET_PAGE_SIZE,
@@ -15,7 +14,6 @@ export async function GET(request: Request) {
   const q = searchParams.get("q") || undefined;
   const statusParam = searchParams.get("status");
   const status = statusParam === "sold" ? ("sold" as const) : ("active" as const);
-  const locale = await getLocale();
 
   if (!Number.isFinite(page) || page < 1) {
     return NextResponse.json({ error: "Invalid page" }, { status: 400 });
@@ -35,7 +33,6 @@ export async function GET(request: Request) {
       page,
       pageSize: MARKET_PAGE_SIZE,
       status,
-      locale,
     });
     return NextResponse.json(result);
   } catch (error) {

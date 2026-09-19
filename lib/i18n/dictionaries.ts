@@ -118,8 +118,6 @@ const ko = {
     photos: "사진",
     photosHint: "최대 6장 · 큰 사진은 자동으로 줄여 올립니다",
     photosEditHint: "기존 사진을 유지한 채 추가하거나, X로 지울 수 있습니다",
-    autoTranslateHint:
-      "한글로 쓰면 영어 화면에서, 영어로 쓰면 한글 화면에서 자동 번역되어 보입니다.",
     submit: "등록하기",
     save: "저장하기",
     cancel: "취소",
@@ -810,8 +808,6 @@ const en: Dictionary = {
     photos: "Photos",
     photosHint: "Up to 6 · large photos are resized automatically",
     photosEditHint: "Keep existing photos, add more, or remove with X",
-    autoTranslateHint:
-      "Korean posts show in English for English users, and English posts show in Korean for Korean users.",
     submit: "Publish",
     save: "Save",
     cancel: "Cancel",

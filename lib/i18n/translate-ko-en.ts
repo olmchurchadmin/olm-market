@@ -123,35 +123,7 @@ function cleanEnglishSentence(raw: string) {
     .replace(/ *\n */g, "\n")
     .replace(/^["'\s]+|["'\s]+$/g, "")
     .trim()
-    .slice(0, 2000);
-}
-
-function cleanKoreanSentence(raw: string) {
-  return raw
-    .replace(/[^\S\n]+/g, " ")
-    .replace(/ *\n */g, "\n")
-    .replace(/^["'\s]+|["'\s]+$/g, "")
-    .trim()
-    .slice(0, 2000);
-}
-
-/** Guess whether text is primarily Korean or English. */
-export function detectTextLocale(text: string): "ko" | "en" | "unknown" {
-  const trimmed = text.trim();
-  if (!trimmed) return "unknown";
-  const hangul = (trimmed.match(/[가-힣]/g) || []).length;
-  const latin = (trimmed.match(/[A-Za-z]/g) || []).length;
-  if (hangul === 0 && latin === 0) return "unknown";
-  if (hangul >= latin * 0.4 && hangul > 0) return "ko";
-  if (latin > hangul) return "en";
-  if (hangul > 0) return "ko";
-  return "unknown";
-}
-
-function looksUsableKorean(text: string) {
-  if (!text) return false;
-  if (/QUERY LENGTH|INVALID|MYMEMORY/i.test(text)) return false;
-  return /[가-힣]/.test(text);
+    .slice(0, 500);
 }
 
 /** Title Case so category labels always start with a capital letter. */
@@ -253,106 +225,6 @@ async function translateOneLine(line: string): Promise<string> {
   return trimmed;
 }
 
-async function myMemoryTranslate(
-  text: string,
-  langpair: "ko|en" | "en|ko",
-): Promise<string | null> {
-  const trimmed = text.trim();
-  if (!trimmed) return "";
-  // MyMemory free endpoint is picky about very long queries.
-  const chunk = trimmed.slice(0, 450);
-  try {
-    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(chunk)}&langpair=${langpair}`;
-    const res = await fetch(url, {
-      headers: { Accept: "application/json" },
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    const data = (await res.json()) as {
-      responseData?: { translatedText?: string };
-    };
-    const raw = data.responseData?.translatedText || "";
-    if (langpair === "ko|en") {
-      const cleaned = cleanEnglishSentence(raw);
-      return looksUsableEnglish(cleaned) ? cleaned : null;
-    }
-    const cleaned = cleanKoreanSentence(raw);
-    return looksUsableKorean(cleaned) ? cleaned : null;
-  } catch {
-    return null;
-  }
-}
-
-function splitForTranslation(text: string): string[] {
-  const normalized = text.replace(/\r\n/g, "\n").trim();
-  if (!normalized) return [];
-  if (normalized.length <= 450) return [normalized];
-
-  const parts: string[] = [];
-  for (const paragraph of normalized.split("\n")) {
-    if (!paragraph.trim()) {
-      parts.push("");
-      continue;
-    }
-    if (paragraph.length <= 450) {
-      parts.push(paragraph);
-      continue;
-    }
-    let rest = paragraph;
-    while (rest.length > 450) {
-      let cut = rest.lastIndexOf(" ", 450);
-      if (cut < 200) cut = 450;
-      parts.push(rest.slice(0, cut).trim());
-      rest = rest.slice(cut).trim();
-    }
-    if (rest) parts.push(rest);
-  }
-  return parts;
-}
-
-/**
- * Bidirectional KO↔EN translation for listing title/description.
- * Preserves blank lines; falls back to the original text on failure.
- */
-export async function translateBetweenKoEn(
-  text: string,
-  from: "ko" | "en",
-  to: "ko" | "en",
-): Promise<string> {
-  const trimmed = text.replace(/\r\n/g, "\n").trim();
-  if (!trimmed) return "";
-  if (from === to) return trimmed.slice(0, 2000);
-
-  const detected = detectTextLocale(trimmed);
-  if (detected === to) return trimmed.slice(0, 2000);
-  if (from === "en" && detected === "ko") {
-    // Already Korean while asking EN→KO.
-    return trimmed.slice(0, 2000);
-  }
-  if (from === "ko" && detected === "en") {
-    return trimmed.slice(0, 2000);
-  }
-
-  const langpair = from === "ko" ? "ko|en" : "en|ko";
-  const chunks = splitForTranslation(trimmed);
-  const out: string[] = [];
-  for (const chunk of chunks) {
-    if (!chunk) {
-      out.push("");
-      continue;
-    }
-    const translated = await myMemoryTranslate(chunk, langpair);
-    if (translated) {
-      out.push(
-        langpair === "ko|en" ? sentenceCase(translated) : translated,
-      );
-    } else {
-      out.push(chunk);
-    }
-  }
-  return out.join("\n").slice(0, 2000);
-}
-
 /**
  * Translate free-form Korean notice text for English locale display.
  * Keeps natural sentence casing and preserves line breaks.
@@ -365,7 +237,7 @@ export async function translateKoreanSentenceToEnglish(
 
   const lines = trimmed.split("\n");
   const translated = await Promise.all(lines.map((line) => translateOneLine(line)));
-  return translated.join("\n").slice(0, 2000);
+  return translated.join("\n").slice(0, 500);
 }
 
 export function slugifyEnglishLabel(label: string) {

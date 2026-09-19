@@ -11,7 +11,6 @@ import { AdminShell } from "@/components/admin-shell";
 import { AdminStatsPanel } from "@/components/admin-stats-panel";
 import type { AdminTab } from "@/components/admin-tabs";
 import { requireStaff, isAdminRole } from "@/lib/auth";
-import { listingTitle } from "@/lib/i18n/listings";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import type { AdminStats, Category, Listing, SiteBanner } from "@/lib/types";
@@ -64,7 +63,7 @@ export default async function AdminPage({
   }>;
 }) {
   const adminProfile = await requireStaff();
-  const { locale, t } = await getI18n();
+  const { t } = await getI18n();
   const {
     error,
     resolved,
@@ -142,7 +141,7 @@ export default async function AdminPage({
     const { data } = await supabase
       .from("orders")
       .select(
-        "*, listings(title, title_ko, title_en, pickup_method), buyer:profiles!orders_buyer_id_fkey(email, phone, full_name, nickname), seller:profiles!orders_seller_id_fkey(email, phone, full_name, nickname)",
+        "*, listings(title, pickup_method), buyer:profiles!orders_buyer_id_fkey(email, phone, full_name, nickname), seller:profiles!orders_seller_id_fkey(email, phone, full_name, nickname)",
       )
       .in("status", ["awaiting_dropoff", "ready_for_pickup", "completed"])
       .order("created_at", { ascending: false })
@@ -229,7 +228,7 @@ export default async function AdminPage({
         price_cents: order.price_cents,
         created_at: order.created_at,
       },
-      title: listingTitle(listing, locale, "-"),
+      title: listing?.title || "-",
       homePickup: listing?.pickup_method === "seller_location",
       buyer: buyer
         ? {

@@ -6,8 +6,6 @@ import { ListingGallery } from "@/components/listing-gallery";
 import { WatchlistButton } from "@/components/watchlist-button";
 import { getSessionUser } from "@/lib/auth";
 import { categoryLabel } from "@/lib/i18n/categories";
-import { ensureListingI18nFields } from "@/lib/i18n/ensure-listing-i18n";
-import { listingDescription, listingTitle } from "@/lib/i18n/listings";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -32,7 +30,7 @@ export default async function ListingDetailPage({
   const supabase = await createClient();
   const user = await getSessionUser();
 
-  const { data: rawListing } = await supabase
+  const { data: listing } = await supabase
     .from("listings")
     .select(
       "*, categories(*), listing_images(*), seller:profiles!listings_seller_id_fkey(nickname, full_name, email, is_anonymous)",
@@ -40,11 +38,7 @@ export default async function ListingDetailPage({
     .eq("id", id)
     .maybeSingle();
 
-  if (!rawListing) notFound();
-
-  const listing = await ensureListingI18nFields(rawListing, locale);
-  const displayTitle = listingTitle(listing, locale);
-  const displayDescription = listingDescription(listing, locale);
+  if (!listing) notFound();
 
   const images = (listing.listing_images || []).sort(
     (a: { sort_order: number }, b: { sort_order: number }) =>
@@ -107,7 +101,7 @@ export default async function ListingDetailPage({
 
       <div className="mt-6 grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
         <ListingGallery
-          title={displayTitle}
+          title={listing.title}
           images={images}
           coverPath={listing.cover_image_path}
         />
@@ -117,7 +111,7 @@ export default async function ListingDetailPage({
             {categoryLabel(listing.categories, locale)}
           </p>
           <h1 className="mt-2 break-words font-[family-name:var(--font-display)] text-3xl text-foreground sm:text-4xl">
-            {displayTitle}
+            {listing.title}
           </h1>
           <p className="mt-3 text-2xl font-semibold">
             {formatPrice(listing.price_cents, locale)}
@@ -145,7 +139,7 @@ export default async function ListingDetailPage({
             })}
           </p>
           <p className="mt-6 whitespace-pre-wrap leading-relaxed text-foreground">
-            {displayDescription || t.market.noDescription}
+            {listing.description || t.market.noDescription}
           </p>
 
           {listing.status === "available" && remaining > 0 ? (
