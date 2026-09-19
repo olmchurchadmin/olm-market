@@ -24,16 +24,9 @@ const KO_EN_PROPER_NOUNS: Array<[string, string]> = [
   ["톰브라운", "Thom Browne"],
 ];
 
-const THOM_BROWNE_KO = /톰\s*브라운/g;
-const THOM_BROWNE_KO_TEST = /톰\s*브라운/;
-const THOM_BROWNE_EN_OK = /Thom\s+Browne/;
-const THOM_BROWNE_EN_WRONG =
-  /\bThom\s*Brown\b|\bTom\s*Browne?\b|\bTombraun\b|\bThumbrown\b|\bThome\s*Browne?\b/gi;
-
-/** Apply known brand/proper-noun fixes for listing display or storage. */
-export function polishListingProperNouns(
+function applyProperNouns(
   text: string,
-  direction: "ko|en" | "en|ko" = "ko|en",
+  direction: "ko|en" | "en|ko",
 ): string {
   let out = text;
   for (const [ko, en] of KO_EN_PROPER_NOUNS) {
@@ -44,37 +37,14 @@ export function polishListingProperNouns(
         new RegExp(en.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi"),
         "톰브라운",
       );
-      out = out.replace(THOM_BROWNE_KO, "톰브라운");
+      out = out.replace(/톰\s*브라운/g, "톰브라운");
     }
   }
+  // Fix common machine-translation misspellings of Thom Browne.
   if (direction === "ko|en") {
-    out = out.replace(THOM_BROWNE_KO, "Thom Browne");
-    out = out.replace(THOM_BROWNE_EN_WRONG, "Thom Browne");
+    out = out.replace(/\bTom\s*Browne?\b/gi, "Thom Browne");
   }
   return out;
-}
-
-export function sourceHasThomBrowneKo(text: string) {
-  return THOM_BROWNE_KO_TEST.test(text);
-}
-
-export function englishHasCorrectThomBrowne(text: string) {
-  return THOM_BROWNE_EN_OK.test(text);
-}
-
-export function listingNeedsBrandRepair(
-  sourceKo: string,
-  english: string | null | undefined,
-) {
-  if (!sourceHasThomBrowneKo(sourceKo)) return false;
-  return !englishHasCorrectThomBrowne(english || "");
-}
-
-function applyProperNouns(
-  text: string,
-  direction: "ko|en" | "en|ko",
-): string {
-  return polishListingProperNouns(text, direction);
 }
 
 const CHOSEONG = [
