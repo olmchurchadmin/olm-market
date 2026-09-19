@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Listing } from "@/lib/types";
+import { ensureListingTitlesForLocale } from "@/lib/i18n/ensure-listing-i18n";
+import type { Locale } from "@/lib/i18n/config";
 
 export const MARKET_PAGE_SIZE = 12;
 export const MARKET_SOLD_STATUS = "sold" as const;
@@ -15,6 +17,7 @@ export async function fetchMarketListingsPage(options: {
   pageSize?: number;
   /** Default: active marketplace (excludes sold + cancelled). */
   status?: "active" | "sold";
+  locale?: Locale;
 }): Promise<{ items: Listing[]; total: number; hasMore: boolean }> {
   const page = Math.max(1, Math.floor(options.page) || 1);
   const pageSize = options.pageSize ?? MARKET_PAGE_SIZE;
@@ -54,14 +57,24 @@ export async function fetchMarketListingsPage(options: {
 
   if (queryText) {
     query = query.or(
-      `title.ilike.%${queryText}%,description.ilike.%${queryText}%`,
+      [
+        `title.ilike.%${queryText}%`,
+        `description.ilike.%${queryText}%`,
+        `title_ko.ilike.%${queryText}%`,
+        `title_en.ilike.%${queryText}%`,
+        `description_ko.ilike.%${queryText}%`,
+        `description_en.ilike.%${queryText}%`,
+      ].join(","),
     );
   }
 
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
   const { data: listings, count } = await query.range(from, to);
-  const items = (listings as Listing[] | null) || [];
+  let items = (listings as Listing[] | null) || [];
+  if (options.locale) {
+    items = await ensureListingTitlesForLocale(items, options.locale);
+  }
   const total = count ?? items.length;
   const hasMore = from + items.length < total;
 

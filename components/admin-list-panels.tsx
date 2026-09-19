@@ -23,6 +23,7 @@ import { DeleteListingButton } from "@/components/delete-listing-button";
 import { FeatureListingButton } from "@/components/feature-listing-button";
 import { ResolveComplaintButton } from "@/components/resolve-complaint-button";
 import { useI18n } from "@/components/locale-provider";
+import { listingDescription, listingTitle } from "@/lib/i18n/listings";
 import type { Listing } from "@/lib/types";
 import {
   accountDisplayName,
@@ -123,6 +124,8 @@ export function AdminListingsPanel({ listings }: { listings: ListingRow[] }) {
           const seller = firstPerson(listing.seller);
           return matchesSearch(
             query,
+            listingTitle(listing, locale),
+            listingDescription(listing, locale),
             listing.title,
             listing.description,
             listing.status,
@@ -181,7 +184,7 @@ export function AdminListingsPanel({ listings }: { listings: ListingRow[] }) {
                           href={`/market/${listing.id}`}
                           className="font-medium text-foreground hover:underline"
                         >
-                          {listing.title}
+                          {listingTitle(listing, locale)}
                         </Link>
                         <p className="text-sm text-ink-muted">
                           {formatPrice(listing.price_cents, locale)} ·{" "}

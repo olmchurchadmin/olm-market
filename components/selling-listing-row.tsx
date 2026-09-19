@@ -4,6 +4,7 @@ import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { DeleteListingButton } from "@/components/delete-listing-button";
 import { useI18n } from "@/components/locale-provider";
+import { listingTitle } from "@/lib/i18n/listings";
 import type { Listing } from "@/lib/types";
 import {
   formatPrice,
@@ -16,6 +17,7 @@ import {
 
 export function SellingListingRow({ listing }: { listing: Listing }) {
   const { locale, t } = useI18n();
+  const title = listingTitle(listing, locale);
   const thumb = listingImageUrl(listing.cover_image_path);
   const canManage =
     listing.status === "available" || listing.status === "cancelled";
@@ -47,7 +49,7 @@ export function SellingListingRow({ listing }: { listing: Listing }) {
           href={`/market/${listing.id}`}
           className="font-medium text-foreground hover:underline"
         >
-          {listing.title}
+          {title}
         </Link>
         <p className="text-sm text-ink-muted">
           {formatPrice(listing.price_cents, locale)} ·{" "}

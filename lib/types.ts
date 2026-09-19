@@ -66,6 +66,10 @@ export type Listing = {
   category_id: string;
   title: string;
   description: string;
+  title_ko?: string | null;
+  title_en?: string | null;
+  description_ko?: string | null;
+  description_en?: string | null;
   price_cents: number;
   status: ListingStatus;
   pickup_method?: PickupMethod;
