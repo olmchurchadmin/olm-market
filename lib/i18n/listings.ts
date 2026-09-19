@@ -20,6 +20,13 @@ export type ListingI18nPayload = {
   description_en: string;
 };
 
+/** Fix known brand spellings on already-stored English text. */
+function polishEnglishListingText(text: string) {
+  return text
+    .replace(/톰\s*브라운/g, "Thom Browne")
+    .replace(/\bTom\s*Browne?\b/gi, "Thom Browne");
+}
+
 export function listingTitle(
   listing: ListingTextFields | null | undefined,
   locale: Locale,
@@ -27,12 +34,12 @@ export function listingTitle(
 ) {
   if (!listing) return fallback;
   if (locale === "en") {
-    return (
+    const raw =
       listing.title_en?.trim() ||
       listing.title?.trim() ||
       listing.title_ko?.trim() ||
-      fallback
-    );
+      fallback;
+    return polishEnglishListingText(raw);
   }
   return (
     listing.title_ko?.trim() ||
@@ -49,12 +56,12 @@ export function listingDescription(
 ) {
   if (!listing) return fallback;
   if (locale === "en") {
-    return (
+    const raw =
       listing.description_en?.trim() ||
       listing.description?.trim() ||
       listing.description_ko?.trim() ||
-      fallback
-    );
+      fallback;
+    return polishEnglishListingText(raw);
   }
   return (
     listing.description_ko?.trim() ||
