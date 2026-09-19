@@ -15,37 +15,7 @@ const KO_EN_DICTIONARY: Record<string, string> = {
   주방: "Kitchen",
   뷰티: "Beauty",
   잡화: "General goods",
-  톰브라운: "Thom Browne",
 };
-
-/** Proper nouns that machine translation often mangles (longer keys first). */
-const KO_EN_PROPER_NOUNS: Array<[string, string]> = [
-  ["톰 브라운", "Thom Browne"],
-  ["톰브라운", "Thom Browne"],
-];
-
-function applyProperNouns(
-  text: string,
-  direction: "ko|en" | "en|ko",
-): string {
-  let out = text;
-  for (const [ko, en] of KO_EN_PROPER_NOUNS) {
-    if (direction === "ko|en") {
-      out = out.split(ko).join(en);
-    } else {
-      out = out.replace(
-        new RegExp(en.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi"),
-        "톰브라운",
-      );
-      out = out.replace(/톰\s*브라운/g, "톰브라운");
-    }
-  }
-  // Fix common machine-translation misspellings of Thom Browne.
-  if (direction === "ko|en") {
-    out = out.replace(/\bTom\s*Browne?\b/gi, "Thom Browne");
-  }
-  return out;
-}
 
 const CHOSEONG = [
   "g",
@@ -259,11 +229,8 @@ async function translateOneLine(line: string): Promise<string> {
     return sentenceCase(cleanEnglishSentence(trimmed));
   }
 
-  const { masked, restore } = maskProperNouns(trimmed, "ko|en");
-  if (!masked.trim()) return restore(masked);
-
   try {
-    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(masked)}&langpair=ko|en`;
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(trimmed)}&langpair=ko|en`;
     const res = await fetch(url, {
       headers: { Accept: "application/json" },
       cache: "no-store",
@@ -276,52 +243,14 @@ async function translateOneLine(line: string): Promise<string> {
         data.responseData?.translatedText || "",
       );
       if (looksUsableEnglish(translated)) {
-        return restore(sentenceCase(translated));
+        return sentenceCase(translated);
       }
     }
   } catch {
     // Fall through.
   }
 
-  return restore(masked);
-}
-
-function maskProperNouns(
-  text: string,
-  direction: "ko|en" | "en|ko",
-): { masked: string; restore: (translated: string) => string } {
-  const tokens: string[] = [];
-  let masked = text;
-
-  for (const [ko, en] of KO_EN_PROPER_NOUNS) {
-    if (direction === "ko|en") {
-      if (!masked.includes(ko)) continue;
-      const token = `__PN${tokens.length}__`;
-      tokens.push(en);
-      masked = masked.split(ko).join(token);
-    } else {
-      const pattern = new RegExp(
-        en.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-        "gi",
-      );
-      if (!pattern.test(masked)) continue;
-      pattern.lastIndex = 0;
-      const token = `__PN${tokens.length}__`;
-      tokens.push("톰브라운");
-      masked = masked.replace(pattern, token);
-    }
-  }
-
-  return {
-    masked,
-    restore: (translated: string) => {
-      let out = translated;
-      tokens.forEach((value, index) => {
-        out = out.split(`__PN${index}__`).join(value);
-      });
-      return applyProperNouns(out, direction);
-    },
-  };
+  return trimmed;
 }
 
 async function myMemoryTranslate(
@@ -412,24 +341,13 @@ export async function translateBetweenKoEn(
       out.push("");
       continue;
     }
-    const { masked, restore } = maskProperNouns(chunk, langpair);
-    if (!masked.trim()) {
-      out.push(restore(masked));
-      continue;
-    }
-    const known =
-      langpair === "ko|en" ? KO_EN_DICTIONARY[masked.trim()] : undefined;
-    if (known) {
-      out.push(restore(known));
-      continue;
-    }
-    const translated = await myMemoryTranslate(masked, langpair);
+    const translated = await myMemoryTranslate(chunk, langpair);
     if (translated) {
       out.push(
-        restore(langpair === "ko|en" ? sentenceCase(translated) : translated),
+        langpair === "ko|en" ? sentenceCase(translated) : translated,
       );
     } else {
-      out.push(restore(masked));
+      out.push(chunk);
     }
   }
   return out.join("\n").slice(0, 2000);
