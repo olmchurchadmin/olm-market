@@ -9,12 +9,18 @@ export function SiteFooter() {
   const year = new Date().getFullYear();
   const copyright = t.siteFooter.copyright.replace("{year}", String(year));
   const [contactOpen, setContactOpen] = useState(false);
+  const [sheetVisible, setSheetVisible] = useState(false);
   const panelId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    if (!contactOpen) return;
+    if (!contactOpen) {
+      setSheetVisible(false);
+      return;
+    }
+
+    const frame = requestAnimationFrame(() => setSheetVisible(true));
 
     function onPointerDown(event: MouseEvent | TouchEvent) {
       const target = event.target as Node | null;
@@ -28,10 +34,15 @@ export function SiteFooter() {
       if (event.key === "Escape") setContactOpen(false);
     }
 
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     document.addEventListener("mousedown", onPointerDown);
     document.addEventListener("touchstart", onPointerDown);
     document.addEventListener("keydown", onKeyDown);
+
     return () => {
+      cancelAnimationFrame(frame);
+      document.body.style.overflow = previousOverflow;
       document.removeEventListener("mousedown", onPointerDown);
       document.removeEventListener("touchstart", onPointerDown);
       document.removeEventListener("keydown", onKeyDown);
@@ -66,13 +77,31 @@ export function SiteFooter() {
           </button>
         </div>
 
-        {contactOpen ? (
+        <p className="mt-3 text-xs text-ink-muted/80">{copyright}</p>
+      </div>
+
+      {contactOpen ? (
+        <div className="fixed inset-0 z-[60]" role="presentation">
+          <button
+            type="button"
+            aria-label={t.common.cancel}
+            className={`absolute inset-0 bg-black/35 transition-opacity duration-300 ${
+              sheetVisible ? "opacity-100" : "opacity-0"
+            }`}
+            onClick={() => setContactOpen(false)}
+          />
           <div
             ref={panelRef}
             id={panelId}
-            className="mx-auto mt-3 max-w-sm rounded-md border border-brand/10 bg-white/80 px-4 py-3 text-left text-sm text-foreground"
+            role="dialog"
+            aria-modal="true"
+            aria-label={t.siteFooter.contactCta}
+            className={`absolute inset-x-0 bottom-0 mx-auto max-w-lg rounded-t-2xl border border-brand/10 bg-white px-5 pt-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-[0_-12px_40px_rgba(26,28,31,0.18)] transition-transform duration-300 ease-out ${
+              sheetVisible ? "translate-y-0" : "translate-y-full"
+            }`}
           >
-            <dl className="space-y-2">
+            <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-black/12" aria-hidden />
+            <dl className="space-y-3 text-left text-sm text-foreground">
               <div>
                 <dt className="text-[11px] font-semibold tracking-wide text-ink-muted uppercase">
                   {t.siteFooter.managerLabel}
@@ -105,12 +134,18 @@ export function SiteFooter() {
                   </a>
                 </dd>
               </div>
+              {t.siteFooter.address ? (
+                <div>
+                  <dt className="text-[11px] font-semibold tracking-wide text-ink-muted uppercase">
+                    {t.siteFooter.addressLabel}
+                  </dt>
+                  <dd className="mt-0.5">{t.siteFooter.address}</dd>
+                </div>
+              ) : null}
             </dl>
           </div>
-        ) : null}
-
-        <p className="mt-3 text-xs text-ink-muted/80">{copyright}</p>
-      </div>
+        </div>
+      ) : null}
     </footer>
   );
 }
