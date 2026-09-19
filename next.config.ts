@@ -10,6 +10,10 @@ const nextConfig: NextConfig = {
       dynamic: 0,
       static: 30,
     },
+    // Listing photo uploads (up to 6 compressed JPEGs) need >1MB default.
+    serverActions: {
+      bodySizeLimit: "4mb",
+    },
   },
   images: {
     remotePatterns: [

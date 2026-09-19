@@ -2,12 +2,16 @@
 
 import { after } from "next/server";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { redirect, unstable_rethrow } from "next/navigation";
 import { getI18n } from "@/lib/i18n/server";
 import { isStaffRole } from "@/lib/auth";
 import { notifyListingCreated, notifyAdminListingChange } from "@/lib/notifications/dispatch";
 import { createClient } from "@/lib/supabase/server";
 import type { ItemCondition, PickupMethod } from "@/lib/types";
+
+function failRedirect(path: string, message: string): never {
+  redirect(`${path}${path.includes("?") ? "&" : "?"}error=${encodeURIComponent(message)}`);
+}
 
 async function requireSeller() {
   const supabase = await createClient();
@@ -104,21 +108,34 @@ async function uploadListingImages(
   startOrder = 0,
 ) {
   const slice = files.slice(0, 6);
-  const uploaded = await Promise.all(
-    slice.map(async (file, i) => {
-      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-      const safeExt = ["jpg", "jpeg", "png", "webp"].includes(ext) ? ext : "jpg";
-      const path = `${userId}/${listingId}/${startOrder + i}-${crypto.randomUUID()}.${safeExt}`;
-      const { error: uploadError } = await supabase.storage
-        .from("listing-images")
-        .upload(path, file, {
-          upsert: false,
-          contentType: file.type || "image/jpeg",
-        });
-      if (uploadError) return null;
-      return { path, sort_order: startOrder + i };
-    }),
-  );
+  const maxPerFile = 900_000;
+  const maxTotal = 3.5 * 1024 * 1024;
+  const { t } = await getI18n();
+  for (const file of slice) {
+    if (file.size > maxPerFile) {
+      throw new Error(t.sell.photoStillTooLarge);
+    }
+  }
+  const totalBytes = slice.reduce((sum, file) => sum + file.size, 0);
+  if (totalBytes > maxTotal) {
+    throw new Error(t.sell.photoTotalTooLarge);
+  }
+
+  // Sequential uploads keep serverless memory lower than Promise.all.
+  const uploaded: Array<{ path: string; sort_order: number } | null> = [];
+  for (let i = 0; i < slice.length; i++) {
+    const file = slice[i]!;
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+    const safeExt = ["jpg", "jpeg", "png", "webp"].includes(ext) ? ext : "jpg";
+    const path = `${userId}/${listingId}/${startOrder + i}-${crypto.randomUUID()}.${safeExt}`;
+    const { error: uploadError } = await supabase.storage
+      .from("listing-images")
+      .upload(path, file, {
+        upsert: false,
+        contentType: file.type || "image/jpeg",
+      });
+    uploaded.push(uploadError ? null : { path, sort_order: startOrder + i });
+  }
 
   const rows = uploaded.filter(
     (row): row is { path: string; sort_order: number } => Boolean(row),
@@ -136,259 +153,288 @@ async function uploadListingImages(
 }
 
 export async function createListingAction(formData: FormData) {
-  const { supabase, user } = await requireSeller();
-  const {
-    title,
-    description,
-    categoryId,
-    priceCents,
-    donationPercent,
-    pickupMethod,
-    pickupAddress,
-    pickupPhone,
-    itemCondition,
-    quantityTotal,
-    files,
-  } = await parseListingFields(formData);
-
-  const { data: listing, error } = await supabase
-    .from("listings")
-    .insert({
-      seller_id: user.id,
-      category_id: categoryId,
-      title,
-      description,
-      price_cents: priceCents,
-      donation_percent: donationPercent,
-      pickup_method: pickupMethod,
-      item_condition: itemCondition,
-      quantity_total: quantityTotal,
-      quantity_remaining: quantityTotal,
-      status: "available",
-    })
-    .select("id")
-    .single();
-
-  if (error || !listing) {
-    const { t } = await getI18n();
-    throw new Error(error?.message || t.errors.createFailed);
-  }
+  const { t } = await getI18n();
+  let listingId: string | null = null;
 
   try {
+    const { supabase, user } = await requireSeller();
+    const {
+      title,
+      description,
+      categoryId,
+      priceCents,
+      donationPercent,
+      pickupMethod,
+      pickupAddress,
+      pickupPhone,
+      itemCondition,
+      quantityTotal,
+      files,
+    } = await parseListingFields(formData);
+
+    const { data: listing, error } = await supabase
+      .from("listings")
+      .insert({
+        seller_id: user.id,
+        category_id: categoryId,
+        title,
+        description,
+        price_cents: priceCents,
+        donation_percent: donationPercent,
+        pickup_method: pickupMethod,
+        item_condition: itemCondition,
+        quantity_total: quantityTotal,
+        quantity_remaining: quantityTotal,
+        status: "available",
+      })
+      .select("id")
+      .single();
+
+    if (error || !listing) {
+      throw new Error(error?.message || t.errors.createFailed);
+    }
+    listingId = listing.id;
+
+    try {
+      await upsertPickupContacts(
+        supabase,
+        listing.id,
+        pickupMethod,
+        pickupAddress,
+        pickupPhone,
+      );
+    } catch (contactError) {
+      await supabase.from("listings").delete().eq("id", listing.id);
+      throw contactError;
+    }
+
+    const uploadedPaths = await uploadListingImages(
+      supabase,
+      user.id,
+      listing.id,
+      files,
+    );
+
+    if (uploadedPaths[0]) {
+      await supabase
+        .from("listings")
+        .update({ cover_image_path: uploadedPaths[0] })
+        .eq("id", listing.id);
+    }
+
+    after(async () => {
+      try {
+        await notifyListingCreated(listing.id);
+      } catch (error) {
+        console.error("[notifyListingCreated]", error);
+      }
+      revalidatePath("/");
+      revalidatePath("/market");
+      revalidatePath(`/market/${listing.id}`);
+      revalidatePath("/account/transactions");
+      revalidatePath("/me");
+    });
+  } catch (error) {
+    unstable_rethrow(error);
+    const message =
+      error instanceof Error && error.message
+        ? error.message
+        : t.errors.createFailed;
+    failRedirect("/sell", message);
+  }
+
+  if (!listingId) {
+    failRedirect("/sell", t.errors.createFailed);
+  }
+  redirect(`/market/${listingId}`);
+}
+
+export async function updateListingAction(formData: FormData) {
+  const { t } = await getI18n();
+  const listingId = String(formData.get("listing_id") || "");
+  const failPath = listingId ? `/sell/${listingId}/edit` : "/sell";
+  let successPath = `/market/${listingId}`;
+
+  try {
+    const { supabase, user } = await requireSeller();
+    if (!listingId) throw new Error(t.errors.listingNotFound);
+
+    const {
+      title,
+      description,
+      categoryId,
+      priceCents,
+      donationPercent,
+      pickupMethod,
+      pickupAddress,
+      pickupPhone,
+      itemCondition,
+      quantityTotal,
+      files,
+    } = await parseListingFields(formData);
+
+    const [{ data: existing, error: loadError }, { data: profile }] =
+      await Promise.all([
+        supabase
+          .from("listings")
+          .select(
+            "id, seller_id, status, cover_image_path, quantity_total, quantity_remaining",
+          )
+          .eq("id", listingId)
+          .maybeSingle(),
+        supabase.from("profiles").select("role").eq("id", user.id).maybeSingle(),
+      ]);
+
+    const isAdmin = isStaffRole(profile?.role);
+    if (loadError || !existing || (existing.seller_id !== user.id && !isAdmin)) {
+      throw new Error(t.errors.cannotEdit);
+    }
+    if (
+      !isAdmin &&
+      existing.status !== "available" &&
+      existing.status !== "cancelled"
+    ) {
+      throw new Error(t.errors.cannotEditActive);
+    }
+
+    const prevTotal = Math.max(1, Number(existing.quantity_total) || 1);
+    const prevRemaining = Math.max(
+      0,
+      Number(existing.quantity_remaining) || prevTotal,
+    );
+    const soldCount = Math.max(0, prevTotal - prevRemaining);
+    if (quantityTotal < soldCount) {
+      throw new Error(t.sell.quantityTooLow);
+    }
+    const nextRemaining = quantityTotal - soldCount;
+
+    let updateQuery = supabase
+      .from("listings")
+      .update({
+        category_id: categoryId,
+        title,
+        description,
+        price_cents: priceCents,
+        donation_percent: donationPercent,
+        pickup_method: pickupMethod,
+        item_condition: itemCondition,
+        quantity_total: quantityTotal,
+        quantity_remaining: nextRemaining,
+        // Admins can patch active listings without forcing them back to available.
+        ...(isAdmin &&
+        existing.status !== "available" &&
+        existing.status !== "cancelled"
+          ? {}
+          : {
+              status: nextRemaining > 0 ? "available" : existing.status,
+            }),
+      })
+      .eq("id", listingId);
+    if (!isAdmin) {
+      updateQuery = updateQuery.eq("seller_id", user.id);
+    }
+
+    const { error } = await updateQuery;
+
+    if (error) {
+      throw new Error(error.message || t.errors.updateFailed);
+    }
+
     await upsertPickupContacts(
       supabase,
-      listing.id,
+      listingId,
       pickupMethod,
       pickupAddress,
       pickupPhone,
     );
-  } catch (contactError) {
-    await supabase.from("listings").delete().eq("id", listing.id);
-    throw contactError;
-  }
 
-  const uploadedPaths = await uploadListingImages(
-    supabase,
-    user.id,
-    listing.id,
-    files,
-  );
+    const removeIds = formData
+      .getAll("remove_image_id")
+      .map((v) => String(v))
+      .filter(Boolean);
 
-  if (uploadedPaths[0]) {
+    if (removeIds.length) {
+      const { data: toRemove } = await supabase
+        .from("listing_images")
+        .select("id, storage_path")
+        .eq("listing_id", listingId)
+        .in("id", removeIds);
+
+      const paths = (toRemove || []).map((row) => row.storage_path);
+      if (paths.length) {
+        await supabase.storage.from("listing-images").remove(paths);
+      }
+      await supabase
+        .from("listing_images")
+        .delete()
+        .eq("listing_id", listingId)
+        .in("id", removeIds);
+    }
+
+    const { data: remaining } = await supabase
+      .from("listing_images")
+      .select("id, storage_path, sort_order")
+      .eq("listing_id", listingId)
+      .order("sort_order", { ascending: true });
+
+    const startOrder = remaining?.length ? remaining.length : 0;
+    const slots = Math.max(0, 6 - startOrder);
+    const ownerId = existing.seller_id;
+    const uploadedPaths = await uploadListingImages(
+      supabase,
+      ownerId,
+      listingId,
+      files.slice(0, slots),
+      startOrder,
+    );
+
+    const cover =
+      remaining?.[0]?.storage_path || uploadedPaths[0] || null;
+
     await supabase
       .from("listings")
-      .update({ cover_image_path: uploadedPaths[0] })
-      .eq("id", listing.id);
-  }
+      .update({ cover_image_path: cover })
+      .eq("id", listingId);
 
-  after(async () => {
-    try {
-      await notifyListingCreated(listing.id);
-    } catch (error) {
-      console.error("[notifyListingCreated]", error);
+    successPath = isAdmin ? `/admin?tab=listings` : `/market/${listingId}`;
+
+    if (isAdmin) {
+      after(async () => {
+        try {
+          await notifyAdminListingChange({
+            listingId,
+            action: "updated",
+            actorUserId: user.id,
+          });
+        } catch (error) {
+          console.error("[notifyAdminListingChange:updated]", error);
+        }
+        revalidatePath("/");
+        revalidatePath("/market");
+        revalidatePath(`/market/${listingId}`);
+        revalidatePath("/account/transactions");
+        revalidatePath("/admin");
+        revalidatePath("/me");
+      });
+    } else {
+      after(() => {
+        revalidatePath("/");
+        revalidatePath("/market");
+        revalidatePath(`/market/${listingId}`);
+        revalidatePath("/account/transactions");
+        revalidatePath("/me");
+      });
     }
-    revalidatePath("/");
-    revalidatePath("/market");
-    revalidatePath(`/market/${listing.id}`);
-    revalidatePath("/account/transactions");
-    revalidatePath("/me");
-  });
-
-  redirect(`/market/${listing.id}`);
-}
-
-export async function updateListingAction(formData: FormData) {
-  const { supabase, user } = await requireSeller();
-  const { t } = await getI18n();
-  const listingId = String(formData.get("listing_id") || "");
-  if (!listingId) throw new Error(t.errors.listingNotFound);
-
-  const {
-    title,
-    description,
-    categoryId,
-    priceCents,
-    donationPercent,
-    pickupMethod,
-    pickupAddress,
-    pickupPhone,
-    itemCondition,
-    quantityTotal,
-    files,
-  } = await parseListingFields(formData);
-
-  const [{ data: existing, error: loadError }, { data: profile }] =
-    await Promise.all([
-      supabase
-        .from("listings")
-        .select(
-          "id, seller_id, status, cover_image_path, quantity_total, quantity_remaining",
-        )
-        .eq("id", listingId)
-        .maybeSingle(),
-      supabase.from("profiles").select("role").eq("id", user.id).maybeSingle(),
-    ]);
-
-  const isAdmin = isStaffRole(profile?.role);
-  if (loadError || !existing || (existing.seller_id !== user.id && !isAdmin)) {
-    throw new Error(t.errors.cannotEdit);
-  }
-  if (
-    !isAdmin &&
-    existing.status !== "available" &&
-    existing.status !== "cancelled"
-  ) {
-    throw new Error(t.errors.cannotEditActive);
+  } catch (error) {
+    unstable_rethrow(error);
+    const message =
+      error instanceof Error && error.message
+        ? error.message
+        : t.errors.updateFailed;
+    failRedirect(failPath, message);
   }
 
-  const prevTotal = Math.max(1, Number(existing.quantity_total) || 1);
-  const prevRemaining = Math.max(
-    0,
-    Number(existing.quantity_remaining) || prevTotal,
-  );
-  const soldCount = Math.max(0, prevTotal - prevRemaining);
-  if (quantityTotal < soldCount) {
-    throw new Error(t.sell.quantityTooLow);
-  }
-  const nextRemaining = quantityTotal - soldCount;
-
-  let updateQuery = supabase
-    .from("listings")
-    .update({
-      category_id: categoryId,
-      title,
-      description,
-      price_cents: priceCents,
-      donation_percent: donationPercent,
-      pickup_method: pickupMethod,
-      item_condition: itemCondition,
-      quantity_total: quantityTotal,
-      quantity_remaining: nextRemaining,
-      // Admins can patch active listings without forcing them back to available.
-      ...(isAdmin && existing.status !== "available" && existing.status !== "cancelled"
-        ? {}
-        : {
-            status: nextRemaining > 0 ? "available" : existing.status,
-          }),
-    })
-    .eq("id", listingId);
-  if (!isAdmin) {
-    updateQuery = updateQuery.eq("seller_id", user.id);
-  }
-
-  const { error } = await updateQuery;
-
-  if (error) {
-    throw new Error(error.message || t.errors.updateFailed);
-  }
-
-  await upsertPickupContacts(
-    supabase,
-    listingId,
-    pickupMethod,
-    pickupAddress,
-    pickupPhone,
-  );
-
-  const removeIds = formData
-    .getAll("remove_image_id")
-    .map((v) => String(v))
-    .filter(Boolean);
-
-  if (removeIds.length) {
-    const { data: toRemove } = await supabase
-      .from("listing_images")
-      .select("id, storage_path")
-      .eq("listing_id", listingId)
-      .in("id", removeIds);
-
-    const paths = (toRemove || []).map((row) => row.storage_path);
-    if (paths.length) {
-      await supabase.storage.from("listing-images").remove(paths);
-    }
-    await supabase
-      .from("listing_images")
-      .delete()
-      .eq("listing_id", listingId)
-      .in("id", removeIds);
-  }
-
-  const { data: remaining } = await supabase
-    .from("listing_images")
-    .select("id, storage_path, sort_order")
-    .eq("listing_id", listingId)
-    .order("sort_order", { ascending: true });
-
-  const startOrder = remaining?.length ? remaining.length : 0;
-  const slots = Math.max(0, 6 - startOrder);
-  const ownerId = existing.seller_id;
-  const uploadedPaths = await uploadListingImages(
-    supabase,
-    ownerId,
-    listingId,
-    files.slice(0, slots),
-    startOrder,
-  );
-
-  const cover =
-    remaining?.[0]?.storage_path ||
-    uploadedPaths[0] ||
-    null;
-
-  await supabase
-    .from("listings")
-    .update({ cover_image_path: cover })
-    .eq("id", listingId);
-
-  if (isAdmin) {
-    after(async () => {
-      try {
-        await notifyAdminListingChange({
-          listingId,
-          action: "updated",
-          actorUserId: user.id,
-        });
-      } catch (error) {
-        console.error("[notifyAdminListingChange:updated]", error);
-      }
-      revalidatePath("/");
-      revalidatePath("/market");
-      revalidatePath(`/market/${listingId}`);
-      revalidatePath("/account/transactions");
-      revalidatePath("/admin");
-      revalidatePath("/me");
-    });
-  } else {
-    after(() => {
-      revalidatePath("/");
-      revalidatePath("/market");
-      revalidatePath(`/market/${listingId}`);
-      revalidatePath("/account/transactions");
-      revalidatePath("/me");
-    });
-  }
-
-  redirect(isAdmin ? `/admin?tab=listings` : `/market/${listingId}`);
+  redirect(successPath);
 }
 
 export async function deleteListingAction(formData: FormData) {

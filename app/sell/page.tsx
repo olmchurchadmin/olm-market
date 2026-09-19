@@ -1,4 +1,5 @@
 import { DonationPercentField } from "@/components/donation-percent-field";
+import { ListingForm } from "@/components/listing-form";
 import { ListingStockFields } from "@/components/listing-stock-fields";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { FileUploadField } from "@/components/ui/file-upload-field";
@@ -11,8 +12,13 @@ import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-export default async function SellPage() {
+export default async function SellPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
   const { locale, t } = await getI18n();
+  const { error } = await searchParams;
   const supabase = await createClient();
   const { data: categories } = await supabase
     .from("categories")
@@ -26,7 +32,12 @@ export default async function SellPage() {
       </h1>
       <p className="mt-2 text-ink-muted">{t.sell.blurb}</p>
 
-      <form action={createListingAction} className="mt-8 space-y-5">
+      <ListingForm
+        action={createListingAction}
+        initialError={error || null}
+        photoTotalTooLarge={t.sell.photoTotalTooLarge}
+        photoStillTooLarge={t.sell.photoStillTooLarge}
+      >
         <label className="block text-sm font-medium">
           {t.sell.titleLabel}
           <span className="ml-0.5 text-red-600" aria-hidden>
@@ -76,7 +87,7 @@ export default async function SellPage() {
         <PendingSubmitButton pendingLabel={t.common.loading}>
           {t.sell.submit}
         </PendingSubmitButton>
-      </form>
+      </ListingForm>
     </main>
   );
 }

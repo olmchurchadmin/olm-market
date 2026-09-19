@@ -3,10 +3,14 @@
 import { PhotoIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useEffect, useId, useRef, useState } from "react";
 import { useI18n } from "@/components/locale-provider";
-import { compressImageFiles } from "@/lib/image-compress";
+import {
+  ImageCompressError,
+  MAX_IMAGES_PER_LISTING,
+  compressImageFiles,
+} from "@/lib/image-compress";
 import { listingImageUrl } from "@/lib/utils";
 
-const MAX_IMAGES = 6;
+const MAX_IMAGES = MAX_IMAGES_PER_LISTING;
 
 type ExistingImage = {
   id: string;
@@ -43,6 +47,7 @@ export function FileUploadField({
   const [keptExisting, setKeptExisting] = useState<ExistingImage[]>(existingImages);
   const [previews, setPreviews] = useState<NewPreview[]>([]);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     return () => {
@@ -69,14 +74,15 @@ export function FileUploadField({
   async function onPick(fileList: FileList | null) {
     if (!fileList?.length || slotsLeft <= 0) return;
     setBusy(true);
+    setError(null);
     try {
       const compressed = await compressImageFiles(
         Array.from(fileList).slice(0, slotsLeft),
       );
-      const next = [
-        ...filesRef.current,
-        ...compressed,
-      ].slice(0, MAX_IMAGES - keptExisting.length);
+      const next = [...filesRef.current, ...compressed].slice(
+        0,
+        MAX_IMAGES - keptExisting.length,
+      );
 
       setPreviews((prev) => {
         prev.forEach((p) => URL.revokeObjectURL(p.url));
@@ -87,6 +93,19 @@ export function FileUploadField({
         }));
       });
       syncSubmitInput(next);
+    } catch (err) {
+      const messages = {
+        not_image: t.sell.photoNotImage,
+        unsupported_format: t.sell.photoUnsupported,
+        too_large_input: t.sell.photoTooLargeInput,
+        load_failed: t.sell.photoLoadFailed,
+        encode_failed: t.sell.photoEncodeFailed,
+        still_too_large: t.sell.photoStillTooLarge,
+        total_too_large: t.sell.photoTotalTooLarge,
+        process_failed: t.sell.photoProcessFailed,
+      } as const;
+      const code = err instanceof ImageCompressError ? err.code : "process_failed";
+      setError(messages[code] ?? t.sell.photoProcessFailed);
     } finally {
       setBusy(false);
     }
@@ -94,6 +113,7 @@ export function FileUploadField({
 
   function removeExisting(imageId: string) {
     setKeptExisting((prev) => prev.filter((img) => img.id !== imageId));
+    setError(null);
   }
 
   function removeNew(index: number) {
@@ -104,6 +124,7 @@ export function FileUploadField({
       syncSubmitInput(next.map((p) => p.file));
       return next;
     });
+    setError(null);
   }
 
   return (
@@ -181,6 +202,12 @@ export function FileUploadField({
         </ul>
       ) : null}
 
+      {error ? (
+        <p className="mt-2 text-xs font-normal text-red-700" role="alert">
+          {error}
+        </p>
+      ) : null}
+
       {slotsLeft > 0 ? (
         <label
           htmlFor={pickId}
@@ -206,6 +233,7 @@ export function FileUploadField({
             type="file"
             accept={accept}
             multiple={multiple}
+            disabled={busy}
             className="sr-only"
             onChange={(e) => {
               void onPick(e.target.files);

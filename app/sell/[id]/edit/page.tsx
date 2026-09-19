@@ -2,6 +2,7 @@ import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { DonationPercentField } from "@/components/donation-percent-field";
+import { ListingForm } from "@/components/listing-form";
 import { ListingStockFields } from "@/components/listing-stock-fields";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { PickupMethodField } from "@/components/pickup-method-field";
@@ -18,10 +19,13 @@ export const dynamic = "force-dynamic";
 
 export default async function EditListingPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ error?: string }>;
 }) {
   const { id } = await params;
+  const { error } = await searchParams;
   const { locale, t } = await getI18n();
   const user = await getSessionUser();
   if (!user) {
@@ -76,7 +80,12 @@ export default async function EditListingPage({
       </h1>
       <p className="mt-2 text-ink-muted">{t.sell.editBlurb}</p>
 
-      <form action={updateListingAction} className="mt-8 space-y-5">
+      <ListingForm
+        action={updateListingAction}
+        initialError={error || null}
+        photoTotalTooLarge={t.sell.photoTotalTooLarge}
+        photoStillTooLarge={t.sell.photoStillTooLarge}
+      >
         <input type="hidden" name="listing_id" value={listing.id} />
 
         <label className="block text-sm font-medium">
@@ -149,7 +158,7 @@ export default async function EditListingPage({
             {t.sell.cancel}
           </Link>
         </div>
-      </form>
+      </ListingForm>
     </main>
   );
 }
