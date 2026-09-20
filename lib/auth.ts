@@ -4,7 +4,7 @@ import { isAdminRole, isStaffRole } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/types";
 
-export { isAdminRole, isStaffRole, parseUserRole } from "@/lib/roles";
+export { isAdminRole, isStaffRole, isSuperAdminRole, parseUserRole } from "@/lib/roles";
 
 export const getSessionUser = cache(async () => {
   if (!isSupabaseConfigured()) return null;

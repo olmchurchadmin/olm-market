@@ -109,8 +109,8 @@ export function AdminMemberEditForm({
           selectClassName="max-w-xs"
           options={[
             { value: "user", label: t.admin.roleUser },
-            { value: "manager", label: t.admin.roleManager },
             { value: "admin", label: t.admin.roleAdmin },
+            { value: "superadmin", label: t.admin.roleSuperadmin },
           ]}
           hint={isSelf ? t.errors.cannotDemoteSelf : t.admin.roleHint}
         />

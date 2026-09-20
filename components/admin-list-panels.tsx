@@ -268,8 +268,8 @@ export function AdminMembersPanel({
   }
 
   function roleLabel(role: string) {
+    if (role === "superadmin") return t.admin.roleSuperadmin;
     if (role === "admin") return t.admin.roleAdmin;
-    if (role === "manager") return t.admin.roleManager;
     return t.admin.roleUser;
   }
 
@@ -331,11 +331,11 @@ export function AdminMembersPanel({
                               {member.email || "—"}
                             </p>
                           </div>
-                          {member.role === "admin" ? (
+                          {member.role === "superadmin" ? (
                             <span className="shrink-0 rounded bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand">
                               {roleLabel(member.role)}
                             </span>
-                          ) : member.role === "manager" ? (
+                          ) : member.role === "admin" ? (
                             <span className="shrink-0 rounded bg-neutral-100 px-2 py-0.5 text-xs font-semibold text-foreground">
                               {roleLabel(member.role)}
                             </span>
@@ -434,11 +434,11 @@ export function AdminMembersPanel({
                               {member.phone || "—"}
                             </td>
                             <td className="whitespace-nowrap px-4 py-3">
-                              {member.role === "admin" ? (
+                              {member.role === "superadmin" ? (
                                 <span className="rounded bg-brand/10 px-2 py-0.5 text-xs font-semibold text-brand">
                                   {roleLabel(member.role)}
                                 </span>
-                              ) : member.role === "manager" ? (
+                              ) : member.role === "admin" ? (
                                 <span className="rounded bg-neutral-100 px-2 py-0.5 text-xs font-semibold text-foreground">
                                   {roleLabel(member.role)}
                                 </span>

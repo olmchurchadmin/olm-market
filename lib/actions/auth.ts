@@ -570,11 +570,11 @@ export async function adminUpdateMemberAction(formData: FormData) {
   if (targetId === user.id) {
     // Never let an admin lock themselves out of admin via this form.
     role = currentRole;
-  } else if (currentRole === "admin" && role !== "admin") {
+  } else if (currentRole === "superadmin" && role !== "superadmin") {
     const { count, error: countError } = await supabase
       .from("profiles")
       .select("id", { count: "exact", head: true })
-      .eq("role", "admin");
+      .eq("role", "superadmin");
     if (countError) {
       fail(countError.message || t.errors.memberSaveFailed);
     }

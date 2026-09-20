@@ -1,4 +1,4 @@
-export type UserRole = "user" | "manager" | "admin";
+export type UserRole = "user" | "admin" | "superadmin";
 export type ListingStatus =
   | "available"
   | "reserved"

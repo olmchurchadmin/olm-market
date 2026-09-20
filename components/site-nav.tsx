@@ -4,6 +4,7 @@ import {
   ArrowLeftOnRectangleIcon,
   ArrowRightOnRectangleIcon,
   Bars3Icon,
+  ChatBubbleLeftRightIcon,
   PlusCircleIcon,
   ShieldCheckIcon,
   UserCircleIcon,
@@ -98,6 +99,14 @@ export function SiteNav({ profile }: SiteNavProps) {
                   <PlusCircleIcon className="size-5" aria-hidden />
                   {t.nav.sell}
                 </Link>
+                <Link
+                  href="/board"
+                  onClick={() => setOpen(false)}
+                  className="inline-flex items-center gap-2 rounded-md px-3 py-3 hover:bg-brand/5 hover:text-brand"
+                >
+                  <ChatBubbleLeftRightIcon className="size-5" aria-hidden />
+                  {t.nav.board}
+                </Link>
                 {profile ? (
                   <>
                     <Link
@@ -159,6 +168,13 @@ export function SiteNav({ profile }: SiteNavProps) {
         >
           <PlusCircleIcon className="size-4" aria-hidden />
           {t.nav.sell}
+        </Link>
+        <Link
+          href="/board"
+          className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 hover:bg-brand/5 hover:text-brand"
+        >
+          <ChatBubbleLeftRightIcon className="size-4" aria-hidden />
+          {t.nav.board}
         </Link>
         {profile?.isAdmin ? (
           <Link
