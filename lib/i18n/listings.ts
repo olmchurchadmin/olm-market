@@ -1,8 +1,5 @@
 import type { Locale } from "@/lib/i18n/config";
-import {
-  detectTextLocale,
-  translateBetweenKoEn,
-} from "@/lib/i18n/translate-ko-en";
+import { translateBetweenKoEn } from "@/lib/i18n/translate-ko-en";
 
 export type ListingTextFields = {
   title?: string | null;
@@ -20,6 +17,25 @@ export type ListingI18nPayload = {
   description_en: string;
 };
 
+function hasHangul(text: string | null | undefined) {
+  return /[가-힣]/.test(text || "");
+}
+
+/** Stored EN still contains Hangul → needs another translation pass. */
+export function listingHasIncompleteEnglish(listing: ListingTextFields) {
+  const titleSource = listing.title_ko?.trim() || listing.title?.trim() || "";
+  const descSource =
+    listing.description_ko?.trim() || listing.description?.trim() || "";
+  return (
+    (Boolean(titleSource) &&
+      (hasHangul(listing.title_en) ||
+        (hasHangul(titleSource) && !listing.title_en?.trim()))) ||
+    (Boolean(descSource) &&
+      (hasHangul(listing.description_en) ||
+        (hasHangul(descSource) && !listing.description_en?.trim())))
+  );
+}
+
 export function listingTitle(
   listing: ListingTextFields | null | undefined,
   locale: Locale,
@@ -27,10 +43,13 @@ export function listingTitle(
 ) {
   if (!listing) return fallback;
   if (locale === "en") {
+    const en = listing.title_en?.trim();
+    // Prefer EN only when it no longer has leftover Hangul.
+    if (en && !hasHangul(en)) return en;
     return (
-      listing.title_en?.trim() ||
       listing.title?.trim() ||
       listing.title_ko?.trim() ||
+      en ||
       fallback
     );
   }
@@ -49,10 +68,12 @@ export function listingDescription(
 ) {
   if (!listing) return fallback;
   if (locale === "en") {
+    const en = listing.description_en?.trim();
+    if (en && !hasHangul(en)) return en;
     return (
-      listing.description_en?.trim() ||
       listing.description?.trim() ||
       listing.description_ko?.trim() ||
+      en ||
       fallback
     );
   }
@@ -71,57 +92,29 @@ export async function buildListingI18n(
 ): Promise<ListingI18nPayload> {
   const titleTrim = title.trim();
   const descTrim = description.replace(/\r\n/g, "\n").trim();
-  const source = detectTextLocale(`${titleTrim}\n${descTrim}`);
 
-  if (source === "ko") {
-    const [titleEn, descriptionEn] = await Promise.all([
-      translateBetweenKoEn(titleTrim, "ko", "en"),
-      translateBetweenKoEn(descTrim, "ko", "en"),
-    ]);
-    return {
-      title_ko: titleTrim,
-      title_en: titleEn || titleTrim,
-      description_ko: descTrim,
-      description_en: descriptionEn || descTrim,
-    };
-  }
-
-  if (source === "en") {
-    const [titleKo, descriptionKo] = await Promise.all([
-      translateBetweenKoEn(titleTrim, "en", "ko"),
-      translateBetweenKoEn(descTrim, "en", "ko"),
-    ]);
-    return {
-      title_ko: titleKo || titleTrim,
-      title_en: titleTrim,
-      description_ko: descriptionKo || descTrim,
-      description_en: descTrim,
-    };
-  }
-
-  // Mixed / unknown: keep original on both sides, still try EN↔KO for each field.
-  const titleSource = detectTextLocale(titleTrim);
-  const descSource = detectTextLocale(descTrim);
-  const [titleKo, titleEn, descriptionKo, descriptionEn] = await Promise.all([
-    titleSource === "en"
-      ? translateBetweenKoEn(titleTrim, "en", "ko")
-      : Promise.resolve(titleTrim),
-    titleSource === "ko"
-      ? translateBetweenKoEn(titleTrim, "ko", "en")
-      : Promise.resolve(titleTrim),
-    descSource === "en"
-      ? translateBetweenKoEn(descTrim, "en", "ko")
-      : Promise.resolve(descTrim),
-    descSource === "ko"
-      ? translateBetweenKoEn(descTrim, "ko", "en")
-      : Promise.resolve(descTrim),
+  // Always produce both directions from the canonical text.
+  // Mixed titles (Latin + Hangul) still get Hangul segments translated.
+  const [titleEn, descriptionEn, titleKo, descriptionKo] = await Promise.all([
+    translateBetweenKoEn(titleTrim, "ko", "en"),
+    translateBetweenKoEn(descTrim, "ko", "en"),
+    hasHangul(titleTrim)
+      ? Promise.resolve(titleTrim)
+      : translateBetweenKoEn(titleTrim, "en", "ko"),
+    hasHangul(descTrim)
+      ? Promise.resolve(descTrim)
+      : translateBetweenKoEn(descTrim, "en", "ko"),
   ]);
 
+  // If source was English-only, keep it as title_en / description_en.
+  const titleLooksEn = !hasHangul(titleTrim) && /[A-Za-z]/.test(titleTrim);
+  const descLooksEn = !hasHangul(descTrim) && /[A-Za-z]/.test(descTrim);
+
   return {
-    title_ko: titleKo || titleTrim,
-    title_en: titleEn || titleTrim,
-    description_ko: descriptionKo || descTrim,
-    description_en: descriptionEn || descTrim,
+    title_ko: hasHangul(titleTrim) ? titleTrim : titleKo || titleTrim,
+    title_en: titleLooksEn ? titleTrim : titleEn || titleTrim,
+    description_ko: hasHangul(descTrim) ? descTrim : descriptionKo || descTrim,
+    description_en: descLooksEn ? descTrim : descriptionEn || descTrim,
   };
 }
 
@@ -130,7 +123,11 @@ export function listingNeedsI18n(
   locale: Locale,
 ) {
   if (locale === "en") {
-    return !listing.title_en?.trim() || !listing.description_en?.trim();
+    return (
+      !listing.title_en?.trim() ||
+      !listing.description_en?.trim() ||
+      listingHasIncompleteEnglish(listing)
+    );
   }
   return !listing.title_ko?.trim() || !listing.description_ko?.trim();
 }

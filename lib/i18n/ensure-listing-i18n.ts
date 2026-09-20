@@ -2,6 +2,7 @@ import { after } from "next/server";
 import { revalidatePath } from "next/cache";
 import {
   buildListingI18n,
+  listingHasIncompleteEnglish,
   type ListingTextFields,
 } from "@/lib/i18n/listings";
 import type { Locale } from "@/lib/i18n/config";
@@ -11,7 +12,8 @@ function missingLocaleFields(listing: ListingTextFields, locale: Locale) {
   if (locale === "en") {
     return (
       (Boolean(listing.title?.trim()) && !listing.title_en?.trim()) ||
-      (Boolean(listing.description?.trim()) && !listing.description_en?.trim())
+      (Boolean(listing.description?.trim()) && !listing.description_en?.trim()) ||
+      listingHasIncompleteEnglish(listing)
     );
   }
   return (
@@ -20,7 +22,7 @@ function missingLocaleFields(listing: ListingTextFields, locale: Locale) {
   );
 }
 
-function missingAnyI18n(listing: ListingTextFields) {
+function needsAnyI18nWork(listing: ListingTextFields) {
   return (
     missingLocaleFields(listing, "en") || missingLocaleFields(listing, "ko")
   );
@@ -46,13 +48,13 @@ async function persistI18n(
 }
 
 /**
- * Fill missing bilingual title/description fields for older listings.
- * Awaits when the active locale is missing so the page can show it.
+ * Fill/repair bilingual title/description fields.
+ * Also re-runs when stored English still contains Hangul.
  */
 export async function ensureListingI18nFields<
   T extends ListingTextFields & { id: string },
 >(listing: T, locale: Locale): Promise<T> {
-  if (!missingAnyI18n(listing)) return listing;
+  if (!needsAnyI18nWork(listing)) return listing;
 
   if (!missingLocaleFields(listing, locale)) {
     after(() => {

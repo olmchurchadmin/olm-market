@@ -15,6 +15,12 @@ const KO_EN_DICTIONARY: Record<string, string> = {
   주방: "Kitchen",
   뷰티: "Beauty",
   잡화: "General goods",
+  전동칫솔: "electric toothbrush",
+  칫솔: "toothbrush",
+  블루투스: "Bluetooth",
+  스피커: "speaker",
+  미개봉: "unopened",
+  새상품: "brand new",
 };
 
 const CHOSEONG = [
@@ -313,6 +319,7 @@ function splitForTranslation(text: string): string[] {
 /**
  * Bidirectional KO↔EN translation for listing title/description.
  * Preserves blank lines; falls back to the original text on failure.
+ * Mixed titles like "Triple Bristle 전동칫솔" still translate Hangul parts.
  */
 export async function translateBetweenKoEn(
   text: string,
@@ -323,17 +330,26 @@ export async function translateBetweenKoEn(
   if (!trimmed) return "";
   if (from === to) return trimmed.slice(0, 2000);
 
-  const detected = detectTextLocale(trimmed);
-  if (detected === to) return trimmed.slice(0, 2000);
-  if (from === "en" && detected === "ko") {
-    // Already Korean while asking EN→KO.
-    return trimmed.slice(0, 2000);
+  if (to === "en") {
+    if (!/[가-힣]/.test(trimmed)) return trimmed.slice(0, 2000);
+    const chunks = splitForTranslation(trimmed);
+    const out: string[] = [];
+    for (const chunk of chunks) {
+      if (!chunk) {
+        out.push("");
+        continue;
+      }
+      out.push(await translateMixedToEnglish(chunk));
+    }
+    return out.join("\n").slice(0, 2000);
   }
-  if (from === "ko" && detected === "en") {
+
+  // to === "ko"
+  if (!/[A-Za-z]/.test(trimmed)) return trimmed.slice(0, 2000);
+  if (/[가-힣]/.test(trimmed) && !/[A-Za-z]{3,}/.test(trimmed)) {
     return trimmed.slice(0, 2000);
   }
 
-  const langpair = from === "ko" ? "ko|en" : "en|ko";
   const chunks = splitForTranslation(trimmed);
   const out: string[] = [];
   for (const chunk of chunks) {
@@ -341,16 +357,56 @@ export async function translateBetweenKoEn(
       out.push("");
       continue;
     }
-    const translated = await myMemoryTranslate(chunk, langpair);
-    if (translated) {
-      out.push(
-        langpair === "ko|en" ? sentenceCase(translated) : translated,
-      );
-    } else {
-      out.push(chunk);
-    }
+    const translated = await myMemoryTranslate(chunk, "en|ko");
+    out.push(translated || chunk);
   }
   return out.join("\n").slice(0, 2000);
+}
+
+/** Translate any Hangul runs inside mixed KO/EN listing text. */
+async function translateMixedToEnglish(text: string): Promise<string> {
+  let working = text;
+
+  const dictKeys = Object.keys(KO_EN_DICTIONARY).sort(
+    (a, b) => b.length - a.length,
+  );
+  for (const ko of dictKeys) {
+    if (working.includes(ko)) {
+      working = working.split(ko).join(KO_EN_DICTIONARY[ko]!);
+    }
+  }
+
+  if (!/[가-힣]/.test(working)) {
+    return working.replace(/[^\S\n]+/g, " ").trim();
+  }
+
+  // Keep Latin / punctuation; translate contiguous Hangul runs.
+  const parts = working.split(/([가-힣]+)/);
+  const out: string[] = [];
+  for (const part of parts) {
+    if (!part) continue;
+    if (!/[가-힣]/.test(part)) {
+      out.push(part);
+      continue;
+    }
+    const known = KO_EN_DICTIONARY[part];
+    if (known) {
+      out.push(known);
+      continue;
+    }
+    const translated = await myMemoryTranslate(part, "ko|en");
+    if (translated) {
+      out.push(translated);
+      continue;
+    }
+    const romanized = romanizeHangul(part);
+    out.push(romanized ? romanized.replace(/-/g, "") : part);
+  }
+
+  return out
+    .join("")
+    .replace(/[^\S\n]+/g, " ")
+    .trim();
 }
 
 /**
