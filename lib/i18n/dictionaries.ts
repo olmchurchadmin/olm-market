@@ -340,7 +340,7 @@ const ko = {
     resetStats: "스탯 리셋",
     resetStatsTitle: "스탯 리셋",
     resetStatsMessage:
-      "누적 스탯을 지금 시점으로 리셋할까요? 거래·리스팅 데이터는 삭제되지 않으며, 이후 집계만 새로 시작합니다. 주문 파이프라인 숫자는 그대로입니다.",
+      "판매·기부 등 누적 거래 스탯만 지금 시점으로 리셋합니다. 제품 등록·총 유저 수는 현재 기준으로 유지되고, 거래·리스팅 데이터는 삭제되지 않습니다.",
     resetStatsConfirm: "리셋",
     resetStatsSince: "리셋 기준: {date}",
     resetStatsFailed: "스탯 리셋에 실패했습니다.",
@@ -1072,7 +1072,7 @@ const en: Dictionary = {
     resetStats: "Reset stats",
     resetStatsTitle: "Reset stats",
     resetStatsMessage:
-      "Reset cumulative stats from now? Listings and orders are not deleted—only future totals start fresh. Pipeline counts stay as-is.",
+      "Reset cumulative sales and donation stats to now. Listing and user totals stay current. Trade and listing data are not deleted.",
     resetStatsConfirm: "Reset",
     resetStatsSince: "Reset since {date}",
     resetStatsFailed: "Could not reset stats.",
