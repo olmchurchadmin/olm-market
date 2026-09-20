@@ -1,14 +1,13 @@
 import Link from "next/link";
 import {
   ChatBubbleLeftRightIcon,
-  ChevronRightIcon,
   PlusIcon,
 } from "@heroicons/react/24/outline";
 import { redirect } from "next/navigation";
+import { BoardInfiniteList } from "@/components/board-infinite-list";
 import { getCurrentProfile } from "@/lib/auth";
+import { BOARD_PAGE_SIZE, fetchBoardPostsPage } from "@/lib/board/posts-query";
 import { getI18n } from "@/lib/i18n/server";
-import { createClient } from "@/lib/supabase/server";
-import { accountDisplayName, boardImageUrl } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -17,30 +16,17 @@ export default async function BoardPage({
 }: {
   searchParams: Promise<{ deleted?: string }>;
 }) {
-  const { locale, t } = await getI18n();
+  const { t } = await getI18n();
   const { deleted } = await searchParams;
   const profile = await getCurrentProfile();
   if (!profile) {
     redirect(`/login?next=/board`);
   }
 
-  const supabase = await createClient();
-  const { data: posts } = await supabase
-    .from("board_posts")
-    .select(
-      "id, title, body, created_at, author_id, author:profiles!board_posts_author_id_fkey(nickname, full_name, email), board_post_images(id, storage_path, sort_order)",
-    )
-    .order("created_at", { ascending: false })
-    .limit(100);
-
-  const { data: replyCounts } = await supabase
-    .from("board_replies")
-    .select("post_id");
-
-  const countByPost = new Map<string, number>();
-  for (const row of replyCounts || []) {
-    countByPost.set(row.post_id, (countByPost.get(row.post_id) || 0) + 1);
-  }
+  const firstPage = await fetchBoardPostsPage({
+    page: 1,
+    pageSize: BOARD_PAGE_SIZE,
+  });
 
   return (
     <main className="mx-auto w-full min-w-0 max-w-3xl px-4 py-10 sm:px-6">
@@ -67,61 +53,10 @@ export default async function BoardPage({
         </p>
       ) : null}
 
-      {(posts || []).length === 0 ? (
-        <p className="mt-10 text-sm text-ink-muted">{t.board.empty}</p>
-      ) : (
-        <ul className="mt-8 divide-y divide-black/6 rounded-md border border-black/6 bg-white">
-          {(posts || []).map((post) => {
-            const author = Array.isArray(post.author)
-              ? post.author[0]
-              : post.author;
-            const replies = countByPost.get(post.id) || 0;
-            const images = [...(post.board_post_images || [])].sort(
-              (a, b) => a.sort_order - b.sort_order,
-            );
-            const thumb = boardImageUrl(images[0]?.storage_path);
-
-            return (
-              <li key={post.id}>
-                <Link
-                  href={`/board/${post.id}`}
-                  className="flex items-center gap-3 px-4 py-4 transition hover:bg-brand/5"
-                >
-                  {thumb ? (
-                    <span className="relative size-14 shrink-0 overflow-hidden rounded-md border border-brand/10 bg-white sm:size-16">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={thumb}
-                        alt=""
-                        className="absolute inset-0 h-full w-full object-cover object-center"
-                      />
-                    </span>
-                  ) : null}
-                  <span className="min-w-0 flex-1">
-                    <p className="font-medium text-foreground">{post.title}</p>
-                    <p className="mt-1 line-clamp-2 text-sm text-ink-muted">
-                      {post.body}
-                    </p>
-                    <p className="mt-2 text-xs text-ink-muted">
-                      {accountDisplayName(author)} ·{" "}
-                      {new Date(post.created_at).toLocaleString(
-                        locale === "en" ? "en-US" : "ko-KR",
-                      )}
-                      {replies > 0
-                        ? ` · ${t.board.replies} ${replies}`
-                        : ""}
-                    </p>
-                  </span>
-                  <ChevronRightIcon
-                    className="size-5 shrink-0 text-ink-muted"
-                    aria-hidden
-                  />
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+      <BoardInfiniteList
+        initialItems={firstPage.items}
+        total={firstPage.total}
+      />
     </main>
   );
 }

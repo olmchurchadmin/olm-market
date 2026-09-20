@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getCurrentProfile, isStaffRole } from "@/lib/auth";
+import { getCurrentProfile, isStaffRole, isSuperAdminRole } from "@/lib/auth";
 import { MAX_IMAGES_PER_BOARD_POST } from "@/lib/image-compress";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
@@ -271,9 +271,7 @@ export async function deleteBoardPostAction(formData: FormData) {
 
   if (!existing) redirect("/board");
 
-  const canDelete =
-    existing.author_id === profile.id || isStaffRole(profile.role);
-  if (!canDelete) {
+  if (!isSuperAdminRole(profile.role)) {
     redirect(`/board/${postId}`);
   }
 

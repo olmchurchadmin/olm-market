@@ -9,7 +9,7 @@ import {
   deleteBoardPostAction,
   deleteBoardReplyAction,
 } from "@/lib/actions/board";
-import { getCurrentProfile, isStaffRole } from "@/lib/auth";
+import { getCurrentProfile, isStaffRole, isSuperAdminRole } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import { accountDisplayName } from "@/lib/utils";
@@ -60,7 +60,7 @@ export default async function BoardPostPage({
   const author = Array.isArray(post.author) ? post.author[0] : post.author;
   const isAuthor = post.author_id === profile.id;
   const isStaff = isStaffRole(profile.role);
-  const canManagePost = isAuthor || isStaff;
+  const canDeletePost = isSuperAdminRole(profile.role);
   const galleryImages = (images || []).map((img) => ({
     id: img.id,
     storage_path: img.storage_path,
@@ -91,7 +91,7 @@ export default async function BoardPostPage({
 
         <BoardPostGallery title={post.title} images={galleryImages} />
 
-        {canManagePost ? (
+        {isAuthor || canDeletePost ? (
           <div className="mt-6 flex flex-wrap gap-2">
             {isAuthor ? (
               <Link
@@ -101,13 +101,15 @@ export default async function BoardPostPage({
                 {t.board.edit}
               </Link>
             ) : null}
-            <DeleteBoardButton
-              action={deleteBoardPostAction}
-              fields={{ post_id: post.id }}
-              label={t.board.delete}
-              title={t.board.deletePostTitle}
-              message={t.board.deletePostMessage}
-            />
+            {canDeletePost ? (
+              <DeleteBoardButton
+                action={deleteBoardPostAction}
+                fields={{ post_id: post.id }}
+                label={t.board.delete}
+                title={t.board.deletePostTitle}
+                message={t.board.deletePostMessage}
+              />
+            ) : null}
           </div>
         ) : null}
       </article>

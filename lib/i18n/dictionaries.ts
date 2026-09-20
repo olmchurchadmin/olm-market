@@ -1076,7 +1076,7 @@ const en: Dictionary = {
     resetStatsConfirm: "Reset",
     resetStatsSince: "Reset since {date}",
     resetStatsFailed: "Could not reset stats.",
-    listings: "New listings",
+    listings: "Listings",
     listingsTab: "All listings",
     noListings: "No listings yet.",
     listingDeletedFlash: "Listing deleted.",
