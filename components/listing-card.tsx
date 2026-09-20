@@ -34,7 +34,7 @@ export function ListingCard({
   const canWatch = listing.seller_id !== currentUserId;
 
   return (
-    <div className="group overflow-hidden rounded-md border border-black/6 bg-white shadow-[0_8px_24px_rgba(26,28,31,0.04)] transition duration-300 hover:-translate-y-0.5 hover:border-black/12 hover:shadow-[0_14px_36px_rgba(26,28,31,0.08)]">
+    <div className="group flex h-full flex-col overflow-hidden rounded-md border border-black/6 bg-white shadow-[0_8px_24px_rgba(26,28,31,0.04)] transition duration-300 hover:-translate-y-0.5 hover:border-black/12 hover:shadow-[0_14px_36px_rgba(26,28,31,0.08)]">
       <div className="relative aspect-square overflow-hidden bg-neutral-100">
         <Link href={`/market/${listing.id}`} className="absolute inset-0 block">
           {image ? (
@@ -66,8 +66,8 @@ export function ListingCard({
         ) : null}
       </div>
 
-      <Link href={`/market/${listing.id}`} className="block">
-        <div className="space-y-0.5 p-2.5 sm:space-y-1 sm:p-3.5">
+      <Link href={`/market/${listing.id}`} className="flex flex-1 flex-col">
+        <div className="flex flex-1 flex-col gap-0.5 p-2.5 sm:gap-1 sm:p-3.5">
           <div className="flex items-start justify-between gap-2">
             <p className="min-w-0 truncate text-[10px] font-medium tracking-wide text-ink-muted uppercase sm:text-xs">
               {categoryLabel(listing.categories, locale)}
@@ -80,10 +80,10 @@ export function ListingCard({
               </span>
             ) : null}
           </div>
-          <h3 className="line-clamp-2 font-[family-name:var(--font-display)] text-sm text-foreground sm:text-base">
+          <h3 className="line-clamp-2 min-h-[2.5em] overflow-hidden font-[family-name:var(--font-display)] text-sm leading-[1.25] text-foreground sm:text-base">
             {title}
           </h3>
-          <p className="text-sm font-semibold text-foreground sm:text-base">
+          <p className="mt-auto pt-1 text-sm font-semibold text-foreground sm:text-base">
             {formatPrice(listing.price_cents, locale)}
           </p>
         </div>
