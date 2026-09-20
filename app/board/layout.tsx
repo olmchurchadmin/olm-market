@@ -1,12 +1,16 @@
-import { markBoardSeen } from "@/lib/board/unread";
+import { MarkBoardSeen } from "@/components/mark-board-seen";
 
 export const dynamic = "force-dynamic";
 
-export default async function BoardLayout({
+export default function BoardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  await markBoardSeen();
-  return children;
+  return (
+    <>
+      <MarkBoardSeen />
+      {children}
+    </>
+  );
 }

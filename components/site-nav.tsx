@@ -46,9 +46,10 @@ export function SiteNav({ profile, boardUnreadCount = 0 }: SiteNavProps) {
   // Visiting any board route clears the badge immediately (server marks seen in layout).
   const onBoard = pathname === "/board" || pathname.startsWith("/board/");
   const unread = onBoard ? 0 : Math.max(0, boardUnreadCount);
+  const unreadTemplate = t.nav.boardUnreadAria || t.nav.board;
   const boardAria =
     unread > 0
-      ? t.nav.boardUnreadAria.replace("{count}", String(unread))
+      ? unreadTemplate.replace("{count}", String(unread))
       : t.nav.board;
 
   useEffect(() => {

@@ -60,16 +60,36 @@ export async function fetchBoardPostsPage(options: {
   const to = from + pageSize - 1;
 
   const supabase = await createClient();
-  const { data, error, count } = await supabase
-    .from("board_posts")
-    .select(
-      "id, title, body, created_at, author_id, author:profiles!board_posts_author_id_fkey(nickname, full_name, email), board_post_images(storage_path, sort_order)",
-      { count: "exact" },
-    )
-    .order("created_at", { ascending: false })
-    .range(from, to);
+  const selectWithImages =
+    "id, title, body, created_at, author_id, author:profiles!board_posts_author_id_fkey(nickname, full_name, email), board_post_images(storage_path, sort_order)";
+  const selectPlain =
+    "id, title, body, created_at, author_id, author:profiles!board_posts_author_id_fkey(nickname, full_name, email)";
 
-  if (error) throw error;
+  let data: RawPost[] | null = null;
+  let count: number | null = null;
+  let error: { message?: string } | null = null;
+
+  {
+    const first = await supabase
+      .from("board_posts")
+      .select(selectWithImages, { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(from, to);
+    data = (first.data as RawPost[] | null) ?? null;
+    count = first.count;
+    error = first.error;
+  }
+
+  if (error) {
+    const fallback = await supabase
+      .from("board_posts")
+      .select(selectPlain, { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(from, to);
+    if (fallback.error) throw fallback.error;
+    data = (fallback.data as RawPost[] | null) ?? null;
+    count = fallback.count;
+  }
 
   const rows = (data || []) as RawPost[];
   const postIds = rows.map((row) => row.id);

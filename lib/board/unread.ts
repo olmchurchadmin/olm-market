@@ -33,23 +33,3 @@ export const getBoardUnreadCount = cache(async (): Promise<number> => {
     return 0;
   }
 });
-
-/**
- * Mark the board as seen so the unread badge clears.
- * Safe to call during layout render — does not revalidatePath (that crashes Next).
- * Nav clears the badge optimistically while on /board; next navigation refreshes count.
- */
-export async function markBoardSeen() {
-  try {
-    const profile = await getCurrentProfile();
-    if (!profile) return;
-
-    const supabase = await createClient();
-    await supabase
-      .from("profiles")
-      .update({ board_last_seen_at: new Date().toISOString() })
-      .eq("id", profile.id);
-  } catch {
-    // Ignore — missing column or RLS must not break /board.
-  }
-}
