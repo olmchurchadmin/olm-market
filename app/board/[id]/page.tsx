@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import { notFound, redirect } from "next/navigation";
 import { BoardForm } from "@/components/board-form";
 import { BoardPostGallery } from "@/components/board-post-gallery";
@@ -61,6 +62,7 @@ export default async function BoardPostPage({
   const isAuthor = post.author_id === profile.id;
   const isStaff = isStaffRole(profile.role);
   const canDeletePost = isSuperAdminRole(profile.role);
+  const showPostActions = isAuthor || canDeletePost;
   const galleryImages = (images || []).map((img) => ({
     id: img.id,
     storage_path: img.storage_path,
@@ -75,8 +77,37 @@ export default async function BoardPostPage({
         ← {t.board.back}
       </Link>
 
-      <article className="mt-6 rounded-md border border-black/6 bg-white p-5 sm:p-6">
-        <h1 className="break-words font-[family-name:var(--font-display)] text-3xl text-foreground">
+      <article className="relative mt-6 rounded-md border border-black/6 bg-white p-5 sm:p-6">
+        {showPostActions ? (
+          <div className="absolute top-3 right-3 z-10 flex items-center gap-0.5 sm:top-4 sm:right-4">
+            {isAuthor ? (
+              <Link
+                href={`/board/${post.id}/edit`}
+                aria-label={t.board.edit}
+                title={t.board.edit}
+                className="inline-flex size-8 items-center justify-center rounded-md text-ink-muted transition hover:bg-brand/5 hover:text-brand"
+              >
+                <PencilSquareIcon className="size-4" aria-hidden />
+              </Link>
+            ) : null}
+            {canDeletePost ? (
+              <DeleteBoardButton
+                action={deleteBoardPostAction}
+                fields={{ post_id: post.id }}
+                label={t.board.delete}
+                title={t.board.deletePostTitle}
+                message={t.board.deletePostMessage}
+                variant="icon"
+              />
+            ) : null}
+          </div>
+        ) : null}
+
+        <h1
+          className={`break-words font-[family-name:var(--font-display)] text-3xl text-foreground ${
+            showPostActions ? "pr-16" : ""
+          }`}
+        >
           {post.title}
         </h1>
         <p className="mt-2 text-sm text-ink-muted">
@@ -90,28 +121,6 @@ export default async function BoardPostPage({
         </p>
 
         <BoardPostGallery title={post.title} images={galleryImages} />
-
-        {isAuthor || canDeletePost ? (
-          <div className="mt-6 flex flex-wrap gap-2">
-            {isAuthor ? (
-              <Link
-                href={`/board/${post.id}/edit`}
-                className="rounded-md border border-brand/15 bg-white px-3 py-1.5 text-sm font-medium hover:bg-brand/5"
-              >
-                {t.board.edit}
-              </Link>
-            ) : null}
-            {canDeletePost ? (
-              <DeleteBoardButton
-                action={deleteBoardPostAction}
-                fields={{ post_id: post.id }}
-                label={t.board.delete}
-                title={t.board.deletePostTitle}
-                message={t.board.deletePostMessage}
-              />
-            ) : null}
-          </div>
-        ) : null}
       </article>
 
       <section className="mt-10">
@@ -133,9 +142,25 @@ export default async function BoardPostPage({
               return (
                 <li
                   key={reply.id}
-                  className="rounded-md border border-black/6 bg-white px-4 py-3"
+                  className="relative rounded-md border border-black/6 bg-white px-4 py-3"
                 >
-                  <p className="text-xs text-ink-muted">
+                  {canManageReply ? (
+                    <div className="absolute top-2 right-2">
+                      <DeleteBoardButton
+                        action={deleteBoardReplyAction}
+                        fields={{ post_id: post.id, reply_id: reply.id }}
+                        label={t.board.delete}
+                        title={t.board.deleteReplyTitle}
+                        message={t.board.deleteReplyMessage}
+                        variant="icon"
+                      />
+                    </div>
+                  ) : null}
+                  <p
+                    className={`text-xs text-ink-muted ${
+                      canManageReply ? "pr-10" : ""
+                    }`}
+                  >
                     {accountDisplayName(replyAuthor)} ·{" "}
                     {new Date(reply.created_at).toLocaleString(
                       locale === "en" ? "en-US" : "ko-KR",
@@ -144,17 +169,6 @@ export default async function BoardPostPage({
                   <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">
                     {reply.body}
                   </p>
-                  {canManageReply ? (
-                    <div className="mt-2">
-                      <DeleteBoardButton
-                        action={deleteBoardReplyAction}
-                        fields={{ post_id: post.id, reply_id: reply.id }}
-                        label={t.board.delete}
-                        title={t.board.deleteReplyTitle}
-                        message={t.board.deleteReplyMessage}
-                      />
-                    </div>
-                  ) : null}
                 </li>
               );
             })}
