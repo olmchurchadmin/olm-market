@@ -1,14 +1,9 @@
 "use client";
 
-import {
-  ChevronRightIcon,
-  PencilSquareIcon,
-} from "@heroicons/react/24/outline";
+import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { DeleteBoardButton } from "@/components/delete-board-button";
 import { useI18n } from "@/components/locale-provider";
-import { deleteBoardPostAction } from "@/lib/actions/board";
 import type { BoardListPost } from "@/lib/board/posts-query";
 import { accountDisplayName, boardImageUrl } from "@/lib/utils";
 
@@ -95,13 +90,9 @@ function ListProgressRing({
 export function BoardInfiniteList({
   initialItems,
   total,
-  currentUserId,
-  canDeletePosts = false,
 }: {
   initialItems: BoardListPost[];
   total: number;
-  currentUserId: string;
-  canDeletePosts?: boolean;
 }) {
   const { locale, t } = useI18n();
   const [items, setItems] = useState(initialItems);
@@ -266,14 +257,11 @@ export function BoardInfiniteList({
       >
         {items.map((post) => {
           const thumb = boardImageUrl(post.thumb_path);
-          const canEdit = post.author_id === currentUserId;
-          const canDelete = canDeletePosts;
-          const showActions = canEdit || canDelete;
           return (
-            <li key={post.id} className="flex items-stretch">
+            <li key={post.id}>
               <Link
                 href={`/board/${post.id}`}
-                className="flex min-w-0 flex-1 items-center gap-3 px-4 py-4 transition hover:bg-brand/5"
+                className="flex items-center gap-3 px-4 py-4 transition hover:bg-brand/5"
               >
                 {thumb ? (
                   <span className="relative size-14 shrink-0 overflow-hidden rounded-md border border-brand/10 bg-white sm:size-16">
@@ -312,30 +300,6 @@ export function BoardInfiniteList({
                   aria-hidden
                 />
               </Link>
-              {showActions ? (
-                <div className="flex shrink-0 items-center gap-0.5 border-l border-black/6 px-2">
-                  {canEdit ? (
-                    <Link
-                      href={`/board/${post.id}/edit`}
-                      aria-label={t.board.edit}
-                      title={t.board.edit}
-                      className="inline-flex size-8 items-center justify-center rounded-md text-ink-muted transition hover:bg-brand/5 hover:text-brand"
-                    >
-                      <PencilSquareIcon className="size-4" aria-hidden />
-                    </Link>
-                  ) : null}
-                  {canDelete ? (
-                    <DeleteBoardButton
-                      action={deleteBoardPostAction}
-                      fields={{ post_id: post.id }}
-                      label={t.board.delete}
-                      title={t.board.deletePostTitle}
-                      message={t.board.deletePostMessage}
-                      variant="icon"
-                    />
-                  ) : null}
-                </div>
-              ) : null}
             </li>
           );
         })}

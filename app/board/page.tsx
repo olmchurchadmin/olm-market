@@ -5,7 +5,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { redirect } from "next/navigation";
 import { BoardInfiniteList } from "@/components/board-infinite-list";
-import { getCurrentProfile, isSuperAdminRole } from "@/lib/auth";
+import { getCurrentProfile } from "@/lib/auth";
 import { BOARD_PAGE_SIZE, fetchBoardPostsPage } from "@/lib/board/posts-query";
 import { getI18n } from "@/lib/i18n/server";
 
@@ -65,8 +65,6 @@ export default async function BoardPage({
       <BoardInfiniteList
         initialItems={firstPage.items}
         total={firstPage.total}
-        currentUserId={profile.id}
-        canDeletePosts={isSuperAdminRole(profile.role)}
       />
     </main>
   );

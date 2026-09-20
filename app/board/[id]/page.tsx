@@ -61,7 +61,8 @@ export default async function BoardPostPage({
   const author = Array.isArray(post.author) ? post.author[0] : post.author;
   const isAuthor = post.author_id === profile.id;
   const isStaff = isStaffRole(profile.role);
-  const canDeletePost = isSuperAdminRole(profile.role);
+  const canDeletePost =
+    isAuthor || isSuperAdminRole(profile.role);
   const showPostActions = isAuthor || canDeletePost;
   const galleryImages = (images || []).map((img) => ({
     id: img.id,
@@ -79,15 +80,15 @@ export default async function BoardPostPage({
 
       <article className="relative mt-6 rounded-md border border-black/6 bg-white p-5 sm:p-6">
         {showPostActions ? (
-          <div className="absolute top-3 right-3 z-10 flex items-center gap-0.5 sm:top-4 sm:right-4">
+          <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-0.5 sm:top-3 sm:right-3">
             {isAuthor ? (
               <Link
                 href={`/board/${post.id}/edit`}
                 aria-label={t.board.edit}
                 title={t.board.edit}
-                className="inline-flex size-8 items-center justify-center rounded-md text-ink-muted transition hover:bg-brand/5 hover:text-brand"
+                className="inline-flex size-10 items-center justify-center rounded-md text-ink-muted transition hover:bg-brand/5 hover:text-brand"
               >
-                <PencilSquareIcon className="size-4" aria-hidden />
+                <PencilSquareIcon className="size-5" aria-hidden />
               </Link>
             ) : null}
             {canDeletePost ? (
@@ -105,7 +106,7 @@ export default async function BoardPostPage({
 
         <h1
           className={`break-words font-[family-name:var(--font-display)] text-3xl text-foreground ${
-            showPostActions ? "pr-16" : ""
+            showPostActions ? "pr-20" : ""
           }`}
         >
           {post.title}

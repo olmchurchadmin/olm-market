@@ -271,7 +271,9 @@ export async function deleteBoardPostAction(formData: FormData) {
 
   if (!existing) redirect("/board");
 
-  if (!isSuperAdminRole(profile.role)) {
+  const canDelete =
+    existing.author_id === profile.id || isSuperAdminRole(profile.role);
+  if (!canDelete) {
     redirect(`/board/${postId}`);
   }
 
