@@ -1,6 +1,9 @@
 "use client";
 
-import { ChevronRightIcon } from "@heroicons/react/24/outline";
+import {
+  ChatBubbleLeftIcon,
+  ChevronRightIcon,
+} from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useI18n } from "@/components/locale-provider";
@@ -290,11 +293,17 @@ export function BoardInfiniteList({
                     {new Date(post.created_at).toLocaleString(
                       locale === "en" ? "en-US" : "ko-KR",
                     )}
-                    {post.reply_count > 0
-                      ? ` · ${t.board.replies} ${post.reply_count}`
-                      : ""}
                   </p>
                 </span>
+                {post.reply_count > 0 ? (
+                  <span
+                    className="inline-flex shrink-0 items-center gap-1 text-xs font-medium tabular-nums text-ink-muted"
+                    aria-label={`${t.board.replies} ${post.reply_count}`}
+                  >
+                    <ChatBubbleLeftIcon className="size-3.5" aria-hidden />
+                    {post.reply_count}
+                  </span>
+                ) : null}
                 <ChevronRightIcon
                   className="size-5 shrink-0 text-ink-muted"
                   aria-hidden
