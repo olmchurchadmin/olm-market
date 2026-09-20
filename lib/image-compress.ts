@@ -3,6 +3,7 @@
 export const MAX_IMAGE_INPUT_BYTES = 12 * 1024 * 1024;
 export const MAX_IMAGE_OUTPUT_BYTES = 450_000;
 export const MAX_IMAGES_PER_LISTING = 6;
+export const MAX_IMAGES_PER_BOARD_POST = 3;
 /** Keep total multipart body under Vercel/server-action limits. */
 export const MAX_IMAGES_TOTAL_BYTES = 3.5 * 1024 * 1024;
 

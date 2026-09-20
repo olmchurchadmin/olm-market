@@ -2,8 +2,10 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { BoardForm } from "@/components/board-form";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
+import { FileUploadField } from "@/components/ui/file-upload-field";
 import { updateBoardPostAction } from "@/lib/actions/board";
 import { getCurrentProfile } from "@/lib/auth";
+import { MAX_IMAGES_PER_BOARD_POST } from "@/lib/image-compress";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 
@@ -25,16 +27,28 @@ export default async function EditBoardPostPage({
   }
 
   const supabase = await createClient();
-  const { data: post } = await supabase
-    .from("board_posts")
-    .select("id, title, body, author_id")
-    .eq("id", id)
-    .maybeSingle();
+  const [{ data: post }, { data: images }] = await Promise.all([
+    supabase
+      .from("board_posts")
+      .select("id, title, body, author_id")
+      .eq("id", id)
+      .maybeSingle(),
+    supabase
+      .from("board_post_images")
+      .select("id, storage_path, sort_order")
+      .eq("post_id", id)
+      .order("sort_order", { ascending: true }),
+  ]);
 
   if (!post) notFound();
   if (post.author_id !== profile.id) {
     redirect(`/board/${id}`);
   }
+
+  const existingImages = (images || []).map((img) => ({
+    id: img.id,
+    storage_path: img.storage_path,
+  }));
 
   return (
     <main className="mx-auto w-full min-w-0 max-w-2xl px-4 py-10 sm:px-6">
@@ -64,6 +78,13 @@ export default async function EditBoardPostPage({
             className="mt-1 w-full rounded-md border border-brand/15 bg-white px-3 py-2 outline-none focus:border-brand"
           />
         </label>
+        <FileUploadField
+          label={t.board.photosLabel}
+          hint={t.board.photosHint}
+          existingImages={existingImages}
+          maxImages={MAX_IMAGES_PER_BOARD_POST}
+          bucket="board-images"
+        />
         <div className="flex flex-wrap gap-3">
           <PendingSubmitButton pendingLabel={t.common.loading}>
             {t.board.save}

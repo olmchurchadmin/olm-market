@@ -2,8 +2,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BoardForm } from "@/components/board-form";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
+import { FileUploadField } from "@/components/ui/file-upload-field";
 import { createBoardPostAction } from "@/lib/actions/board";
 import { getCurrentProfile } from "@/lib/auth";
+import { MAX_IMAGES_PER_BOARD_POST } from "@/lib/image-compress";
 import { getI18n } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
@@ -46,6 +48,12 @@ export default async function NewBoardPostPage({
             className="mt-1 w-full rounded-md border border-brand/15 bg-white px-3 py-2 outline-none focus:border-brand"
           />
         </label>
+        <FileUploadField
+          label={t.board.photosLabel}
+          hint={t.board.photosHint}
+          maxImages={MAX_IMAGES_PER_BOARD_POST}
+          bucket="board-images"
+        />
         <div className="flex flex-wrap gap-3">
           <PendingSubmitButton pendingLabel={t.common.loading}>
             {t.board.submit}

@@ -716,6 +716,8 @@ const ko = {
     createFailed: "글을 등록하지 못했습니다.",
     updateFailed: "글을 수정하지 못했습니다.",
     replyFailed: "답글을 등록하지 못했습니다.",
+    photosLabel: "사진",
+    photosHint: "최대 3장까지 올릴 수 있습니다.",
   },
 };
 
@@ -1451,6 +1453,8 @@ const en: Dictionary = {
     createFailed: "Could not create the post.",
     updateFailed: "Could not update the post.",
     replyFailed: "Could not post the reply.",
+    photosLabel: "Photos",
+    photosHint: "You can upload up to 3 photos.",
   },
 };
 

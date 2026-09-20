@@ -54,6 +54,14 @@ export function listingImageUrl(path: string | null | undefined) {
   return `${base}/storage/v1/object/public/listing-images/${path}`;
 }
 
+export function boardImageUrl(path: string | null | undefined) {
+  if (!path) return null;
+  if (path.startsWith("http")) return path;
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!base) return null;
+  return `${base}/storage/v1/object/public/board-images/${path}`;
+}
+
 export function siteBannerImageUrl(path: string | null | undefined) {
   if (!path) return null;
   if (path.startsWith("http")) return path;

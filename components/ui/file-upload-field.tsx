@@ -8,9 +8,7 @@ import {
   MAX_IMAGES_PER_LISTING,
   compressImageFiles,
 } from "@/lib/image-compress";
-import { listingImageUrl } from "@/lib/utils";
-
-const MAX_IMAGES = MAX_IMAGES_PER_LISTING;
+import { boardImageUrl, listingImageUrl } from "@/lib/utils";
 
 type ExistingImage = {
   id: string;
@@ -23,6 +21,17 @@ type NewPreview = {
   url: string;
 };
 
+type ImageBucket = "listing-images" | "board-images";
+
+function resolveImageUrl(
+  bucket: ImageBucket,
+  path: string | null | undefined,
+) {
+  return bucket === "board-images"
+    ? boardImageUrl(path)
+    : listingImageUrl(path);
+}
+
 export function FileUploadField({
   label,
   name = "images",
@@ -31,6 +40,8 @@ export function FileUploadField({
   hint,
   existingImages = [],
   removeName = "remove_image_id",
+  maxImages = MAX_IMAGES_PER_LISTING,
+  bucket = "listing-images",
 }: {
   label: string;
   name?: string;
@@ -39,6 +50,8 @@ export function FileUploadField({
   hint?: string;
   existingImages?: ExistingImage[];
   removeName?: string;
+  maxImages?: number;
+  bucket?: ImageBucket;
 }) {
   const { t } = useI18n();
   const pickId = useId();
@@ -57,7 +70,7 @@ export function FileUploadField({
   }, []);
 
   const totalCount = keptExisting.length + previews.length;
-  const slotsLeft = Math.max(0, MAX_IMAGES - totalCount);
+  const slotsLeft = Math.max(0, maxImages - totalCount);
   const removedIds = existingImages
     .filter((img) => !keptExisting.some((kept) => kept.id === img.id))
     .map((img) => img.id);
@@ -81,7 +94,7 @@ export function FileUploadField({
       );
       const next = [...filesRef.current, ...compressed].slice(
         0,
-        MAX_IMAGES - keptExisting.length,
+        maxImages - keptExisting.length,
       );
 
       setPreviews((prev) => {
@@ -153,7 +166,7 @@ export function FileUploadField({
       {totalCount > 0 ? (
         <ul className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
           {keptExisting.map((image) => {
-            const src = listingImageUrl(image.storage_path);
+            const src = resolveImageUrl(bucket, image.storage_path);
             return (
               <li
                 key={image.id}
@@ -221,11 +234,11 @@ export function FileUploadField({
                 : totalCount > 0
                   ? t.sell.addPhotos
                       .replace("{count}", String(totalCount))
-                      .replace("{max}", String(MAX_IMAGES))
+                      .replace("{max}", String(maxImages))
                   : t.sell.pickPhotos}
             </span>
             <span className="block text-xs text-ink-muted">
-              {t.sell.photoFormats.replace("{max}", String(MAX_IMAGES))}
+              {t.sell.photoFormats.replace("{max}", String(maxImages))}
             </span>
           </span>
           <input
@@ -243,7 +256,7 @@ export function FileUploadField({
         </label>
       ) : (
         <p className="mt-3 text-xs text-ink-muted">
-          {t.sell.photoLimit.replace("{max}", String(MAX_IMAGES))}
+          {t.sell.photoLimit.replace("{max}", String(maxImages))}
         </p>
       )}
     </div>

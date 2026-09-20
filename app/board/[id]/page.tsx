@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { BoardForm } from "@/components/board-form";
+import { BoardPostGallery } from "@/components/board-post-gallery";
 import { DeleteBoardButton } from "@/components/delete-board-button";
 import { PendingSubmitButton } from "@/components/pending-submit-button";
 import {
@@ -31,22 +32,28 @@ export default async function BoardPostPage({
   }
 
   const supabase = await createClient();
-  const [{ data: post }, { data: replies }] = await Promise.all([
-    supabase
-      .from("board_posts")
-      .select(
-        "id, title, body, created_at, updated_at, author_id, author:profiles!board_posts_author_id_fkey(nickname, full_name, email)",
-      )
-      .eq("id", id)
-      .maybeSingle(),
-    supabase
-      .from("board_replies")
-      .select(
-        "id, body, created_at, author_id, author:profiles!board_replies_author_id_fkey(nickname, full_name, email)",
-      )
-      .eq("post_id", id)
-      .order("created_at", { ascending: true }),
-  ]);
+  const [{ data: post }, { data: replies }, { data: images }] =
+    await Promise.all([
+      supabase
+        .from("board_posts")
+        .select(
+          "id, title, body, created_at, updated_at, author_id, author:profiles!board_posts_author_id_fkey(nickname, full_name, email)",
+        )
+        .eq("id", id)
+        .maybeSingle(),
+      supabase
+        .from("board_replies")
+        .select(
+          "id, body, created_at, author_id, author:profiles!board_replies_author_id_fkey(nickname, full_name, email)",
+        )
+        .eq("post_id", id)
+        .order("created_at", { ascending: true }),
+      supabase
+        .from("board_post_images")
+        .select("id, storage_path, sort_order")
+        .eq("post_id", id)
+        .order("sort_order", { ascending: true }),
+    ]);
 
   if (!post) notFound();
 
@@ -54,6 +61,10 @@ export default async function BoardPostPage({
   const isAuthor = post.author_id === profile.id;
   const isStaff = isStaffRole(profile.role);
   const canManagePost = isAuthor || isStaff;
+  const galleryImages = (images || []).map((img) => ({
+    id: img.id,
+    storage_path: img.storage_path,
+  }));
 
   return (
     <main className="mx-auto w-full min-w-0 max-w-3xl px-4 py-10 sm:px-6">
@@ -77,6 +88,8 @@ export default async function BoardPostPage({
         <p className="mt-6 whitespace-pre-wrap leading-relaxed text-foreground">
           {post.body}
         </p>
+
+        <BoardPostGallery title={post.title} images={galleryImages} />
 
         {canManagePost ? (
           <div className="mt-6 flex flex-wrap gap-2">
