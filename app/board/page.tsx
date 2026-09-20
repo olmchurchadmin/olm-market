@@ -23,10 +23,19 @@ export default async function BoardPage({
     redirect(`/login?next=/board`);
   }
 
-  const firstPage = await fetchBoardPostsPage({
-    page: 1,
-    pageSize: BOARD_PAGE_SIZE,
-  });
+  let firstPage: Awaited<ReturnType<typeof fetchBoardPostsPage>> = {
+    items: [],
+    total: 0,
+    hasMore: false,
+  };
+  try {
+    firstPage = await fetchBoardPostsPage({
+      page: 1,
+      pageSize: BOARD_PAGE_SIZE,
+    });
+  } catch (error) {
+    console.error("[board/page]", error);
+  }
 
   return (
     <main className="mx-auto w-full min-w-0 max-w-3xl px-4 py-10 sm:px-6">
