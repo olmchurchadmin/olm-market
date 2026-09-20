@@ -1,10 +1,14 @@
 import Link from "next/link";
-import { ChatBubbleLeftRightIcon, PlusIcon } from "@heroicons/react/24/outline";
+import {
+  ChatBubbleLeftRightIcon,
+  ChevronRightIcon,
+  PlusIcon,
+} from "@heroicons/react/24/outline";
 import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
-import { accountDisplayName } from "@/lib/utils";
+import { accountDisplayName, boardImageUrl } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +28,7 @@ export default async function BoardPage({
   const { data: posts } = await supabase
     .from("board_posts")
     .select(
-      "id, title, body, created_at, author_id, author:profiles!board_posts_author_id_fkey(nickname, full_name, email)",
+      "id, title, body, created_at, author_id, author:profiles!board_posts_author_id_fkey(nickname, full_name, email), board_post_images(id, storage_path, sort_order)",
     )
     .order("created_at", { ascending: false })
     .limit(100);
@@ -72,25 +76,46 @@ export default async function BoardPage({
               ? post.author[0]
               : post.author;
             const replies = countByPost.get(post.id) || 0;
+            const images = [...(post.board_post_images || [])].sort(
+              (a, b) => a.sort_order - b.sort_order,
+            );
+            const thumb = boardImageUrl(images[0]?.storage_path);
+
             return (
               <li key={post.id}>
                 <Link
                   href={`/board/${post.id}`}
-                  className="block px-4 py-4 transition hover:bg-brand/5"
+                  className="flex items-center gap-3 px-4 py-4 transition hover:bg-brand/5"
                 >
-                  <p className="font-medium text-foreground">{post.title}</p>
-                  <p className="mt-1 line-clamp-2 text-sm text-ink-muted">
-                    {post.body}
-                  </p>
-                  <p className="mt-2 text-xs text-ink-muted">
-                    {accountDisplayName(author)} ·{" "}
-                    {new Date(post.created_at).toLocaleString(
-                      locale === "en" ? "en-US" : "ko-KR",
-                    )}
-                    {replies > 0
-                      ? ` · ${t.board.replies} ${replies}`
-                      : ""}
-                  </p>
+                  {thumb ? (
+                    <span className="relative size-14 shrink-0 overflow-hidden rounded-md border border-brand/10 bg-white sm:size-16">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={thumb}
+                        alt=""
+                        className="absolute inset-0 h-full w-full object-cover object-center"
+                      />
+                    </span>
+                  ) : null}
+                  <span className="min-w-0 flex-1">
+                    <p className="font-medium text-foreground">{post.title}</p>
+                    <p className="mt-1 line-clamp-2 text-sm text-ink-muted">
+                      {post.body}
+                    </p>
+                    <p className="mt-2 text-xs text-ink-muted">
+                      {accountDisplayName(author)} ·{" "}
+                      {new Date(post.created_at).toLocaleString(
+                        locale === "en" ? "en-US" : "ko-KR",
+                      )}
+                      {replies > 0
+                        ? ` · ${t.board.replies} ${replies}`
+                        : ""}
+                    </p>
+                  </span>
+                  <ChevronRightIcon
+                    className="size-5 shrink-0 text-ink-muted"
+                    aria-hidden
+                  />
                 </Link>
               </li>
             );
