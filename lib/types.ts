@@ -24,6 +24,7 @@ export type Profile = {
   kakao_id: string | null;
   role: UserRole;
   is_anonymous: boolean;
+  board_last_seen_at?: string | null;
   created_at: string;
   updated_at: string;
 };

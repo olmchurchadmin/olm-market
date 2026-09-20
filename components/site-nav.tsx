@@ -11,6 +11,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useI18n } from "@/components/locale-provider";
@@ -24,12 +25,31 @@ type SiteNavProps = {
     email: string | null;
     isAdmin: boolean;
   } | null;
+  boardUnreadCount?: number;
 };
 
-export function SiteNav({ profile }: SiteNavProps) {
+function BoardUnreadBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+  return (
+    <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">
+      {count > 99 ? "99+" : count}
+    </span>
+  );
+}
+
+export function SiteNav({ profile, boardUnreadCount = 0 }: SiteNavProps) {
   const { t } = useI18n();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  // Visiting any board route clears the badge immediately (server marks seen in layout).
+  const onBoard = pathname === "/board" || pathname.startsWith("/board/");
+  const unread = onBoard ? 0 : Math.max(0, boardUnreadCount);
+  const boardAria =
+    unread > 0
+      ? t.nav.boardUnreadAria.replace("{count}", String(unread))
+      : t.nav.board;
 
   useEffect(() => {
     setMounted(true);
@@ -102,10 +122,12 @@ export function SiteNav({ profile }: SiteNavProps) {
                 <Link
                   href="/board"
                   onClick={() => setOpen(false)}
+                  aria-label={boardAria}
                   className="inline-flex items-center gap-2 rounded-md px-3 py-3 hover:bg-brand/5 hover:text-brand"
                 >
                   <ChatBubbleLeftRightIcon className="size-5" aria-hidden />
-                  {t.nav.board}
+                  <span className="flex-1">{t.nav.board}</span>
+                  <BoardUnreadBadge count={unread} />
                 </Link>
                 {profile ? (
                   <>
@@ -171,10 +193,16 @@ export function SiteNav({ profile }: SiteNavProps) {
         </Link>
         <Link
           href="/board"
-          className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 hover:bg-brand/5 hover:text-brand"
+          aria-label={boardAria}
+          className="relative inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 hover:bg-brand/5 hover:text-brand"
         >
           <ChatBubbleLeftRightIcon className="size-4" aria-hidden />
           {t.nav.board}
+          {unread > 0 ? (
+            <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">
+              {unread > 99 ? "99+" : unread}
+            </span>
+          ) : null}
         </Link>
         {profile?.isAdmin ? (
           <Link
@@ -209,13 +237,18 @@ export function SiteNav({ profile }: SiteNavProps) {
         {profile ? <NotificationBell /> : null}
         <button
           type="button"
-          className="inline-flex items-center justify-center rounded-md p-2 text-foreground hover:bg-black/5"
+          className="relative inline-flex items-center justify-center rounded-md p-2 text-foreground hover:bg-black/5"
           aria-expanded={open}
           aria-controls="mobile-nav"
           onClick={() => setOpen(true)}
         >
           <Bars3Icon className="size-6" aria-hidden />
           <span className="sr-only">{t.nav.openMenu}</span>
+          {unread > 0 ? (
+            <span className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">
+              {unread > 99 ? "99+" : unread}
+            </span>
+          ) : null}
         </button>
       </div>
 

@@ -11,6 +11,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteNoticeBanner } from "@/components/site-notice-banner";
 import { TradeStatusBar } from "@/components/trade-status-bar";
 import { getCurrentProfile } from "@/lib/auth";
+import { getBoardUnreadCount } from "@/lib/board/unread";
 import { getI18n } from "@/lib/i18n/server";
 import "./globals.css";
 
@@ -42,6 +43,7 @@ export default async function RootLayout({
     getI18n(),
     getCurrentProfile(),
   ]);
+  const boardUnreadCount = profile ? await getBoardUnreadCount() : 0;
 
   return (
     <html
@@ -54,7 +56,10 @@ export default async function RootLayout({
           <ConfirmDialogProvider>
             <NotificationsProvider enabled={Boolean(profile)}>
               <SiteNoticeBanner />
-              <SiteHeader profile={profile} />
+              <SiteHeader
+                profile={profile}
+                boardUnreadCount={boardUnreadCount}
+              />
               <NotificationsBanner />
               <div className="flex-1">{children}</div>
               <SiteFooter />
