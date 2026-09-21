@@ -51,12 +51,12 @@ export function DeleteBoardButton({
       }}
       className={
         variant === "icon"
-          ? "inline-flex size-10 items-center justify-center rounded-md text-ink-muted transition hover:bg-red-50 hover:text-red-700 disabled:opacity-60"
+          ? "inline-flex size-8 items-center justify-center rounded-md text-ink-muted transition hover:bg-red-50 hover:text-red-700 disabled:opacity-60"
           : "rounded-md border border-red-200 bg-white px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-60"
       }
     >
       {variant === "icon" ? (
-        <TrashIcon className="size-5" aria-hidden />
+        <TrashIcon className="size-4" aria-hidden />
       ) : pending ? (
         t.common.loading
       ) : (

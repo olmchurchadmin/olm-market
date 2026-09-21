@@ -86,9 +86,9 @@ export default async function BoardPostPage({
                 href={`/board/${post.id}/edit`}
                 aria-label={t.board.edit}
                 title={t.board.edit}
-                className="inline-flex size-10 items-center justify-center rounded-md text-ink-muted transition hover:bg-brand/5 hover:text-brand"
+                className="inline-flex size-8 items-center justify-center rounded-md text-ink-muted transition hover:bg-brand/5 hover:text-brand"
               >
-                <PencilSquareIcon className="size-5" aria-hidden />
+                <PencilSquareIcon className="size-4" aria-hidden />
               </Link>
             ) : null}
             {canDeletePost ? (
@@ -106,7 +106,7 @@ export default async function BoardPostPage({
 
         <h1
           className={`break-words font-[family-name:var(--font-display)] text-3xl text-foreground ${
-            showPostActions ? "pr-20" : ""
+            showPostActions ? "pr-16" : ""
           }`}
         >
           {post.title}
