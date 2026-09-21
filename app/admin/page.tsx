@@ -173,6 +173,7 @@ export default async function AdminPage({
       .select(
         "id, enabled, body_ko, body_en, cta_label_ko, cta_label_en, cta_url, image_path, starts_at, ends_at, dismiss_days, bg_color, text_color, updated_at",
       )
+      .order("ends_at", { ascending: false, nullsFirst: true })
       .order("updated_at", { ascending: false });
     siteBanners = (data as SiteBanner[] | null) ?? [];
   }

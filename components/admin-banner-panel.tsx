@@ -313,18 +313,11 @@ export function AdminBannerPanel({ banners }: { banners: SiteBanner[] }) {
       : null;
 
   const sorted = useMemo(() => {
-    const rank: Record<BannerStatusKey, number> = {
-      live: 0,
-      scheduled: 1,
-      off: 2,
-      expired: 3,
-    };
     return [...banners].sort((a, b) => {
-      const aStatus = getBannerStatus(a);
-      const bStatus = getBannerStatus(b);
-      if (rank[aStatus] !== rank[bStatus]) {
-        return rank[aStatus] - rank[bStatus];
-      }
+      // Latest schedule end date first; open-ended (no ends_at) stays on top.
+      const aEnd = a.ends_at ? new Date(a.ends_at).getTime() : Number.POSITIVE_INFINITY;
+      const bEnd = b.ends_at ? new Date(b.ends_at).getTime() : Number.POSITIVE_INFINITY;
+      if (bEnd !== aEnd) return bEnd - aEnd;
       const aStart = a.starts_at ? new Date(a.starts_at).getTime() : 0;
       const bStart = b.starts_at ? new Date(b.starts_at).getTime() : 0;
       if (bStart !== aStart) return bStart - aStart;
