@@ -2,7 +2,7 @@ import type { SiteBanner } from "@/lib/types";
 
 export const SITE_BANNER_DEFAULT_BG = "#b62b6e";
 export const SITE_BANNER_DEFAULT_TEXT = "#ffffff";
-export const SITE_BANNER_ROTATE_MS = 20_000;
+export const SITE_BANNER_ROTATE_MS = 10_000;
 
 export type BannerStatusKey = "off" | "live" | "scheduled" | "expired";
 
