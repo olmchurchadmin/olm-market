@@ -687,7 +687,8 @@ const ko = {
   },
   board: {
     title: "자유게시판",
-    blurb: "등록 회원끼리 글을 올리고 답글을 남길 수 있습니다.",
+    blurb:
+      "등록 회원끼리 글을 올리고 답글을 남길 수 있습니다. 부적절한 내용은 관리자가 임의로 삭제할 수 있습니다.",
     write: "글쓰기",
     empty: "아직 글이 없습니다. 첫 글을 남겨 보세요.",
     loginRequired: "글을 보려면 로그인해 주세요.",
@@ -1425,7 +1426,8 @@ const en: Dictionary = {
   },
   board: {
     title: "Community Board",
-    blurb: "Members can post and reply to each other.",
+    blurb:
+      "Members can post and reply to each other. Inappropriate content may be removed by administrators at their discretion.",
     write: "New post",
     empty: "No posts yet. Be the first to write.",
     loginRequired: "Please log in to view the board.",

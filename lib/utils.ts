@@ -10,6 +10,26 @@ export function formatPrice(cents: number, _locale = "ko") {
   }).format(cents / 100);
 }
 
+/** Eastern Time (EST/EDT), minute precision — used for board timestamps. */
+export const APP_TIMEZONE = "America/New_York";
+
+export function formatAppDateTime(
+  value: string | Date,
+  locale: string = "ko",
+) {
+  const date = typeof value === "string" ? new Date(value) : value;
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "ko-KR", {
+    timeZone: APP_TIMEZONE,
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(date);
+}
+
 /** Combine 이름(nickname) + 본명(full_name), e.g. "이호용 프란치스코". */
 export function formatPersonName(
   profile: {

@@ -13,7 +13,7 @@ import {
 import { getCurrentProfile, isStaffRole, isSuperAdminRole } from "@/lib/auth";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
-import { accountDisplayName } from "@/lib/utils";
+import { accountDisplayName, formatAppDateTime } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -113,9 +113,7 @@ export default async function BoardPostPage({
         </h1>
         <p className="mt-2 text-sm text-ink-muted">
           {t.board.author}: {accountDisplayName(author)} ·{" "}
-          {new Date(post.created_at).toLocaleString(
-            locale === "en" ? "en-US" : "ko-KR",
-          )}
+          {formatAppDateTime(post.created_at, locale)}
         </p>
         <p className="mt-6 whitespace-pre-wrap leading-relaxed text-foreground">
           {post.body}
@@ -163,9 +161,7 @@ export default async function BoardPostPage({
                     }`}
                   >
                     {accountDisplayName(replyAuthor)} ·{" "}
-                    {new Date(reply.created_at).toLocaleString(
-                      locale === "en" ? "en-US" : "ko-KR",
-                    )}
+                    {formatAppDateTime(reply.created_at, locale)}
                   </p>
                   <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">
                     {reply.body}

@@ -8,7 +8,11 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useI18n } from "@/components/locale-provider";
 import type { BoardListPost } from "@/lib/board/posts-query";
-import { accountDisplayName, boardImageUrl } from "@/lib/utils";
+import {
+  accountDisplayName,
+  boardImageUrl,
+  formatAppDateTime,
+} from "@/lib/utils";
 
 const RING_SIZE = 40;
 const RING_STROKE = 2;
@@ -290,9 +294,7 @@ export function BoardInfiniteList({
                       },
                     )}{" "}
                     ·{" "}
-                    {new Date(post.created_at).toLocaleString(
-                      locale === "en" ? "en-US" : "ko-KR",
-                    )}
+                    {formatAppDateTime(post.created_at, locale)}
                   </p>
                 </span>
                 {post.reply_count > 0 ? (
