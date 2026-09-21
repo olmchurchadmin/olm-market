@@ -2,7 +2,7 @@ import { unstable_cache } from "next/cache";
 import { SiteNoticeBannerClient } from "@/components/site-notice-banner-client";
 import { getI18n } from "@/lib/i18n/server";
 import { translateKoreanSentenceToEnglish } from "@/lib/i18n/translate-ko-en";
-import { pickLiveBanner } from "@/lib/site-banner";
+import { pickLiveBanner, SITE_BANNER_DEFAULT_BG, SITE_BANNER_DEFAULT_TEXT } from "@/lib/site-banner";
 import { createClient } from "@/lib/supabase/server";
 import type { SiteBanner } from "@/lib/types";
 
@@ -67,8 +67,8 @@ export async function SiteNoticeBanner() {
       dismissDays={
         typeof banner.dismiss_days === "number" ? banner.dismiss_days : 7
       }
-      bgColor={banner.bg_color?.trim() || "#ffc83d"}
-      textColor={banner.text_color?.trim() || "#000000"}
+      bgColor={banner.bg_color?.trim() || SITE_BANNER_DEFAULT_BG}
+      textColor={banner.text_color?.trim() || SITE_BANNER_DEFAULT_TEXT}
     />
   );
 }

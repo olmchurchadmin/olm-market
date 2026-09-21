@@ -1,5 +1,8 @@
 import type { SiteBanner } from "@/lib/types";
 
+export const SITE_BANNER_DEFAULT_BG = "#b62b6e";
+export const SITE_BANNER_DEFAULT_TEXT = "#ffffff";
+
 export type BannerStatusKey = "off" | "live" | "scheduled" | "expired";
 
 export function getBannerStatus(

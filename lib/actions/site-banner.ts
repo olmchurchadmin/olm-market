@@ -1,10 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { getI18n } from "@/lib/i18n/server";
 import { isStaffRole } from "@/lib/auth";
 import { translateKoreanSentenceToEnglish } from "@/lib/i18n/translate-ko-en";
+import {
+  SITE_BANNER_DEFAULT_BG,
+  SITE_BANNER_DEFAULT_TEXT,
+} from "@/lib/site-banner";
 import { createClient } from "@/lib/supabase/server";
 
 async function requireAdminClient() {
@@ -45,6 +50,24 @@ function hexColor(raw: string, fallback: string) {
   return /^#[0-9a-f]{6}$/.test(value) ? value : fallback;
 }
 
+async function fillBannerEnglishInBackground(
+  bannerId: number,
+  bodyKo: string,
+) {
+  if (!bodyKo) return;
+  try {
+    const bodyEn = await translateKoreanSentenceToEnglish(bodyKo);
+    const supabase = await createClient();
+    await supabase
+      .from("site_banner")
+      .update({ body_en: bodyEn })
+      .eq("id", bannerId);
+    revalidatePath("/");
+  } catch (error) {
+    console.error("[site-banner translate]", error);
+  }
+}
+
 export async function saveSiteBannerAction(formData: FormData) {
   const { t } = await getI18n();
   const supabase = await requireAdminClient();
@@ -82,34 +105,23 @@ export async function saveSiteBannerAction(formData: FormData) {
     ? Math.max(1, Math.min(365, dismissDaysRaw))
     : 7;
 
-  const bgColor = hexColor(String(formData.get("bg_color") || ""), "#ffc83d");
+  const bgColor = hexColor(
+    String(formData.get("bg_color") || ""),
+    SITE_BANNER_DEFAULT_BG,
+  );
   const textColor = hexColor(
     String(formData.get("text_color") || ""),
-    "#000000",
+    SITE_BANNER_DEFAULT_TEXT,
   );
 
-  const bodyEn = bodyKo ? await translateKoreanSentenceToEnglish(bodyKo) : "";
-
-  const payload = {
-    enabled,
-    body_ko: bodyKo,
-    body_en: bodyEn,
-    cta_label_ko: "",
-    cta_label_en: "",
-    cta_url: "",
-    image_path: null as string | null,
-    starts_at: startsAt,
-    ends_at: endsAt,
-    dismiss_days: dismissDays,
-    bg_color: bgColor,
-    text_color: textColor,
-    updated_at: new Date().toISOString(),
-  };
+  let savedId: number | null = null;
+  let needsEnglish = Boolean(bodyKo);
+  let bodyEn = "";
 
   if (bannerId != null && Number.isFinite(bannerId)) {
     const { data: current } = await supabase
       .from("site_banner")
-      .select("id, image_path")
+      .select("id, image_path, body_ko, body_en")
       .eq("id", bannerId)
       .maybeSingle();
 
@@ -123,9 +135,28 @@ export async function saveSiteBannerAction(formData: FormData) {
       await supabase.storage.from("site-banner").remove([current.image_path]);
     }
 
+    if (current.body_ko === bodyKo && current.body_en?.trim()) {
+      bodyEn = current.body_en;
+      needsEnglish = false;
+    }
+
     const { error } = await supabase
       .from("site_banner")
-      .update(payload)
+      .update({
+        enabled,
+        body_ko: bodyKo,
+        body_en: bodyEn,
+        cta_label_ko: "",
+        cta_label_en: "",
+        cta_url: "",
+        image_path: null,
+        starts_at: startsAt,
+        ends_at: endsAt,
+        dismiss_days: dismissDays,
+        bg_color: bgColor,
+        text_color: textColor,
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", bannerId);
 
     if (error) {
@@ -133,14 +164,38 @@ export async function saveSiteBannerAction(formData: FormData) {
         `/admin?tab=banner&error=${encodeURIComponent(error.message || t.errors.bannerSaveFailed)}`,
       );
     }
+    savedId = bannerId;
   } else {
-    const { error } = await supabase.from("site_banner").insert(payload);
+    const { data, error } = await supabase
+      .from("site_banner")
+      .insert({
+        enabled,
+        body_ko: bodyKo,
+        body_en: "",
+        cta_label_ko: "",
+        cta_label_en: "",
+        cta_url: "",
+        image_path: null,
+        starts_at: startsAt,
+        ends_at: endsAt,
+        dismiss_days: dismissDays,
+        bg_color: bgColor,
+        text_color: textColor,
+        updated_at: new Date().toISOString(),
+      })
+      .select("id")
+      .single();
 
-    if (error) {
+    if (error || !data) {
       redirect(
-        `/admin?tab=banner&error=${encodeURIComponent(error.message || t.errors.bannerSaveFailed)}`,
+        `/admin?tab=banner&error=${encodeURIComponent(error?.message || t.errors.bannerSaveFailed)}`,
       );
     }
+    savedId = data.id as number;
+  }
+
+  if (needsEnglish && savedId != null) {
+    after(() => fillBannerEnglishInBackground(savedId!, bodyKo));
   }
 
   revalidatePath("/");
