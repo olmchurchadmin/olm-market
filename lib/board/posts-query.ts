@@ -17,6 +17,7 @@ export type BoardListPost = {
   author: BoardListAuthor;
   thumb_path: string | null;
   reply_count: number;
+  is_notice: boolean;
 };
 
 type RawPost = {
@@ -25,6 +26,7 @@ type RawPost = {
   body: string;
   created_at: string;
   author_id: string;
+  is_notice?: boolean | null;
   author:
     | BoardListAuthor
     | BoardListAuthor[]
@@ -60,6 +62,8 @@ export async function fetchBoardPostsPage(options: {
   const to = from + pageSize - 1;
 
   const supabase = await createClient();
+  const selectWithNotice =
+    "id, title, body, created_at, author_id, is_notice, author:profiles!board_posts_author_id_fkey(nickname, full_name, email), board_post_images(storage_path, sort_order)";
   const selectWithImages =
     "id, title, body, created_at, author_id, author:profiles!board_posts_author_id_fkey(nickname, full_name, email), board_post_images(storage_path, sort_order)";
   const selectPlain =
@@ -72,12 +76,24 @@ export async function fetchBoardPostsPage(options: {
   {
     const first = await supabase
       .from("board_posts")
-      .select(selectWithImages, { count: "exact" })
+      .select(selectWithNotice, { count: "exact" })
+      .order("is_notice", { ascending: false })
       .order("created_at", { ascending: false })
       .range(from, to);
     data = (first.data as RawPost[] | null) ?? null;
     count = first.count;
     error = first.error;
+  }
+
+  if (error) {
+    const second = await supabase
+      .from("board_posts")
+      .select(selectWithImages, { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(from, to);
+    data = (second.data as RawPost[] | null) ?? null;
+    count = second.count;
+    error = second.error;
   }
 
   if (error) {
@@ -117,6 +133,7 @@ export async function fetchBoardPostsPage(options: {
     author: normalizeAuthor(row.author),
     thumb_path: firstImagePath(row.board_post_images),
     reply_count: replyCountByPost.get(row.id) || 0,
+    is_notice: Boolean(row.is_notice),
   }));
 
   const total = count ?? items.length;

@@ -265,10 +265,15 @@ export function BoardInfiniteList({
         {items.map((post) => {
           const thumb = boardImageUrl(post.thumb_path);
           return (
-            <li key={post.id}>
+            <li
+              key={post.id}
+              className={post.is_notice ? "bg-amber-50" : "bg-white"}
+            >
               <Link
                 href={`/board/${post.id}`}
-                className="flex items-center gap-3 px-4 py-4 transition hover:bg-brand/5"
+                className={`flex items-center gap-3 px-4 py-4 transition ${
+                  post.is_notice ? "hover:bg-amber-100/70" : "hover:bg-brand/5"
+                }`}
               >
                 {thumb ? (
                   <span className="relative size-14 shrink-0 overflow-hidden rounded-md border border-brand/10 bg-white sm:size-16">
@@ -281,7 +286,14 @@ export function BoardInfiniteList({
                   </span>
                 ) : null}
                 <span className="min-w-0 flex-1">
-                  <p className="font-medium text-foreground">{post.title}</p>
+                  <p className="font-medium text-foreground">
+                    {post.is_notice ? (
+                      <span className="mr-1.5 inline-flex align-middle text-xs font-semibold text-amber-800">
+                        [{t.board.noticeLabel}]
+                      </span>
+                    ) : null}
+                    {post.title}
+                  </p>
                   <p className="mt-1 line-clamp-2 text-sm text-ink-muted">
                     {post.body}
                   </p>

@@ -116,6 +116,7 @@ export async function createBoardPostAction(formData: FormData) {
   const { t } = await getI18n();
   const title = String(formData.get("title") || "").trim();
   const body = String(formData.get("body") || "").trim();
+  const isNotice = formData.get("is_notice") === "on";
   const files = collectImageFiles(formData);
 
   if (!title || !body) {
@@ -143,6 +144,7 @@ export async function createBoardPostAction(formData: FormData) {
       author_id: profile.id,
       title,
       body,
+      is_notice: isNotice,
     })
     .select("id")
     .single();
@@ -175,6 +177,7 @@ export async function updateBoardPostAction(formData: FormData) {
   const postId = String(formData.get("post_id") || "").trim();
   const title = String(formData.get("title") || "").trim();
   const body = String(formData.get("body") || "").trim();
+  const isNotice = formData.get("is_notice") === "on";
   const files = collectImageFiles(formData);
   const removeIds = formData
     .getAll("remove_image_id")
@@ -207,7 +210,7 @@ export async function updateBoardPostAction(formData: FormData) {
 
   const { error } = await supabase
     .from("board_posts")
-    .update({ title, body })
+    .update({ title, body, is_notice: isNotice })
     .eq("id", postId)
     .eq("author_id", profile.id);
 

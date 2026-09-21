@@ -58,6 +58,7 @@ export default async function AdminPage({
     categoryUpdated?: string;
     categoryReordered?: string;
     bannerSaved?: string;
+    bannerDeleted?: string;
     tab?: string;
     range?: string;
     edit?: string;
@@ -78,6 +79,7 @@ export default async function AdminPage({
     categoryUpdated,
     categoryReordered,
     bannerSaved,
+    bannerDeleted,
     tab: tabParam,
     range: rangeParam,
     edit: editParam,
@@ -115,7 +117,7 @@ export default async function AdminPage({
   let orders: unknown[] | null = null;
   let allListings: unknown[] | null = null;
   let categories: unknown[] | null = null;
-  let siteBanner: SiteBanner | null = null;
+  let siteBanners: SiteBanner[] = [];
 
   if (tab === "stats") {
     const { data } = await supabase.rpc("admin_stats", { p_range: range });
@@ -171,9 +173,8 @@ export default async function AdminPage({
       .select(
         "id, enabled, body_ko, body_en, cta_label_ko, cta_label_en, cta_url, image_path, starts_at, ends_at, dismiss_days, bg_color, text_color, updated_at",
       )
-      .eq("id", 1)
-      .maybeSingle();
-    siteBanner = (data as SiteBanner | null) ?? null;
+      .order("updated_at", { ascending: false });
+    siteBanners = (data as SiteBanner[] | null) ?? [];
   }
 
   const [{ count: openComplaintCount }, { count: activeTradeCount }] =
@@ -332,6 +333,11 @@ export default async function AdminPage({
           {t.admin.bannerSavedFlash}
         </p>
       ) : null}
+      {bannerDeleted ? (
+        <p className="mt-6 rounded-md border border-brand/20 bg-brand/5 px-3 py-2 text-sm text-brand">
+          {t.admin.bannerDeletedFlash}
+        </p>
+      ) : null}
 
       {tab === "listings" ? (
         <AdminListingsPanel
@@ -432,7 +438,7 @@ export default async function AdminPage({
         />
       ) : null}
 
-      {tab === "banner" ? <AdminBannerPanel banner={siteBanner} /> : null}
+      {tab === "banner" ? <AdminBannerPanel banners={siteBanners} /> : null}
         </AdminShell>
       </div>
     </main>

@@ -2,23 +2,9 @@ import { unstable_cache } from "next/cache";
 import { SiteNoticeBannerClient } from "@/components/site-notice-banner-client";
 import { getI18n } from "@/lib/i18n/server";
 import { translateKoreanSentenceToEnglish } from "@/lib/i18n/translate-ko-en";
+import { pickLiveBanner } from "@/lib/site-banner";
 import { createClient } from "@/lib/supabase/server";
 import type { SiteBanner } from "@/lib/types";
-
-function isBannerLive(banner: SiteBanner, now: number) {
-  if (!banner.enabled) return false;
-  const body = banner.body_ko.trim() || banner.body_en.trim();
-  if (!body) return false;
-  if (banner.starts_at) {
-    const start = new Date(banner.starts_at).getTime();
-    if (!Number.isNaN(start) && now < start) return false;
-  }
-  if (banner.ends_at) {
-    const end = new Date(banner.ends_at).getTime();
-    if (!Number.isNaN(end) && now > end) return false;
-  }
-  return true;
-}
 
 function normalizeNewlines(text: string) {
   return text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim();
@@ -62,12 +48,14 @@ export async function SiteNoticeBanner() {
     .select(
       "id, enabled, body_ko, body_en, starts_at, ends_at, updated_at, dismiss_days, bg_color, text_color",
     )
-    .eq("id", 1)
-    .maybeSingle();
+    .eq("enabled", true)
+    .order("starts_at", { ascending: false, nullsFirst: false })
+    .order("updated_at", { ascending: false });
 
-  if (error || !data) return null;
-  const banner = data as SiteBanner;
-  if (!isBannerLive(banner, Date.now())) return null;
+  if (error || !data?.length) return null;
+
+  const banner = pickLiveBanner(data as SiteBanner[]);
+  if (!banner) return null;
 
   const body = await resolveBannerBody(locale, banner);
   if (!body) return null;

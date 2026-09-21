@@ -30,7 +30,7 @@ export default async function EditBoardPostPage({
   const [{ data: post }, { data: images }] = await Promise.all([
     supabase
       .from("board_posts")
-      .select("id, title, body, author_id")
+      .select("id, title, body, author_id, is_notice")
       .eq("id", id)
       .maybeSingle(),
     supabase
@@ -85,6 +85,20 @@ export default async function EditBoardPostPage({
           maxImages={MAX_IMAGES_PER_BOARD_POST}
           bucket="board-images"
         />
+        <label className="inline-flex items-start gap-2 text-sm font-medium text-foreground">
+          <input
+            type="checkbox"
+            name="is_notice"
+            defaultChecked={Boolean(post.is_notice)}
+            className="mt-0.5 size-4 accent-[var(--brand)]"
+          />
+          <span>
+            {t.board.noticeLabel}
+            <span className="mt-0.5 block text-xs font-normal text-ink-muted">
+              {t.board.noticeHint}
+            </span>
+          </span>
+        </label>
         <div className="flex flex-wrap gap-3">
           <PendingSubmitButton pendingLabel={t.common.loading}>
             {t.board.save}

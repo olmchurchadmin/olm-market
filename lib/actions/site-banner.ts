@@ -40,10 +40,17 @@ function parseDateInput(raw: string, edge: "start" | "end") {
   return date.toISOString();
 }
 
+function hexColor(raw: string, fallback: string) {
+  const value = raw.trim().toLowerCase();
+  return /^#[0-9a-f]{6}$/.test(value) ? value : fallback;
+}
+
 export async function saveSiteBannerAction(formData: FormData) {
   const { t } = await getI18n();
   const supabase = await requireAdminClient();
 
+  const bannerIdRaw = String(formData.get("banner_id") || "").trim();
+  const bannerId = bannerIdRaw ? Number.parseInt(bannerIdRaw, 10) : null;
   const enabled = formData.get("enabled") === "on";
   const bodyKo = String(formData.get("body_ko") || "")
     .replace(/\r\n/g, "\n")
@@ -75,10 +82,6 @@ export async function saveSiteBannerAction(formData: FormData) {
     ? Math.max(1, Math.min(365, dismissDaysRaw))
     : 7;
 
-  const hexColor = (raw: string, fallback: string) => {
-    const value = raw.trim().toLowerCase();
-    return /^#[0-9a-f]{6}$/.test(value) ? value : fallback;
-  };
   const bgColor = hexColor(String(formData.get("bg_color") || ""), "#ffc83d");
   const textColor = hexColor(
     String(formData.get("text_color") || ""),
@@ -87,25 +90,14 @@ export async function saveSiteBannerAction(formData: FormData) {
 
   const bodyEn = bodyKo ? await translateKoreanSentenceToEnglish(bodyKo) : "";
 
-  const { data: current } = await supabase
-    .from("site_banner")
-    .select("image_path")
-    .eq("id", 1)
-    .maybeSingle();
-
-  if (current?.image_path) {
-    await supabase.storage.from("site-banner").remove([current.image_path]);
-  }
-
   const payload = {
-    id: 1,
     enabled,
     body_ko: bodyKo,
     body_en: bodyEn,
     cta_label_ko: "",
     cta_label_en: "",
     cta_url: "",
-    image_path: null,
+    image_path: null as string | null,
     starts_at: startsAt,
     ends_at: endsAt,
     dismiss_days: dismissDays,
@@ -114,17 +106,86 @@ export async function saveSiteBannerAction(formData: FormData) {
     updated_at: new Date().toISOString(),
   };
 
-  const { error } = await supabase.from("site_banner").upsert(payload, {
-    onConflict: "id",
-  });
+  if (bannerId != null && Number.isFinite(bannerId)) {
+    const { data: current } = await supabase
+      .from("site_banner")
+      .select("id, image_path")
+      .eq("id", bannerId)
+      .maybeSingle();
 
-  if (error) {
-    redirect(
-      `/admin?tab=banner&error=${encodeURIComponent(error.message || t.errors.bannerSaveFailed)}`,
-    );
+    if (!current) {
+      redirect(
+        `/admin?tab=banner&error=${encodeURIComponent(t.errors.bannerSaveFailed)}`,
+      );
+    }
+
+    if (current.image_path) {
+      await supabase.storage.from("site-banner").remove([current.image_path]);
+    }
+
+    const { error } = await supabase
+      .from("site_banner")
+      .update(payload)
+      .eq("id", bannerId);
+
+    if (error) {
+      redirect(
+        `/admin?tab=banner&error=${encodeURIComponent(error.message || t.errors.bannerSaveFailed)}`,
+      );
+    }
+  } else {
+    const { error } = await supabase.from("site_banner").insert(payload);
+
+    if (error) {
+      redirect(
+        `/admin?tab=banner&error=${encodeURIComponent(error.message || t.errors.bannerSaveFailed)}`,
+      );
+    }
   }
 
   revalidatePath("/");
   revalidatePath("/admin");
   redirect("/admin?tab=banner&bannerSaved=1");
+}
+
+export async function deleteSiteBannerAction(formData: FormData) {
+  const { t } = await getI18n();
+  const supabase = await requireAdminClient();
+
+  const bannerId = Number.parseInt(
+    String(formData.get("banner_id") || ""),
+    10,
+  );
+  if (!Number.isFinite(bannerId)) {
+    redirect("/admin?tab=banner");
+  }
+
+  const { data: current } = await supabase
+    .from("site_banner")
+    .select("id, image_path")
+    .eq("id", bannerId)
+    .maybeSingle();
+
+  if (!current) {
+    redirect("/admin?tab=banner");
+  }
+
+  if (current.image_path) {
+    await supabase.storage.from("site-banner").remove([current.image_path]);
+  }
+
+  const { error } = await supabase
+    .from("site_banner")
+    .delete()
+    .eq("id", bannerId);
+
+  if (error) {
+    redirect(
+      `/admin?tab=banner&error=${encodeURIComponent(error.message || t.errors.bannerDeleteFailed)}`,
+    );
+  }
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+  redirect("/admin?tab=banner&bannerDeleted=1");
 }
