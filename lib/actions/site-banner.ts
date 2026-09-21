@@ -12,6 +12,10 @@ import {
 } from "@/lib/site-banner";
 import { createClient } from "@/lib/supabase/server";
 
+export type SaveSiteBannerResult =
+  | { ok: true }
+  | { ok: false; error: string };
+
 async function requireAdminClient() {
   const supabase = await createClient();
   const {
@@ -50,25 +54,32 @@ function hexColor(raw: string, fallback: string) {
   return /^#[0-9a-f]{6}$/.test(value) ? value : fallback;
 }
 
-async function fillBannerEnglishInBackground(
-  bannerId: number,
-  bodyKo: string,
-) {
-  if (!bodyKo) return;
-  try {
-    const bodyEn = await translateKoreanSentenceToEnglish(bodyKo);
-    const supabase = await createClient();
-    await supabase
-      .from("site_banner")
-      .update({ body_en: bodyEn })
-      .eq("id", bannerId);
+function scheduleBannerSideEffects(options: {
+  bannerId: number;
+  bodyKo: string;
+  needsEnglish: boolean;
+}) {
+  after(async () => {
+    if (options.needsEnglish && options.bodyKo) {
+      try {
+        const bodyEn = await translateKoreanSentenceToEnglish(options.bodyKo);
+        const supabase = await createClient();
+        await supabase
+          .from("site_banner")
+          .update({ body_en: bodyEn })
+          .eq("id", options.bannerId);
+      } catch (error) {
+        console.error("[site-banner translate]", error);
+      }
+    }
     revalidatePath("/");
-  } catch (error) {
-    console.error("[site-banner translate]", error);
-  }
+    revalidatePath("/admin");
+  });
 }
 
-export async function saveSiteBannerAction(formData: FormData) {
+export async function saveSiteBannerAction(
+  formData: FormData,
+): Promise<SaveSiteBannerResult> {
   const { t } = await getI18n();
   const supabase = await requireAdminClient();
 
@@ -86,15 +97,11 @@ export async function saveSiteBannerAction(formData: FormData) {
   const endsAt = parseDateInput(String(formData.get("ends_on") || ""), "end");
 
   if (enabled && !bodyKo) {
-    redirect(
-      `/admin?tab=banner&error=${encodeURIComponent(t.errors.bannerTextRequired)}`,
-    );
+    return { ok: false, error: t.errors.bannerTextRequired };
   }
 
   if (startsAt && endsAt && new Date(startsAt) > new Date(endsAt)) {
-    redirect(
-      `/admin?tab=banner&error=${encodeURIComponent(t.errors.bannerScheduleInvalid)}`,
-    );
+    return { ok: false, error: t.errors.bannerScheduleInvalid };
   }
 
   const dismissDaysRaw = Number.parseInt(
@@ -126,9 +133,7 @@ export async function saveSiteBannerAction(formData: FormData) {
       .maybeSingle();
 
     if (!current) {
-      redirect(
-        `/admin?tab=banner&error=${encodeURIComponent(t.errors.bannerSaveFailed)}`,
-      );
+      return { ok: false, error: t.errors.bannerSaveFailed };
     }
 
     if (current.image_path) {
@@ -160,9 +165,7 @@ export async function saveSiteBannerAction(formData: FormData) {
       .eq("id", bannerId);
 
     if (error) {
-      redirect(
-        `/admin?tab=banner&error=${encodeURIComponent(error.message || t.errors.bannerSaveFailed)}`,
-      );
+      return { ok: false, error: error.message || t.errors.bannerSaveFailed };
     }
     savedId = bannerId;
   } else {
@@ -187,20 +190,22 @@ export async function saveSiteBannerAction(formData: FormData) {
       .single();
 
     if (error || !data) {
-      redirect(
-        `/admin?tab=banner&error=${encodeURIComponent(error?.message || t.errors.bannerSaveFailed)}`,
-      );
+      return {
+        ok: false,
+        error: error?.message || t.errors.bannerSaveFailed,
+      };
     }
     savedId = data.id as number;
   }
 
-  if (needsEnglish && savedId != null) {
-    after(() => fillBannerEnglishInBackground(savedId!, bodyKo));
-  }
+  scheduleBannerSideEffects({
+    bannerId: savedId,
+    bodyKo,
+    needsEnglish,
+  });
 
-  revalidatePath("/");
   revalidatePath("/admin");
-  redirect("/admin?tab=banner&bannerSaved=1");
+  return { ok: true };
 }
 
 export async function deleteSiteBannerAction(formData: FormData) {
@@ -240,7 +245,9 @@ export async function deleteSiteBannerAction(formData: FormData) {
     );
   }
 
-  revalidatePath("/");
-  revalidatePath("/admin");
+  after(() => {
+    revalidatePath("/");
+    revalidatePath("/admin");
+  });
   redirect("/admin?tab=banner&bannerDeleted=1");
 }

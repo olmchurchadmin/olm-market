@@ -6,9 +6,9 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { useConfirm } from "@/components/confirm-dialog";
 import { useI18n } from "@/components/locale-provider";
-import { PendingSubmitButton } from "@/components/pending-submit-button";
 import { DatePickerField } from "@/components/ui/date-picker-field";
 import {
   deleteSiteBannerAction,
@@ -69,13 +69,17 @@ function statusTone(status: BannerStatusKey) {
 function BannerEditorForm({
   banner,
   onCancel,
+  onSaved,
 }: {
   banner: SiteBanner | null;
   onCancel: () => void;
+  onSaved: () => void;
 }) {
   const { t, locale } = useI18n();
   const [startsOn, setStartsOn] = useState(toDateInputValue(banner?.starts_at));
   const [endsOn, setEndsOn] = useState(toDateInputValue(banner?.ends_at));
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
 
   const scheduleSummary = useMemo(() => {
     if (!startsOn && !endsOn) return t.admin.bannerScheduleAlways;
@@ -121,8 +125,20 @@ function BannerEditorForm({
 
   return (
     <form
-      action={saveSiteBannerAction}
       className="mt-5 space-y-5 rounded-lg border border-brand/10 bg-white/70 p-4 sm:p-5"
+      onSubmit={(event) => {
+        event.preventDefault();
+        const formData = new FormData(event.currentTarget);
+        setError(null);
+        startTransition(async () => {
+          const result = await saveSiteBannerAction(formData);
+          if (!result.ok) {
+            setError(result.error);
+            return;
+          }
+          onSaved();
+        });
+      }}
     >
       {banner ? (
         <input type="hidden" name="banner_id" value={banner.id} />
@@ -140,6 +156,15 @@ function BannerEditorForm({
           {t.common.cancel}
         </button>
       </div>
+
+      {error ? (
+        <p
+          className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
+          role="alert"
+        >
+          {error}
+        </p>
+      ) : null}
 
       <label className="inline-flex items-center gap-2 text-sm font-medium text-foreground">
         <input
@@ -257,12 +282,14 @@ function BannerEditorForm({
         </div>
       </div>
 
-      <PendingSubmitButton
-        pendingLabel={t.common.loading}
+      <button
+        type="submit"
+        disabled={pending}
+        aria-busy={pending}
         className="rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-soft disabled:cursor-wait disabled:opacity-70"
       >
-        {t.admin.bannerSave}
-      </PendingSubmitButton>
+        {pending ? t.common.loading : t.admin.bannerSave}
+      </button>
     </form>
   );
 }
@@ -304,8 +331,10 @@ function DeleteBannerIconButton({ bannerId }: { bannerId: number }) {
 
 export function AdminBannerPanel({ banners }: { banners: SiteBanner[] }) {
   const { t, locale } = useI18n();
+  const router = useRouter();
   const [mode, setMode] = useState<"list" | "create" | "edit">("list");
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [flash, setFlash] = useState<string | null>(null);
 
   const editing =
     mode === "edit" && editingId != null
@@ -372,6 +401,7 @@ export function AdminBannerPanel({ banners }: { banners: SiteBanner[] }) {
           <button
             type="button"
             onClick={() => {
+              setFlash(null);
               setEditingId(null);
               setMode("create");
             }}
@@ -382,6 +412,12 @@ export function AdminBannerPanel({ banners }: { banners: SiteBanner[] }) {
           </button>
         ) : null}
       </div>
+
+      {flash ? (
+        <p className="mt-4 rounded-md border border-brand/20 bg-brand/5 px-3 py-2 text-sm text-brand">
+          {flash}
+        </p>
+      ) : null}
 
       {mode === "list" ? (
         sorted.length === 0 ? (
@@ -441,6 +477,12 @@ export function AdminBannerPanel({ banners }: { banners: SiteBanner[] }) {
           onCancel={() => {
             setEditingId(null);
             setMode("list");
+          }}
+          onSaved={() => {
+            setEditingId(null);
+            setMode("list");
+            setFlash(t.admin.bannerSavedFlash);
+            router.refresh();
           }}
         />
       )}
