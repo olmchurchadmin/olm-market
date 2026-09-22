@@ -6,7 +6,7 @@ import {
   PlusIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useConfirm } from "@/components/confirm-dialog";
 import { useI18n } from "@/components/locale-provider";
 import {
@@ -20,6 +20,17 @@ import type { Category } from "@/lib/types";
 
 type CategoryRow = Category & { name_en?: string | null };
 
+function moveItem(list: CategoryRow[], fromId: string, toId: string) {
+  if (fromId === toId) return list;
+  const next = [...list];
+  const from = next.findIndex((item) => item.id === fromId);
+  const to = next.findIndex((item) => item.id === toId);
+  if (from < 0 || to < 0) return list;
+  const [moved] = next.splice(from, 1);
+  next.splice(to, 0, moved!);
+  return next;
+}
+
 export function AdminCategoriesPanel({
   categories,
 }: {
@@ -32,10 +43,16 @@ export function AdminCategoriesPanel({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editKo, setEditKo] = useState("");
   const [, startTransition] = useTransition();
+  const dragIdRef = useRef<string | null>(null);
+  const listRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
     setItems(categories);
   }, [categories]);
+
+  useEffect(() => {
+    dragIdRef.current = dragId;
+  }, [dragId]);
 
   const orderedIds = useMemo(() => items.map((item) => item.id), [items]);
   const orderDirty = useMemo(() => {
@@ -43,17 +60,56 @@ export function AdminCategoriesPanel({
     return items.some((item, index) => item.id !== categories[index]?.id);
   }, [categories, items]);
 
-  function onDrop(targetId: string) {
-    if (!dragId || dragId === targetId) return;
-    setItems((prev) => {
-      const next = [...prev];
-      const from = next.findIndex((item) => item.id === dragId);
-      const to = next.findIndex((item) => item.id === targetId);
-      if (from < 0 || to < 0) return prev;
-      const [moved] = next.splice(from, 1);
-      next.splice(to, 0, moved);
-      return next;
-    });
+  function reorderTowardPoint(clientY: number) {
+    const activeId = dragIdRef.current;
+    if (!activeId || !listRef.current) return;
+
+    const rows = Array.from(
+      listRef.current.querySelectorAll<HTMLElement>("[data-category-id]"),
+    );
+    if (!rows.length) return;
+
+    let targetId: string | null = null;
+    for (const row of rows) {
+      const rect = row.getBoundingClientRect();
+      const mid = rect.top + rect.height / 2;
+      if (clientY < mid) {
+        targetId = row.dataset.categoryId || null;
+        break;
+      }
+    }
+    if (!targetId) {
+      targetId = rows[rows.length - 1]?.dataset.categoryId || null;
+    }
+    if (!targetId || targetId === activeId) return;
+
+    setItems((prev) => moveItem(prev, activeId, targetId!));
+  }
+
+  function onHandlePointerDown(
+    event: React.PointerEvent<HTMLButtonElement>,
+    itemId: string,
+  ) {
+    if (editingId === itemId) return;
+    if (event.button !== 0) return;
+
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragIdRef.current = itemId;
+    setDragId(itemId);
+  }
+
+  function onHandlePointerMove(event: React.PointerEvent<HTMLButtonElement>) {
+    if (!dragIdRef.current) return;
+    if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
+    reorderTowardPoint(event.clientY);
+  }
+
+  function endDrag(event: React.PointerEvent<HTMLButtonElement>) {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    dragIdRef.current = null;
     setDragId(null);
   }
 
@@ -111,26 +167,35 @@ export function AdminCategoriesPanel({
         </form>
       </div>
 
-      <ul className="mt-4 space-y-2">
+      <ul ref={listRef} className="mt-4 space-y-2">
         {items.length ? (
           items.map((item) => {
             const isEditing = editingId === item.id;
+            const isDragging = dragId === item.id;
             return (
-              <li key={item.id}>
+              <li key={item.id} data-category-id={item.id}>
                 <div
-                  draggable={!isEditing}
-                  onDragStart={() => setDragId(item.id)}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={() => onDrop(item.id)}
-                  onDragEnd={() => setDragId(null)}
                   className={`rounded-lg border border-brand/10 bg-white/70 px-3 py-2.5 ${
-                    dragId === item.id ? "opacity-60" : ""
+                    isDragging ? "opacity-60 ring-2 ring-brand/30" : ""
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="cursor-grab text-ink-muted active:cursor-grabbing">
+                    <button
+                      type="button"
+                      disabled={isEditing}
+                      aria-label={t.admin.categoryDragHandle}
+                      title={t.admin.categoryDragHint}
+                      onPointerDown={(event) =>
+                        onHandlePointerDown(event, item.id)
+                      }
+                      onPointerMove={onHandlePointerMove}
+                      onPointerUp={endDrag}
+                      onPointerCancel={endDrag}
+                      className="inline-flex size-9 shrink-0 touch-none items-center justify-center rounded-md text-ink-muted hover:bg-brand/5 disabled:cursor-not-allowed disabled:opacity-40"
+                      style={{ touchAction: "none" }}
+                    >
                       <Bars3Icon className="size-5" aria-hidden />
-                    </span>
+                    </button>
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-foreground">
                         {item.name_ko}
