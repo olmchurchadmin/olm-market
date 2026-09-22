@@ -4,7 +4,7 @@ import { after } from "next/server";
 import { revalidatePath } from "next/cache";
 import { redirect, unstable_rethrow } from "next/navigation";
 import { getI18n } from "@/lib/i18n/server";
-import { buildListingI18n } from "@/lib/i18n/listings";
+import { buildListingI18n, provisionalListingI18n } from "@/lib/i18n/listings";
 import { isStaffRole } from "@/lib/auth";
 import { notifyListingCreated, notifyAdminListingChange } from "@/lib/notifications/dispatch";
 import { createClient } from "@/lib/supabase/server";
@@ -173,7 +173,7 @@ export async function createListingAction(formData: FormData) {
       files,
     } = await parseListingFields(formData);
 
-    const i18n = await buildListingI18n(title, description);
+    const i18n = provisionalListingI18n(title, description);
 
     const { data: listing, error } = await supabase
       .from("listings")
@@ -231,6 +231,20 @@ export async function createListingAction(formData: FormData) {
 
     after(async () => {
       try {
+        const translated = await buildListingI18n(title, description);
+        await supabase
+          .from("listings")
+          .update({
+            title_ko: translated.title_ko,
+            title_en: translated.title_en,
+            description_ko: translated.description_ko,
+            description_en: translated.description_en,
+          })
+          .eq("id", listing.id);
+      } catch (error) {
+        console.error("[createListingAction:i18n]", error);
+      }
+      try {
         await notifyListingCreated(listing.id);
       } catch (error) {
         console.error("[notifyListingCreated]", error);
@@ -285,7 +299,7 @@ export async function updateListingAction(formData: FormData) {
         supabase
           .from("listings")
           .select(
-            "id, seller_id, status, cover_image_path, quantity_total, quantity_remaining",
+            "id, seller_id, status, cover_image_path, quantity_total, quantity_remaining, title, description, title_ko, title_en, description_ko, description_en",
           )
           .eq("id", listingId)
           .maybeSingle(),
@@ -314,7 +328,17 @@ export async function updateListingAction(formData: FormData) {
       throw new Error(t.sell.quantityTooLow);
     }
     const nextRemaining = quantityTotal - soldCount;
-    const i18n = await buildListingI18n(title, description);
+    const textChanged =
+      (existing.title || "") !== title ||
+      (existing.description || "") !== description;
+    const i18n = textChanged
+      ? provisionalListingI18n(title, description)
+      : {
+          title_ko: existing.title_ko || title,
+          title_en: existing.title_en || title,
+          description_ko: existing.description_ko || description,
+          description_en: existing.description_en || description,
+        };
 
     let updateQuery = supabase
       .from("listings")
@@ -410,8 +434,24 @@ export async function updateListingAction(formData: FormData) {
 
     successPath = isAdmin ? `/admin?tab=listings` : `/market/${listingId}`;
 
-    if (isAdmin) {
-      after(async () => {
+    after(async () => {
+      if (textChanged) {
+        try {
+          const translated = await buildListingI18n(title, description);
+          await supabase
+            .from("listings")
+            .update({
+              title_ko: translated.title_ko,
+              title_en: translated.title_en,
+              description_ko: translated.description_ko,
+              description_en: translated.description_en,
+            })
+            .eq("id", listingId);
+        } catch (error) {
+          console.error("[updateListingAction:i18n]", error);
+        }
+      }
+      if (isAdmin) {
         try {
           await notifyAdminListingChange({
             listingId,
@@ -421,22 +461,14 @@ export async function updateListingAction(formData: FormData) {
         } catch (error) {
           console.error("[notifyAdminListingChange:updated]", error);
         }
-        revalidatePath("/");
-        revalidatePath("/market");
-        revalidatePath(`/market/${listingId}`);
-        revalidatePath("/account/transactions");
-        revalidatePath("/admin");
-        revalidatePath("/me");
-      });
-    } else {
-      after(() => {
-        revalidatePath("/");
-        revalidatePath("/market");
-        revalidatePath(`/market/${listingId}`);
-        revalidatePath("/account/transactions");
-        revalidatePath("/me");
-      });
-    }
+      }
+      revalidatePath("/");
+      revalidatePath("/market");
+      revalidatePath(`/market/${listingId}`);
+      revalidatePath("/account/transactions");
+      revalidatePath("/admin");
+      revalidatePath("/me");
+    });
   } catch (error) {
     unstable_rethrow(error);
     const message =

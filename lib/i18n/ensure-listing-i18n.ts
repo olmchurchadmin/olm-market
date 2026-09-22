@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import {
   buildListingI18n,
   listingHasIncompleteEnglish,
+  provisionalListingI18n,
   type ListingTextFields,
 } from "@/lib/i18n/listings";
 import type { Locale } from "@/lib/i18n/config";
@@ -48,45 +49,41 @@ async function persistI18n(
 }
 
 /**
- * Fill/repair bilingual title/description fields.
- * Also re-runs when stored English still contains Hangul.
+ * Fill/repair bilingual title/description fields in the background.
+ * Never blocks page render on translation APIs.
  */
 export async function ensureListingI18nFields<
   T extends ListingTextFields & { id: string },
 >(listing: T, locale: Locale): Promise<T> {
   if (!needsAnyI18nWork(listing)) return listing;
 
-  if (!missingLocaleFields(listing, locale)) {
-    after(() => {
-      void persistI18n(listing.id, listing.title || "", listing.description || "")
-        .then(() => {
-          revalidatePath(`/market/${listing.id}`);
-          revalidatePath("/");
-        })
-        .catch((error) => console.error("[ensureListingI18nFields:bg]", error));
-    });
-    return listing;
-  }
+  const title = listing.title || "";
+  const description = listing.description || "";
+  const provisional = provisionalListingI18n(title, description);
+  const patched = {
+    ...listing,
+    title_ko: listing.title_ko?.trim() || provisional.title_ko,
+    title_en: listing.title_en?.trim() || provisional.title_en,
+    description_ko: listing.description_ko?.trim() || provisional.description_ko,
+    description_en: listing.description_en?.trim() || provisional.description_en,
+  };
 
-  try {
-    const i18n = await persistI18n(
-      listing.id,
-      listing.title || "",
-      listing.description || "",
-    );
-    after(() => {
-      revalidatePath(`/market/${listing.id}`);
-      revalidatePath("/");
-      revalidatePath("/market");
-    });
-    return { ...listing, ...i18n };
-  } catch (error) {
-    console.error("[ensureListingI18nFields]", error);
-    return listing;
-  }
+  after(() => {
+    void persistI18n(listing.id, title, description)
+      .then(() => {
+        revalidatePath(`/market/${listing.id}`);
+        revalidatePath("/");
+        revalidatePath("/market");
+      })
+      .catch((error) => console.error("[ensureListingI18nFields:bg]", error));
+  });
+
+  // Prefer existing locale text when present; otherwise provisional.
+  if (!missingLocaleFields(listing, locale)) return listing;
+  return patched;
 }
 
-/** Best-effort title/description fill for a market page of cards. */
+/** Best-effort title/description fill for a market page of cards — never blocks. */
 export async function ensureListingTitlesForLocale<
   T extends ListingTextFields & { id: string },
 >(listings: T[], locale: Locale): Promise<T[]> {
@@ -95,25 +92,39 @@ export async function ensureListingTitlesForLocale<
   );
   if (!need.length) return listings;
 
-  const updated = new Map<string, Awaited<ReturnType<typeof buildListingI18n>>>();
-  await Promise.all(
-    need.slice(0, 12).map(async (listing) => {
-      try {
-        const i18n = await persistI18n(
-          listing.id,
-          listing.title || "",
-          listing.description || "",
-        );
-        updated.set(listing.id, i18n);
-      } catch (error) {
-        console.error("[ensureListingTitlesForLocale]", listing.id, error);
-      }
-    }),
-  );
+  after(() => {
+    void Promise.all(
+      need.slice(0, 12).map(async (listing) => {
+        try {
+          await persistI18n(
+            listing.id,
+            listing.title || "",
+            listing.description || "",
+          );
+        } catch (error) {
+          console.error("[ensureListingTitlesForLocale]", listing.id, error);
+        }
+      }),
+    ).then(() => {
+      revalidatePath("/");
+      revalidatePath("/market");
+    });
+  });
 
-  if (!updated.size) return listings;
   return listings.map((listing) => {
-    const patch = updated.get(listing.id);
-    return patch ? { ...listing, ...patch } : listing;
+    if (!missingLocaleFields(listing, locale)) return listing;
+    const provisional = provisionalListingI18n(
+      listing.title || "",
+      listing.description || "",
+    );
+    return {
+      ...listing,
+      title_ko: listing.title_ko?.trim() || provisional.title_ko,
+      title_en: listing.title_en?.trim() || provisional.title_en,
+      description_ko:
+        listing.description_ko?.trim() || provisional.description_ko,
+      description_en:
+        listing.description_en?.trim() || provisional.description_en,
+    };
   });
 }

@@ -118,6 +118,24 @@ export async function buildListingI18n(
   };
 }
 
+/**
+ * Instant placeholders so create/update can finish without waiting on translation.
+ * Background `buildListingI18n` replaces these shortly after.
+ */
+export function provisionalListingI18n(
+  title: string,
+  description: string,
+): ListingI18nPayload {
+  const titleTrim = title.trim();
+  const descTrim = description.replace(/\r\n/g, "\n").trim();
+  return {
+    title_ko: titleTrim,
+    title_en: titleTrim,
+    description_ko: descTrim,
+    description_en: descTrim,
+  };
+}
+
 export function listingNeedsI18n(
   listing: ListingTextFields,
   locale: Locale,
