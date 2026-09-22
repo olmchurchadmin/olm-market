@@ -10,9 +10,9 @@ import { notifyListingCreated, notifyAdminListingChange } from "@/lib/notificati
 import { createClient } from "@/lib/supabase/server";
 import type { ItemCondition, PickupMethod } from "@/lib/types";
 
-function failRedirect(path: string, message: string): never {
-  redirect(`${path}${path.includes("?") ? "&" : "?"}error=${encodeURIComponent(message)}`);
-}
+export type SaveListingResult =
+  | { ok: true; href: string }
+  | { ok: false; error: string };
 
 async function requireSeller() {
   const supabase = await createClient();
@@ -153,9 +153,10 @@ async function uploadListingImages(
   return rows.map((row) => row.path);
 }
 
-export async function createListingAction(formData: FormData) {
+export async function createListingAction(
+  formData: FormData,
+): Promise<SaveListingResult> {
   const { t } = await getI18n();
-  let listingId: string | null = null;
 
   try {
     const { supabase, user } = await requireSeller();
@@ -198,9 +199,8 @@ export async function createListingAction(formData: FormData) {
       .single();
 
     if (error || !listing) {
-      throw new Error(error?.message || t.errors.createFailed);
+      return { ok: false, error: error?.message || t.errors.createFailed };
     }
-    listingId = listing.id;
 
     try {
       await upsertPickupContacts(
@@ -212,24 +212,33 @@ export async function createListingAction(formData: FormData) {
       );
     } catch (contactError) {
       await supabase.from("listings").delete().eq("id", listing.id);
-      throw contactError;
+      const message =
+        contactError instanceof Error && contactError.message
+          ? contactError.message
+          : t.errors.createFailed;
+      return { ok: false, error: message };
     }
 
-    const uploadedPaths = await uploadListingImages(
-      supabase,
-      user.id,
-      listing.id,
-      files,
-    );
-
-    if (uploadedPaths[0]) {
-      await supabase
-        .from("listings")
-        .update({ cover_image_path: uploadedPaths[0] })
-        .eq("id", listing.id);
-    }
-
+    // Photos, translation, and notifications continue after the client navigates.
     after(async () => {
+      try {
+        if (files.length) {
+          const uploadedPaths = await uploadListingImages(
+            supabase,
+            user.id,
+            listing.id,
+            files,
+          );
+          if (uploadedPaths[0]) {
+            await supabase
+              .from("listings")
+              .update({ cover_image_path: uploadedPaths[0] })
+              .eq("id", listing.id);
+          }
+        }
+      } catch (error) {
+        console.error("[createListingAction:images]", error);
+      }
       try {
         const translated = await buildListingI18n(title, description);
         await supabase
@@ -255,30 +264,30 @@ export async function createListingAction(formData: FormData) {
       revalidatePath("/account/transactions");
       revalidatePath("/me");
     });
+
+    revalidatePath(`/market/${listing.id}`);
+    return { ok: true, href: `/market/${listing.id}` };
   } catch (error) {
     unstable_rethrow(error);
     const message =
       error instanceof Error && error.message
         ? error.message
         : t.errors.createFailed;
-    failRedirect("/sell", message);
+    return { ok: false, error: message };
   }
-
-  if (!listingId) {
-    failRedirect("/sell", t.errors.createFailed);
-  }
-  redirect(`/market/${listingId}`);
 }
 
-export async function updateListingAction(formData: FormData) {
+export async function updateListingAction(
+  formData: FormData,
+): Promise<SaveListingResult> {
   const { t } = await getI18n();
   const listingId = String(formData.get("listing_id") || "");
-  const failPath = listingId ? `/sell/${listingId}/edit` : "/sell";
-  let successPath = `/market/${listingId}`;
 
   try {
     const { supabase, user } = await requireSeller();
-    if (!listingId) throw new Error(t.errors.listingNotFound);
+    if (!listingId) {
+      return { ok: false, error: t.errors.listingNotFound };
+    }
 
     const {
       title,
@@ -308,14 +317,14 @@ export async function updateListingAction(formData: FormData) {
 
     const isAdmin = isStaffRole(profile?.role);
     if (loadError || !existing || (existing.seller_id !== user.id && !isAdmin)) {
-      throw new Error(t.errors.cannotEdit);
+      return { ok: false, error: t.errors.cannotEdit };
     }
     if (
       !isAdmin &&
       existing.status !== "available" &&
       existing.status !== "cancelled"
     ) {
-      throw new Error(t.errors.cannotEditActive);
+      return { ok: false, error: t.errors.cannotEditActive };
     }
 
     const prevTotal = Math.max(1, Number(existing.quantity_total) || 1);
@@ -325,7 +334,7 @@ export async function updateListingAction(formData: FormData) {
     );
     const soldCount = Math.max(0, prevTotal - prevRemaining);
     if (quantityTotal < soldCount) {
-      throw new Error(t.sell.quantityTooLow);
+      return { ok: false, error: t.sell.quantityTooLow };
     }
     const nextRemaining = quantityTotal - soldCount;
     const textChanged =
@@ -356,7 +365,6 @@ export async function updateListingAction(formData: FormData) {
         item_condition: itemCondition,
         quantity_total: quantityTotal,
         quantity_remaining: nextRemaining,
-        // Admins can patch active listings without forcing them back to available.
         ...(isAdmin &&
         existing.status !== "available" &&
         existing.status !== "cancelled"
@@ -371,9 +379,8 @@ export async function updateListingAction(formData: FormData) {
     }
 
     const { error } = await updateQuery;
-
     if (error) {
-      throw new Error(error.message || t.errors.updateFailed);
+      return { ok: false, error: error.message || t.errors.updateFailed };
     }
 
     await upsertPickupContacts(
@@ -388,53 +395,64 @@ export async function updateListingAction(formData: FormData) {
       .getAll("remove_image_id")
       .map((v) => String(v))
       .filter(Boolean);
-
-    if (removeIds.length) {
-      const { data: toRemove } = await supabase
-        .from("listing_images")
-        .select("id, storage_path")
-        .eq("listing_id", listingId)
-        .in("id", removeIds);
-
-      const paths = (toRemove || []).map((row) => row.storage_path);
-      if (paths.length) {
-        await supabase.storage.from("listing-images").remove(paths);
-      }
-      await supabase
-        .from("listing_images")
-        .delete()
-        .eq("listing_id", listingId)
-        .in("id", removeIds);
-    }
-
-    const { data: remaining } = await supabase
-      .from("listing_images")
-      .select("id, storage_path, sort_order")
-      .eq("listing_id", listingId)
-      .order("sort_order", { ascending: true });
-
-    const startOrder = remaining?.length ? remaining.length : 0;
-    const slots = Math.max(0, 6 - startOrder);
     const ownerId = existing.seller_id;
-    const uploadedPaths = await uploadListingImages(
-      supabase,
-      ownerId,
-      listingId,
-      files.slice(0, slots),
-      startOrder,
-    );
-
-    const cover =
-      remaining?.[0]?.storage_path || uploadedPaths[0] || null;
-
-    await supabase
-      .from("listings")
-      .update({ cover_image_path: cover })
-      .eq("id", listingId);
-
-    successPath = isAdmin ? `/admin?tab=listings` : `/market/${listingId}`;
+    const successHref = isAdmin
+      ? `/admin?tab=listings`
+      : `/market/${listingId}`;
+    const hasImageWork = removeIds.length > 0 || files.length > 0;
 
     after(async () => {
+      try {
+        if (removeIds.length) {
+          const { data: toRemove } = await supabase
+            .from("listing_images")
+            .select("id, storage_path")
+            .eq("listing_id", listingId)
+            .in("id", removeIds);
+
+          const paths = (toRemove || []).map((row) => row.storage_path);
+          if (paths.length) {
+            await supabase.storage.from("listing-images").remove(paths);
+          }
+          await supabase
+            .from("listing_images")
+            .delete()
+            .eq("listing_id", listingId)
+            .in("id", removeIds);
+        }
+
+        const { data: remaining } = await supabase
+          .from("listing_images")
+          .select("id, storage_path, sort_order")
+          .eq("listing_id", listingId)
+          .order("sort_order", { ascending: true });
+
+        const startOrder = remaining?.length ? remaining.length : 0;
+        const slots = Math.max(0, 6 - startOrder);
+        const uploadedPaths = files.length
+          ? await uploadListingImages(
+              supabase,
+              ownerId,
+              listingId,
+              files.slice(0, slots),
+              startOrder,
+            )
+          : [];
+
+        if (hasImageWork) {
+          const cover =
+            remaining?.[0]?.storage_path ||
+            uploadedPaths[0] ||
+            null;
+          await supabase
+            .from("listings")
+            .update({ cover_image_path: cover })
+            .eq("id", listingId);
+        }
+      } catch (error) {
+        console.error("[updateListingAction:images]", error);
+      }
+
       if (textChanged) {
         try {
           const translated = await buildListingI18n(title, description);
@@ -469,16 +487,18 @@ export async function updateListingAction(formData: FormData) {
       revalidatePath("/admin");
       revalidatePath("/me");
     });
+
+    revalidatePath(successHref);
+    revalidatePath(`/market/${listingId}`);
+    return { ok: true, href: successHref };
   } catch (error) {
     unstable_rethrow(error);
     const message =
       error instanceof Error && error.message
         ? error.message
         : t.errors.updateFailed;
-    failRedirect(failPath, message);
+    return { ok: false, error: message };
   }
-
-  redirect(successPath);
 }
 
 export async function deleteListingAction(formData: FormData) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
+import { useListingFormBusy } from "@/components/listing-form";
 
 export function PendingSubmitButton({
   children,
@@ -13,7 +14,9 @@ export function PendingSubmitButton({
   className?: string;
   disabled?: boolean;
 }) {
-  const { pending } = useFormStatus();
+  const { pending: formPending } = useFormStatus();
+  const listingBusy = useListingFormBusy();
+  const pending = formPending || listingBusy;
   const isDisabled = Boolean(disabled) || pending;
 
   return (
