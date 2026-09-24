@@ -1,6 +1,10 @@
 "use client";
 
-import { ArrowPathIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowPathIcon,
+  ChevronDownIcon,
+  PencilSquareIcon,
+} from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -105,22 +109,33 @@ export function SellingListingRow({ listing }: { listing: Listing }) {
         </p>
 
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          <label className="inline-flex shrink-0">
+          <label
+            className={`relative inline-flex shrink-0 ${
+              pending || midTrade ? "opacity-60" : ""
+            }`}
+          >
             <span className="sr-only">{t.account.sellerStatusLabel}</span>
+            {/* Native selects ignore pill styling; paint a button and overlay the select. */}
+            <span
+              aria-hidden
+              className={`pointer-events-none inline-flex items-center gap-1 rounded-full py-1 pl-2.5 pr-1.5 text-xs font-semibold ring-1 ring-inset ${
+                bucket === "draft"
+                  ? "bg-neutral-100 text-neutral-600 ring-neutral-200"
+                  : bucket === "published"
+                    ? "bg-sky-50 text-sky-800 ring-sky-200"
+                    : "bg-emerald-50 text-emerald-800 ring-emerald-200"
+              }`}
+            >
+              {statusLabel}
+              <ChevronDownIcon className="size-3.5 opacity-70" />
+            </span>
             <select
               value={bucket}
               disabled={pending || midTrade}
               onChange={(event) =>
                 applyBucket(event.target.value as SellerListingBucket)
               }
-              style={{ width: `${statusLabel.length + 2.5}ch` }}
-              className={`appearance-none rounded-full px-2.5 py-1 text-center text-xs font-semibold outline-none ring-1 ring-inset transition disabled:cursor-not-allowed disabled:opacity-60 ${
-                bucket === "draft"
-                  ? "bg-black/[0.06] text-ink-muted ring-black/10"
-                  : bucket === "published"
-                    ? "bg-sky-50 text-sky-800 ring-sky-200"
-                    : "bg-emerald-50 text-emerald-800 ring-emerald-200"
-              }`}
+              className="absolute inset-0 size-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
               aria-label={t.account.sellerStatusLabel}
             >
               <option value="draft">{t.account.sellerStatusDraft}</option>
