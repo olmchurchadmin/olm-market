@@ -54,7 +54,9 @@ export default async function EditListingPage({
   if (
     !isAdmin &&
     listing.status !== "available" &&
-    listing.status !== "cancelled"
+    listing.status !== "draft" &&
+    listing.status !== "cancelled" &&
+    listing.status !== "sold"
   ) {
     redirect(
       `/account/transactions?error=${encodeURIComponent(t.sell.cannotEditActive)}`,

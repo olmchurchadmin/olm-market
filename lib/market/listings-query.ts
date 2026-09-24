@@ -46,6 +46,7 @@ export async function fetchMarketListingsPage(options: {
     query = query
       .neq("status", "cancelled")
       .neq("status", "sold")
+      .neq("status", "draft")
       .order("is_featured", { ascending: false })
       .order("created_at", { ascending: false });
   }

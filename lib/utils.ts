@@ -98,6 +98,8 @@ export function listingStatusLabel(
     return dict[status as keyof Dictionary["status"]];
   }
   switch (status) {
+    case "draft":
+      return "임시저장";
     case "available":
       return "판매중";
     case "reserved":
@@ -113,8 +115,18 @@ export function listingStatusLabel(
   }
 }
 
+export function listingSellerBucket(
+  status: string,
+): "draft" | "published" | "completed" {
+  if (status === "sold") return "completed";
+  if (status === "draft" || status === "cancelled") return "draft";
+  return "published";
+}
+
 export function listingStatusBadgeClass(status: string) {
   switch (status) {
+    case "draft":
+      return "bg-black/10 text-ink-muted";
     case "reserved":
       return "bg-amber-600 text-white";
     case "at_church":

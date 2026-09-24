@@ -322,7 +322,9 @@ export async function updateListingAction(
     if (
       !isAdmin &&
       existing.status !== "available" &&
-      existing.status !== "cancelled"
+      existing.status !== "draft" &&
+      existing.status !== "cancelled" &&
+      existing.status !== "sold"
     ) {
       return { ok: false, error: t.errors.cannotEditActive };
     }
@@ -367,11 +369,15 @@ export async function updateListingAction(
         quantity_remaining: nextRemaining,
         ...(isAdmin &&
         existing.status !== "available" &&
-        existing.status !== "cancelled"
+        existing.status !== "draft" &&
+        existing.status !== "cancelled" &&
+        existing.status !== "sold"
           ? {}
-          : {
-              status: nextRemaining > 0 ? "available" : existing.status,
-            }),
+          : existing.status === "draft" || existing.status === "sold"
+            ? { status: existing.status }
+            : {
+                status: nextRemaining > 0 ? "available" : existing.status,
+              }),
       })
       .eq("id", listingId);
     if (!isAdmin) {
@@ -649,4 +655,92 @@ export async function toggleListingFeaturedAction(formData: FormData) {
   revalidatePath("/market");
   revalidatePath(`/market/${listingId}`);
   revalidatePath("/admin");
+}
+
+export type SetSellerListingStatusResult =
+  | { ok: true }
+  | { ok: false; error: string };
+
+export async function setListingSellerStatusAction(
+  formData: FormData,
+): Promise<SetSellerListingStatusResult> {
+  const { t } = await getI18n();
+  const { supabase, user } = await requireSeller();
+  const listingId = String(formData.get("listing_id") || "").trim();
+  const bucket = String(formData.get("bucket") || "").trim();
+
+  if (!listingId) {
+    return { ok: false, error: t.errors.listingNotFound };
+  }
+  if (bucket !== "draft" && bucket !== "published" && bucket !== "completed") {
+    return { ok: false, error: t.account.sellerStatusFailed };
+  }
+
+  const { data: existing } = await supabase
+    .from("listings")
+    .select("id, seller_id, status, quantity_total, quantity_remaining")
+    .eq("id", listingId)
+    .maybeSingle();
+
+  if (!existing || existing.seller_id !== user.id) {
+    return { ok: false, error: t.errors.cannotEdit };
+  }
+
+  if (
+    existing.status === "reserved" ||
+    existing.status === "at_church"
+  ) {
+    // Mid-trade: only allow completing, not pulling offline / republishing.
+    if (bucket !== "completed") {
+      return { ok: false, error: t.errors.cannotEditActive };
+    }
+  }
+
+  const total = Math.max(1, Number(existing.quantity_total) || 1);
+  let nextStatus: "draft" | "available" | "sold" = "available";
+  let nextRemaining = Number(existing.quantity_remaining) || 0;
+
+  if (bucket === "draft") {
+    nextStatus = "draft";
+  } else if (bucket === "completed") {
+    nextStatus = "sold";
+    nextRemaining = 0;
+  } else {
+    nextStatus = "available";
+    if (existing.status === "sold" || existing.status === "draft" || existing.status === "cancelled") {
+      nextRemaining = total;
+    } else {
+      nextRemaining = Math.max(0, Math.min(total, nextRemaining || total));
+    }
+  }
+
+  const { error } = await supabase
+    .from("listings")
+    .update({
+      status: nextStatus,
+      quantity_remaining: nextRemaining,
+    })
+    .eq("id", listingId)
+    .eq("seller_id", user.id);
+
+  if (error) {
+    return { ok: false, error: error.message || t.account.sellerStatusFailed };
+  }
+
+  after(() => {
+    revalidatePath("/");
+    revalidatePath("/market");
+    revalidatePath(`/market/${listingId}`);
+    revalidatePath("/account/transactions");
+    revalidatePath("/me");
+  });
+
+  return { ok: true };
+}
+
+export async function relistListingAction(
+  formData: FormData,
+): Promise<SetSellerListingStatusResult> {
+  formData.set("bucket", "published");
+  return setListingSellerStatusAction(formData);
 }

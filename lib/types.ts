@@ -1,10 +1,14 @@
 export type UserRole = "user" | "admin" | "superadmin";
 export type ListingStatus =
+  | "draft"
   | "available"
   | "reserved"
   | "at_church"
   | "sold"
   | "cancelled";
+
+/** Seller-facing 3-bucket status on 내 거래. */
+export type SellerListingBucket = "draft" | "published" | "completed";
 export type PickupMethod = "church" | "seller_location";
 export type ItemCondition = "new" | "used";
 export type OrderStatus =
