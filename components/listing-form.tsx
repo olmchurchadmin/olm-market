@@ -77,7 +77,13 @@ export function ListingForm({
               return;
             }
             // Navigate as soon as the listing row is saved; images finish in background.
-            router.push(result.href);
+            const href =
+              result.photosPending && !result.href.includes("?")
+                ? `${result.href}?photos=pending`
+                : result.photosPending
+                  ? `${result.href}&photos=pending`
+                  : result.href;
+            router.push(href);
             router.refresh();
           });
         }}

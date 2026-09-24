@@ -27,11 +27,13 @@ export function ListingGallery({
   images,
   coverPath,
   statusBadge,
+  photosPending = false,
 }: {
   title: string;
   images: GalleryImage[];
   coverPath?: string | null;
   statusBadge?: ReactNode;
+  photosPending?: boolean;
 }) {
   const { t } = useI18n();
   const urls = (
@@ -142,9 +144,21 @@ export function ListingGallery({
 
   if (!current) {
     return (
-      <div className="relative flex aspect-square items-center justify-center rounded-lg border border-brand/10 bg-neutral-100 text-ink-muted">
+      <div className="relative flex aspect-square flex-col items-center justify-center gap-2 rounded-lg border border-brand/10 bg-neutral-100 px-4 text-center text-ink-muted">
         {statusBadge}
-        {t.market.noImage}
+        {photosPending ? (
+          <>
+            <span
+              className="size-6 animate-spin rounded-full border-2 border-brand/25 border-t-brand"
+              aria-hidden
+            />
+            <span className="text-sm font-medium text-foreground">
+              {t.market.photosLoading}
+            </span>
+          </>
+        ) : (
+          t.market.noImage
+        )}
       </div>
     );
   }

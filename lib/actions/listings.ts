@@ -11,7 +11,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { ItemCondition, PickupMethod } from "@/lib/types";
 
 export type SaveListingResult =
-  | { ok: true; href: string }
+  | { ok: true; href: string; photosPending?: boolean }
   | { ok: false; error: string };
 
 async function requireSeller() {
@@ -266,7 +266,11 @@ export async function createListingAction(
     });
 
     revalidatePath(`/market/${listing.id}`);
-    return { ok: true, href: `/market/${listing.id}` };
+    return {
+      ok: true,
+      href: `/market/${listing.id}`,
+      photosPending: files.length > 0,
+    };
   } catch (error) {
     unstable_rethrow(error);
     const message =
@@ -496,7 +500,11 @@ export async function updateListingAction(
 
     revalidatePath(successHref);
     revalidatePath(`/market/${listingId}`);
-    return { ok: true, href: successHref };
+    return {
+      ok: true,
+      href: successHref,
+      photosPending: files.length > 0,
+    };
   } catch (error) {
     unstable_rethrow(error);
     const message =

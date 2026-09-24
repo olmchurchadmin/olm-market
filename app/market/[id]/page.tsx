@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ListingBuyPanel } from "@/components/listing-buy-panel";
 import { ListingGallery } from "@/components/listing-gallery";
+import { ListingPhotosPendingPoller } from "@/components/listing-photos-pending-poller";
 import { WatchlistButton } from "@/components/watchlist-button";
 import { getSessionUser } from "@/lib/auth";
 import { categoryLabel } from "@/lib/i18n/categories";
@@ -24,10 +25,13 @@ export const dynamic = "force-dynamic";
 
 export default async function ListingDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ photos?: string }>;
 }) {
   const { id } = await params;
+  const { photos } = await searchParams;
   const { locale, t } = await getI18n();
   const supabase = await createClient();
   const user = await getSessionUser();
@@ -50,6 +54,10 @@ export default async function ListingDetailPage({
     (a: { sort_order: number }, b: { sort_order: number }) =>
       a.sort_order - b.sort_order,
   );
+  const photosPending =
+    photos === "pending" &&
+    images.length === 0 &&
+    !listing.cover_image_path;
   const remaining = listingQuantityRemaining(listing);
   const total = listingQuantityTotal(listing);
   const canBuy =
@@ -110,6 +118,11 @@ export default async function ListingDetailPage({
           title={displayTitle}
           images={images}
           coverPath={listing.cover_image_path}
+          photosPending={photosPending}
+        />
+        <ListingPhotosPendingPoller
+          enabled={photos === "pending"}
+          hasImages={images.length > 0 || Boolean(listing.cover_image_path)}
         />
 
         <div>
