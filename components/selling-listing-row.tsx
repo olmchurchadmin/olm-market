@@ -60,6 +60,13 @@ export function SellingListingRow({ listing }: { listing: Listing }) {
     });
   }
 
+  const statusLabel =
+    bucket === "draft"
+      ? t.account.sellerStatusDraft
+      : bucket === "published"
+        ? t.account.sellerStatusPublished
+        : t.account.sellerStatusCompleted;
+
   return (
     <li className="flex gap-3 rounded-md border border-brand/10 bg-white/70 p-3">
       <Link
@@ -98,7 +105,7 @@ export function SellingListingRow({ listing }: { listing: Listing }) {
         </p>
 
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          <label className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-muted">
+          <label className="inline-flex shrink-0">
             <span className="sr-only">{t.account.sellerStatusLabel}</span>
             <select
               value={bucket}
@@ -106,7 +113,14 @@ export function SellingListingRow({ listing }: { listing: Listing }) {
               onChange={(event) =>
                 applyBucket(event.target.value as SellerListingBucket)
               }
-              className="rounded-md border border-brand/15 bg-white px-2 py-1 text-xs font-semibold text-foreground outline-none focus:border-brand disabled:cursor-not-allowed disabled:opacity-60"
+              style={{ width: `${statusLabel.length + 2.5}ch` }}
+              className={`appearance-none rounded-full px-2.5 py-1 text-center text-xs font-semibold outline-none ring-1 ring-inset transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                bucket === "draft"
+                  ? "bg-black/[0.06] text-ink-muted ring-black/10"
+                  : bucket === "published"
+                    ? "bg-sky-50 text-sky-800 ring-sky-200"
+                    : "bg-emerald-50 text-emerald-800 ring-emerald-200"
+              }`}
               aria-label={t.account.sellerStatusLabel}
             >
               <option value="draft">{t.account.sellerStatusDraft}</option>
