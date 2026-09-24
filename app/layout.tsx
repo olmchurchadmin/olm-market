@@ -10,6 +10,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { SiteNoticeBanner } from "@/components/site-notice-banner";
 import { TradeStatusBar } from "@/components/trade-status-bar";
+import { VisitBeacon } from "@/components/visit-beacon";
 import { getCurrentProfile } from "@/lib/auth";
 import { getBoardUnreadCount } from "@/lib/board/unread";
 import { getI18n } from "@/lib/i18n/server";
@@ -65,6 +66,7 @@ export default async function RootLayout({
               <SiteFooter />
               <TradeStatusBar />
               <NotificationToast />
+              <VisitBeacon />
             </NotificationsProvider>
           </ConfirmDialogProvider>
         </LocaleProvider>

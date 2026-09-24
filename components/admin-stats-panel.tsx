@@ -1,6 +1,12 @@
 "use client";
 
-import { ArrowPathIcon, ChartBarIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowPathIcon,
+  ChartBarIcon,
+  ComputerDesktopIcon,
+  DevicePhoneMobileIcon,
+  UsersIcon,
+} from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { SalesDonationRing } from "@/components/admin-sales-donation-ring";
@@ -10,10 +16,10 @@ import {
   loadAdminStatsRangeAction,
   resetAdminStatsAction,
 } from "@/lib/actions/admin-stats";
-import type { AdminStats } from "@/lib/types";
+import type { AdminStats, StatsRange } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
 
-type StatsRange = "all" | "week" | "month";
+type PanelRange = Extract<StatsRange, "day" | "month" | "year" | "all">;
 
 function StatCard({
   label,
@@ -50,13 +56,13 @@ export function AdminStatsPanel({
   initialRange,
 }: {
   initialStats: AdminStats;
-  initialRange: StatsRange;
+  initialRange: PanelRange;
 }) {
   const { locale, t } = useI18n();
   const router = useRouter();
   const confirm = useConfirm();
-  const [range, setRange] = useState<StatsRange>(initialRange);
-  const [cache, setCache] = useState<Partial<Record<StatsRange, AdminStats>>>({
+  const [range, setRange] = useState<PanelRange>(initialRange);
+  const [cache, setCache] = useState<Partial<Record<PanelRange, AdminStats>>>({
     [initialRange]: initialStats,
   });
   const [error, setError] = useState<string | null>(null);
@@ -68,13 +74,14 @@ export function AdminStatsPanel({
     locale,
   );
 
-  const rangeTabs: { key: StatsRange; label: string }[] = [
-    { key: "all", label: t.admin.rangeAll },
-    { key: "week", label: t.admin.rangeWeek },
+  const rangeTabs: { key: PanelRange; label: string }[] = [
+    { key: "day", label: t.admin.rangeDay },
     { key: "month", label: t.admin.rangeMonth },
+    { key: "year", label: t.admin.rangeYear },
+    { key: "all", label: t.admin.rangeAll },
   ];
 
-  function selectRange(next: StatsRange) {
+  function selectRange(next: PanelRange) {
     setRange(next);
     window.history.replaceState(null, "", `/admin?tab=stats&range=${next}`);
     if (cache[next]) return;
@@ -155,39 +162,79 @@ export function AdminStatsPanel({
       </div>
 
       <div
-        className={`mt-5 grid gap-4 lg:grid-cols-2 ${
+        className={`mt-5 space-y-4 ${
           rangePending && !cache[range] ? "opacity-60" : ""
         }`}
       >
-        <SalesDonationRing
-          salesCents={stats.gmv_cents ?? 0}
-          donationCents={stats.donation_cents ?? 0}
-          salesLabel={t.admin.totalSales}
-          donationLabel={t.admin.totalDonation}
-          formatMoney={(cents) => formatPrice(cents, locale)}
-        />
-        <div className="grid grid-cols-2 gap-4">
-          <StatCard
-            label={t.admin.listings}
-            value={stats.new_listings ?? 0}
+        <div>
+          <h3 className="text-sm font-semibold text-foreground">
+            {t.admin.visitors}
+          </h3>
+          <p className="mt-0.5 text-xs text-ink-muted">
+            {t.admin.visitorsHint}
+          </p>
+          <div className="mt-3 grid gap-4 sm:grid-cols-3">
+            <div className="rounded-lg border border-brand/10 bg-white/70 p-4">
+              <p className="inline-flex items-center gap-1.5 text-sm text-ink-muted">
+                <UsersIcon className="size-4" aria-hidden />
+                {t.admin.visitorsTotal}
+              </p>
+              <p className="mt-2 font-[family-name:var(--font-display)] text-3xl text-foreground">
+                {stats.visitors_total ?? 0}
+              </p>
+            </div>
+            <div className="rounded-lg border border-brand/10 bg-white/70 p-4">
+              <p className="inline-flex items-center gap-1.5 text-sm text-ink-muted">
+                <ComputerDesktopIcon className="size-4" aria-hidden />
+                {t.admin.visitorsDesktop}
+              </p>
+              <p className="mt-2 font-[family-name:var(--font-display)] text-3xl text-foreground">
+                {stats.visitors_desktop ?? 0}
+              </p>
+            </div>
+            <div className="rounded-lg border border-brand/10 bg-white/70 p-4">
+              <p className="inline-flex items-center gap-1.5 text-sm text-ink-muted">
+                <DevicePhoneMobileIcon className="size-4" aria-hidden />
+                {t.admin.visitorsMobile}
+              </p>
+              <p className="mt-2 font-[family-name:var(--font-display)] text-3xl text-foreground">
+                {stats.visitors_mobile ?? 0}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <SalesDonationRing
+            salesCents={stats.gmv_cents ?? 0}
+            donationCents={stats.donation_cents ?? 0}
+            salesLabel={t.admin.totalSales}
+            donationLabel={t.admin.totalDonation}
+            formatMoney={(cents) => formatPrice(cents, locale)}
           />
-          <StatCard label={t.admin.sold} value={stats.sold ?? 0} />
-          <StatCard
-            label={t.admin.totalUsers}
-            value={stats.total_users ?? 0}
-          />
-          <StatCard
-            label={t.admin.activeUsers}
-            value={stats.active_users ?? 0}
-          />
-          <StatCard
-            label={t.admin.awaitingDropoff}
-            value={stats.orders_awaiting_dropoff ?? 0}
-          />
-          <StatCard
-            label={t.admin.readyForPickup}
-            value={stats.orders_ready_for_pickup ?? 0}
-          />
+          <div className="grid grid-cols-2 gap-4">
+            <StatCard
+              label={t.admin.listings}
+              value={stats.new_listings ?? 0}
+            />
+            <StatCard label={t.admin.sold} value={stats.sold ?? 0} />
+            <StatCard
+              label={t.admin.totalUsers}
+              value={stats.total_users ?? 0}
+            />
+            <StatCard
+              label={t.admin.activeUsers}
+              value={stats.active_users ?? 0}
+            />
+            <StatCard
+              label={t.admin.awaitingDropoff}
+              value={stats.orders_awaiting_dropoff ?? 0}
+            />
+            <StatCard
+              label={t.admin.readyForPickup}
+              value={stats.orders_ready_for_pickup ?? 0}
+            />
+          </div>
         </div>
       </div>
     </section>

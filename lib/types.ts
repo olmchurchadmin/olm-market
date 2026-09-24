@@ -146,6 +146,9 @@ export type AdminStats = {
   orders_awaiting_dropoff: number;
   orders_ready_for_pickup: number;
   stats_reset_at?: string | null;
+  visitors_total?: number;
+  visitors_desktop?: number;
+  visitors_mobile?: number;
 };
 
 export type StatsRange = "day" | "week" | "month" | "year" | "all";

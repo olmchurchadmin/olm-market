@@ -18,7 +18,7 @@ import type { AdminStats, Category, Listing, SiteBanner } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-type StatsRange = "all" | "week" | "month";
+type StatsRange = "day" | "month" | "year" | "all";
 
 function parseTab(raw: string | undefined): AdminTab {
   if (
@@ -36,7 +36,7 @@ function parseTab(raw: string | undefined): AdminTab {
 }
 
 function parseRange(raw: string | undefined): StatsRange {
-  if (raw === "week" || raw === "month" || raw === "all") {
+  if (raw === "day" || raw === "month" || raw === "year" || raw === "all") {
     return raw;
   }
   return "all";

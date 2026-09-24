@@ -4,9 +4,9 @@ import { revalidatePath } from "next/cache";
 import { getI18n } from "@/lib/i18n/server";
 import { isStaffRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import type { AdminStats } from "@/lib/types";
+import type { AdminStats, StatsRange } from "@/lib/types";
 
-type StatsRange = "all" | "week" | "month";
+type PanelRange = Extract<StatsRange, "day" | "month" | "year" | "all">;
 
 async function requireAdminClient() {
   const { t } = await getI18n();
@@ -40,7 +40,7 @@ async function requireAdminClient() {
   return { ok: true as const, error: null as null, supabase };
 }
 
-export async function loadAdminStatsRangeAction(range: StatsRange) {
+export async function loadAdminStatsRangeAction(range: PanelRange) {
   const auth = await requireAdminClient();
   if (!auth.ok || !auth.supabase) {
     return { ok: false as const, error: auth.error };
